@@ -1,4 +1,21 @@
-CStudioForms.Controls.RTE = CStudioForms.Controls.RTE ||  
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+CStudioForms.Controls.RTE = CStudioForms.Controls.RTE ||
 function(id, form, owner, properties, constraints, readonly, pencilMode)  {
 	this.owner = owner;
 	this.owner.registerField(this);
@@ -466,7 +483,11 @@ YAHOO.extend(CStudioForms.Controls.RTE, CStudioForms.CStudioFormField, {
 			}
 		}
 
-		var pluginList = "paste, noneditable, cs_table, cs_inlinepopups, lists, ";  //cs_contextmenu - contextual nav
+		var pluginList = "advhr, cs_inlinepopups, cs_table, directionality, emotions, " +
+						 "fullscreen, inlinepopups, insertdatetime, layer, media, " +
+						 "nonbreaking, paste, preview, searchreplace, " +
+						 "style, table, template, visualblocks, visualchars, wordcount, xhtmlxtras, ";
+						 
 		for(var l=0; l<rteConfig.rteModules.module.length; l++) {
 			// mce plugin names cannot have a - in them
 			pluginList += "-"+rteConfig.rteModules.module[l].replace(/-/g,"")+",";

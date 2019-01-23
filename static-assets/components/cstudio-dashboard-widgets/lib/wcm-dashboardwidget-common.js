@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 var YDom = YAHOO.util.Dom;
 var YEvent = YAHOO.util.Event;
 var subChildren = null;
@@ -503,7 +520,7 @@ WcmDashboardWidgetCommon.init = function (instance) {
                             var searchNumber = searchLimitInput.value;
 
                             //added to protect non numeric input.
-                            if (event.keyCode == "13") {
+                            if (event.keyCode == "13" || event.type === "blur") {
                                 if (!isInt(searchNumber)) { //execute the ajax only if its a number
                                     searchLimitInput.value = instance.defaultSearchNumber;
                                     searchNumber = searchLimitInput.value;
@@ -538,6 +555,8 @@ WcmDashboardWidgetCommon.init = function (instance) {
                             //insert default value if invalid
                             if (!isInt(searchNum)) {
                                 searchLimitInput.value = instance.defaultSearchNumber;
+                            }else{
+                                searchLimitInputEvent(event);
                             }
                         };
 
@@ -787,6 +806,7 @@ WcmDashboardWidgetCommon.editItem = function (matchedElement, isChecked) {
 
     var editCallback = {
         success: function (contentTO, editorId, name, value, draft) {
+            matchedElement.style.pointerEvents = "auto";
             if(CStudioAuthoringContext.isPreview){
                 try{
                     CStudioAuthoring.Operations.refreshPreview();

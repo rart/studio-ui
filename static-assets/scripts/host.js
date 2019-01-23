@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 (function ($, window, amplify, CStudioAuthoring) {
     'use strict';
 
@@ -7,7 +24,8 @@
 
     var cstopic = crafter.studio.preview.cstopic;
     var Topics = crafter.studio.preview.Topics;
-    var origin = window.location.origin; // 'http://127.0.0.1:8080';
+    var previewAppBaseUri = CStudioAuthoringContext.previewAppBaseUri || "";
+    var origin = previewAppBaseUri; // 'http://127.0.0.1:8080';
     var communicator = new crafter.studio.Communicator(origin);
     var previewWidth;
     // CStudioAuthoring.Utils.Cookies.readCookie('crafterSite')
@@ -30,6 +48,11 @@
 
         var isWrite = false;
         var par = [];
+        var currentPath = (message.itemId) ? message.itemId : CStudioAuthoring.SelectedContent.getSelectedContent()[0].uri;
+        var cachePermissionsKey = CStudioAuthoringContext.site+'_'+currentPath+'_'+CStudioAuthoringContext.user+'_permissions',
+            isPermissionCached = cache.get(cachePermissionsKey),
+            cacheContentKey = CStudioAuthoringContext.site+'_'+currentPath+'_'+CStudioAuthoringContext.user+'_content',
+            isContentCached = cache.get(cacheContentKey);
         var isLockOwner = function (lockOwner){
             if (lockOwner != '' && lockOwner != null && CStudioAuthoringContext.user != lockOwner) {
                 par = [];
@@ -57,9 +80,11 @@
             failure: function() {
             }
         };
-        var currentPath = (message.itemId) ? message.itemId : CStudioAuthoring.SelectedContent.getSelectedContent()[0].uri;
         var editPermsCallback = {
             success: function (response) {
+                if(!isPermissionCached){
+                    cache.set(cachePermissionsKey, response.permissions, CStudioAuthoring.Constants.CACHE_TIME_PERMISSION);
+                }
                 isWrite = CStudioAuthoring.Service.isWrite(response.permissions);
                 if (!isWrite) {
                     par.push({name: "readonly"});
@@ -78,6 +103,9 @@
                 } else {
                     var getContentItemsCb = {
                         success: function (contentTO) {
+                            if(!isContentCached){
+                                cache.set(cacheContentKey, contentTO.item, CStudioAuthoring.Constants.CACHE_TIME_GET_CONTENT_ITEM);
+                            }
                             isLockOwner(contentTO.item.lockOwner);
                             CStudioAuthoring.Operations.performSimpleIceEdit(
                                 contentTO.item,
@@ -93,20 +121,32 @@
                         editCb: editCb
                     };
 
-                    CStudioAuthoring.Service.lookupContentItem(
-                        CStudioAuthoringContext.site,
-                        message.itemId,
-                        getContentItemsCb,
-                        false, false);
+                    if(isContentCached){
+                        var contentTO = {};
+                        contentTO.item = isContentCached;
+                        getContentItemsCb.success(contentTO);
+                    }else {
+                        CStudioAuthoring.Service.lookupContentItem(
+                            CStudioAuthoringContext.site,
+                            message.itemId,
+                            getContentItemsCb,
+                            false, false);
+                    }
 
                 }
             }, failure: function () {}
         }
 
-        CStudioAuthoring.Service.getUserPermissions(
-            CStudioAuthoringContext.site,
-            currentPath,
-            editPermsCallback);
+        if(isPermissionCached){
+            var response = {};
+            response.permissions = isPermissionCached;
+            editPermsCallback.success(response);
+        }else {
+            CStudioAuthoring.Service.getUserPermissions(
+                CStudioAuthoringContext.site,
+                currentPath,
+                editPermsCallback);
+        }
 
     });
 
@@ -122,9 +162,16 @@
                 params.class = 'lock';
             }
         }
+        var cachePermissionsKey = CStudioAuthoringContext.site+'_'+currentPath+'_'+CStudioAuthoringContext.user+'_permissions',
+            isPermissionCached = cache.get(cachePermissionsKey),
+            cacheContentKey = CStudioAuthoringContext.site+'_'+currentPath+'_'+CStudioAuthoringContext.user+'_content',
+            isContentCached = cache.get(cacheContentKey);
 
         var permsCallback = {
             success: function (response) {
+                if(!isPermissionCached){
+                    cache.set(cachePermissionsKey, response.permissions, CStudioAuthoring.Constants.CACHE_TIME_PERMISSION);
+                }
                 var isWrite = CStudioAuthoring.Service.isWrite(response.permissions);
 
                 if (!message.path) {
@@ -137,17 +184,26 @@
                 } else {
                     var itemCallback = {
                         success: function (contentTO) {
+                            if(!isContentCached){
+                                cache.set(cacheContentKey, contentTO.item, CStudioAuthoring.Constants.CACHE_TIME_GET_CONTENT_ITEM);
+                            }
                             isLockOwner(contentTO.item.lockOwner);
                             communicator.publish(Topics.ICE_TOOLS_INDICATOR, params);
                         },failure: function () {}
                     }
 
                     if (isWrite) {
-                        CStudioAuthoring.Service.lookupContentItem(
-                            CStudioAuthoringContext.site,
-                            currentPath,
-                            itemCallback,
-                            false, false);
+                        if(isContentCached){
+                            var contentTO = {};
+                            contentTO.item = isContentCached;
+                            itemCallback.success(contentTO);
+                        }else {
+                            CStudioAuthoring.Service.lookupContentItem(
+                                CStudioAuthoringContext.site,
+                                currentPath,
+                                itemCallback,
+                                false, false);
+                        }
                     } else {
                         params.class = 'read';
                     }
@@ -156,10 +212,16 @@
             },failure: function () {}
         }
 
-        CStudioAuthoring.Service.getUserPermissions(
-            CStudioAuthoringContext.site,
-            currentPath,
-            permsCallback);
+        if(isPermissionCached){
+            var response = {};
+            response.permissions = isPermissionCached;
+            permsCallback.success(response);
+        }else {
+            CStudioAuthoring.Service.getUserPermissions(
+                CStudioAuthoringContext.site,
+                currentPath,
+                permsCallback);
+        }
 
     });
 
@@ -217,6 +279,7 @@
     });
 
     communicator.subscribe(Topics.COMPONENT_DROPPED, function (message) {
+        message.model = initialContentModel;
         amplify.publish(cstopic('COMPONENT_DROPPED'),
             message.type,
             message.path,
@@ -224,7 +287,8 @@
             message.trackingNumber,
             message.zones,
             message.compPath,
-            message.conComp
+            message.conComp,
+            message.model
         );
     });
 
@@ -277,7 +341,7 @@
     });
 
     communicator.subscribe(Topics.OPEN_BROWSE, function (message) {
-        CStudioAuthoring.Operations.openBrowse("", message.path, 1, "select", true, {
+        CStudioAuthoring.Operations.openBrowse("", CStudioAuthoring.Operations.processPathsForMacros(message.path, initialContentModel ), 1, "select", true, {
             success: function (searchId, selectedTOs) {
 
                 for (var i = 0; i < selectedTOs.length; i++) {
@@ -309,6 +373,13 @@
 
     communicator.subscribe(Topics.DND_ZONES_MODEL_REQUEST, function (message) {
         amplify.publish(cstopic('DND_ZONES_MODEL_REQUEST'),
+            message.aNotFound
+        );
+
+    });
+
+    communicator.subscribe(Topics.LOAD_MODEL_REQUEST, function (message) {
+        amplify.publish(cstopic('LOAD_MODEL_REQUEST'),
             message.aNotFound
         );
 
@@ -451,65 +522,65 @@
         var site = CStudioAuthoring.Utils.Cookies.readCookie('crafterSite');
         var siteChanged = false;
 
-        var callback = {
-          success: function(config) {
-            var previewServer = config.previewServer || "";
-            
-            if (hash.site) {
-                CStudioAuthoring.Utils.Cookies.createCookie('crafterSite', hash.site);
-                siteChanged = (site !== hash.site);
-            }
+        if (hash.site) {
+            CStudioAuthoring.Utils.Cookies.createCookie('crafterSite', hash.site);
+            siteChanged = (site !== hash.site);
+        }
 
-            setTimeout(function () {
-                // TODO this thing doesn't work well if document domain is not set on both windows. Problem?
-                try{
-                    if (siteChanged ||
-                        win.contentWindow.location.href.replace(origin, '') !== hash.page) {
-                        win.src = previewServer + hash.page;
-                    }
-                }catch (err){
-                    if (siteChanged ||
-                        win.src.replace(origin, '') !== hash.page) {
-                        win.src = previewServer + hash.page;
-                    }
+        setTimeout(function () {
+            // TODO this thing doesn't work well if document domain is not set on both windows. Problem?
+            try {
+                if (siteChanged ||
+                    win.contentWindow.location.href.replace(origin, '') !== hash.page) {
+                    win.src = previewAppBaseUri + hash.page;
                 }
-
-            });
-
-            var path = hash.page,
-                hashPage = hash.page;
-
-            if(path && path.indexOf(".") != -1) {
-                if(path.indexOf(".html") != -1 || path.indexOf(".xml") != -1 ) {
-                    path = ('/site/website/'+ hashPage).replace('//','/');
-                    path = path.replace('.html', '.xml')
+            } catch (err) {
+                if (siteChanged ||
+                    win.src.replace(origin, '') !== hash.page) {
+                    win.src = previewAppBaseUri + hash.page;
                 }
             }
-            else {
-                if (hash.page && hash.page.indexOf('?') != -1) {
-                    hashPage = hash.page.substring(0, hash.page.indexOf('?'));
-                }
-                if (hash.page && hash.page.indexOf('#') != -1) {
-                    hashPage = hash.page.substring(0, hash.page.indexOf('#'));
-                }
 
-                path = ('/site/website/'+ hashPage+'/index.xml').replace('//','/');
+        });
+
+        var path = hash.page,
+            hashPage = hash.page;
+
+        if (path && path.indexOf(".") != -1) {
+            if (path.indexOf(".html") != -1 || path.indexOf(".xml") != -1) {
+                path = ('/site/website/' + hashPage).replace('//', '/');
+                path = path.replace('.html', '.xml')
+            }
+        }
+        else {
+            if (hash.page && hash.page.indexOf('?') != -1) {
+                hashPage = hash.page.substring(0, hash.page.indexOf('?'));
+            }
+            if (hash.page && hash.page.indexOf('#') != -1) {
+                hashPage = hash.page.substring(0, hash.page.indexOf('#'));
+            }
+            if (hash.page && hash.page.indexOf(';') != -1) {
+                hashPage = hash.page.substring(0, hash.page.indexOf(';'));
             }
 
-            path =  path.replace('//','/');
+            path = ('/site/website/'+ hashPage+'/index.xml').replace('//','/');
+        }
 
-            CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, {
-                success: function(content) {
-                    CStudioAuthoring.SelectedContent.setContent(content.item);
-                }
-            });
-          },
-          failure: function(response) {
-            console.error("Can't load site-config.xml file:", response);
-          }
-        };
+        path = path.replace('//', '/');
 
-        CStudioAuthoring.Service.getConfiguration(site, "/site-config.xml", callback);
+        CStudioAuthoring.Service.lookupContentItem(CStudioAuthoringContext.site, path, {
+            success: function (content) {
+                CStudioAuthoring.SelectedContent.setContent(content.item);
+            }
+        });
+
+        new ResizeSensor($('.navbar-default'), function () {
+            if ($('.navbar-default').height() > 55) {
+                $('.studio-preview').css('top', 100 + "px");
+            } else {
+                $('.studio-preview').css('top', 50 + "px");
+            }
+        });
 
     }
 

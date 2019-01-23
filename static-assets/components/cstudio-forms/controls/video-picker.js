@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 CStudioForms.Controls.VideoPicker = CStudioForms.Controls.VideoPicker ||
     function(id, form, owner, properties, constraints, readonly)  {
         this.owner = owner;
@@ -14,6 +31,7 @@ CStudioForms.Controls.VideoPicker = CStudioForms.Controls.VideoPicker ||
         this.upload_dialog = null;
         this.validExtensions = ["MOV", "mov", "MP4", "mp4", "wmv", "WMV", "webm"];
         this.readonly = readonly;
+        this.external = null;
 
         return this;
     }
@@ -78,9 +96,10 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
         var divIdName = "cstudio-wcm-popup-div";
         newdiv.setAttribute("id",divIdName);
         newdiv.className= "yui-pe-content video-dialog";
+        var url = !this.external ? CStudioAuthoringContext.previewAppBaseUri : '' + this.inputEl.value;
 
         newdiv.innerHTML = '<embed src=\"' +
-            CStudioAuthoringContext.previewAppBaseUri + this.inputEl.value + '\" width=\"500px\" height=\"500px\"></embed>' +
+            url + '\" width=\"500px\" height=\"500px\"></embed>' +
             '<input type="button" class="zoom-button btn btn-primary cstudio-form-control-asset-picker-zoom-cancel-button" id="zoomCancelButton" value="Close"/>'+
             '<input type="button" class="zoom-button btn btn-primary cstudio-form-control-asset-picker-zoom-full-button" id="zoomFullButton" value="Full"/>';
 
@@ -99,7 +118,7 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
         // Render the Dialog
         upload_dialog.render();
         YAHOO.util.Event.addListener("zoomCancelButton", "click", this.uploadPopupCancel, this, true);
-        YAHOO.util.Event.addListener("zoomFullButton", "click", function() {this.fullImageTab(CStudioAuthoringContext.previewAppBaseUri + this.inputEl.value);}, this, true);
+        YAHOO.util.Event.addListener("zoomFullButton", "click", function() {this.fullImageTab(!this.external ? CStudioAuthoringContext.previewAppBaseUri : '' + this.inputEl.value);}, this, true);
         this.upload_dialog = upload_dialog;
         upload_dialog.show();
     },
@@ -473,12 +492,12 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
         this.value = value;
         this.inputEl.value = value;
 
-        var external = value.indexOf("?crafterCMIS=true") !== -1;
+        this.external = value.indexOf("?crafterCMIS=true") !== -1 || value.indexOf('http') <= 0;
 
         if (value == null || value == '') {
             this.noPreviewEl.style.display = "inline";
         } else {
-            if(external){
+            if(this.external){
                 this.previewEl.src = value;
             }else{
                 this.previewEl.src = CStudioAuthoringContext.previewAppBaseUri + value;
@@ -487,10 +506,11 @@ YAHOO.extend(CStudioForms.Controls.VideoPicker, CStudioForms.CStudioFormField, {
             this.previewEl.style.display = "block";
             this.previewEl.setAttribute("controls", "true");
             this.noPreviewEl.style.display = "none";
-            this.urlEl.innerHTML = external ? value.replace("?crafterCMIS=true","") : value;
+            this.urlEl.innerHTML = this.external ? value.replace("?crafterCMIS=true","") : value;
 
             this.zoomEl.style.display = "inline-block";
             this.downloadEl.style.display = "inline-block";
+            this.downloadEl.href = this.external ? value.replace("?crafterCMIS=true","") : value;
             this.addEl.value = CMgs.format(langBundle, "replace");
             this.delEl.disabled = false;
             YAHOO.util.Dom.removeClass(this.delEl, 'cstudio-button-disabled');

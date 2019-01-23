@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 (function() {
     var YDom = YAHOO.util.Dom,
     	YEvent = YAHOO.util.Event,
@@ -2368,7 +2385,9 @@
                                                         p_aArgs.addItems([ menuItems.changeTemplateOption ]);
                                                     }
                                                     p_aArgs.addItems([ menuItems.separator ]);
-                                                    p_aArgs.addItems([ menuItems.copyOption ]);
+                                                    if(isCreateContentAllowed){
+                                                        p_aArgs.addItems([ menuItems.copyOption ]);
+                                                    }
 						                        } else {
 						                        	p_aArgs.addItems([ menuItems.viewOption ]);
                                                     if (isCreateContentAllowed) {
@@ -2443,7 +2462,7 @@
                                             Self.copiedItem = Self.myTree.getNodeByProperty("uri", collection.item[0].uri.replace(/\/\//g,"/"));
                                         }
                                         
-                                        if(isWrite && ("/site/website/index.xml" != oCurrentTextNode.data.uri) && ("folder" != oCurrentTextNode.data.contentType)){
+                                        if(isWrite && isCreateContentAllowed && ("/site/website/index.xml" != oCurrentTextNode.data.uri) && ("folder" != oCurrentTextNode.data.contentType)){
                                             p_aArgs.addItems([ menuItems.duplicateOption ]);
                                         }
 
@@ -2455,12 +2474,14 @@
                                         }
 
                                         if(oCurrentTextNode.data.contentType != "folder") {
-                                            p_aArgs.addItems([ menuItems.separator ]);
+                                            if(isCreateContentAllowed){
+                                                p_aArgs.addItems([ menuItems.separator ]);
+                                            }
                                             publishAllowed();
                                             dependenciesAllowed();
                                         }
 
-			                            if(isUserAllowed) {
+			                            if(isUserAllowed && !isFolder) {
 			                            	this.args.addItems([ menuItems.separator ]);
 			                            	this.args.addItems([ menuItems.revertOption ]);
 		                   	            }

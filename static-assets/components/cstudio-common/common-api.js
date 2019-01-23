@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /**
  *  Common API
  *  Utilities: General purpose functions
@@ -64,6 +81,9 @@ var nodeOpen = false,
      * authoring object
      */
     if (typeof CStudioAuthoring == "undefined" || !CStudioAuthoring) CStudioAuthoring = {
+
+        processing: false,
+        compConfProcessing: false,
 
         UIBuildId: window.UIBuildId,
 
@@ -198,6 +218,10 @@ var nodeOpen = false,
             CONFIG_FILES_PATH_ADMIN: '/config',
             IMAGE_VALID_EXTENSIONS: ["jpg", "jpeg", "gif", "png", "tiff", "tif", "bmp", "svg", "JPG", "JPEG", "GIF", "PNG", "TIFF", "TIF", "BMP", "SVG"],
             MAX_INT_VALUE: 2147483647,
+            CACHE_TIME_CONFIGURATION: 900000,
+            CACHE_TIME_PERMISSION: 900000,
+            CACHE_TIME_GET_CONTENT_ITEM: 0,
+            CACHE_TIME_GET_ROLES: 900000 ,
             MIMETYPES :  {
                 "navPage": { class: "fa-file" },
                 "floatingPage": { class: "fa-file-o" },
@@ -572,7 +596,9 @@ var nodeOpen = false,
                 var dialogId = id;
 
                 if(!buttonsArray) {
-                    buttonsArray = [{ text: "OK",  handler:function(){this.hide();}, isDefault:false }];
+                    buttonsArray = [{ text: "OK",  handler:function(){
+                        this.destroy();
+                    },isDefault:false }];
                 };
 
                 var dialog = new YAHOO.widget.SimpleDialog(dialogId,
@@ -1312,6 +1338,61 @@ var nodeOpen = false,
                     }
                 }
 
+            },
+
+            /**
+             * open a browse page for WebDAV repo
+             */
+            openWebDAVBrowse: function(path, profileId, baseUrl, mode, newWindow, callback, filter = 'none') {
+                var searchId = null;
+                var searchContext = CStudioAuthoring.Service.createSearchContext();
+                var openInSameWindow = (newWindow) ? false : true;
+                var browseUrl = CStudioAuthoringContext.authoringAppBaseUri +
+                   "/browseWebDAV?site=" +
+                   CStudioAuthoringContext.site;
+                if (path) {
+                   browseUrl += "&path=" + path;
+                }
+                if(profileId){
+                   browseUrl += "&profileId=" + profileId;
+                }
+                if(filter !== 'none'){
+                    browseUrl += "&filter=" + filter;
+                }
+                if(baseUrl){
+                   browseUrl += "&baseUrl=" + baseUrl;
+                }
+                if (!CStudioAuthoring.Utils.isEmpty(mode)) {
+                   browseUrl += "&mode=" + mode;
+                }
+                var childSearch = null;
+                if (!searchId || searchId == null || searchId == "undefined"
+                   || !CStudioAuthoring.ChildSearchManager.searches[searchId]) {
+                   childSearch = CStudioAuthoring.ChildSearchManager.createChildSearchConfig();
+                   childSearch.openInSameWindow = openInSameWindow;
+                   searchId = CStudioAuthoring.Utils.generateUUID();
+                    childSearch.searchId = searchId;
+                   childSearch.searchUrl = browseUrl + "&searchId=" + searchId;
+                   childSearch.saveCallback = callback;
+                    CStudioAuthoring.ChildSearchManager.openChildSearch(childSearch);
+                }
+               else {
+                   if (window.opener) {
+                        if (window.opener.CStudioAuthoring) {
+                            var openerChildSearchMgr = window.opener.CStudioAuthoring.ChildSearchManager;
+                            if (openerChildSearchMgr) {
+                                childSearch = openerChildSearchMgr.searches[searchId];
+                               childSearch.searchUrl = browseUrl;
+                                openerChildSearchMgr.openChildSearch(childSearch);
+                           }
+                       }
+                   }
+                   else {
+                       childSearch = CStudioAuthoring.ChildSearchManager.searches[searchId];
+                       childSearch.searchUrl = browseUrl;
+                        CStudioAuthoring.ChildSearchManager.openChildSearch(childSearch);
+                   }
+               }
             },
 
             refreshPreviewParent: function() {
@@ -2664,6 +2745,35 @@ var nodeOpen = false,
                 CStudioAuthoring.Module.requireModule("jquery-cropper", "/static-assets/libs/cropper/dist/cropper.js");
             },
 
+            uploadWebDAVAsset: function(site, path, profileId, uploadCb) {
+                CStudioAuthoring.Operations.openWebDAVUploadDialog(site, path, profileId, uploadCb);                  
+            },
+             /**
+             *  opens a dialog to upload an asset to webdav server
+             */
+            openWebDAVUploadDialog: function(site, path, profileId, callback) {
+                 var serviceUri = CStudioAuthoring.Service.writeWebDAVContentUri;
+                 var openUploadDialogCb = {
+                    moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
+                        dialogClass.showDialog(
+                            moduleConfig.site, 
+                            moduleConfig.path, 
+                            moduleConfig.profile, 
+                            moduleConfig.serviceUri, 
+                            moduleConfig.callback);
+                    }
+                };
+                 var moduleConfig = {
+                    path: encodeURI(path),
+                    site: site,
+                    profile: profileId,
+                    serviceUri: serviceUri,
+                    callback: callback
+                }
+                 CSA.Utils.addCss('/static-assets/themes/cstudioTheme/css/icons.css');
+                 CStudioAuthoring.Module.requireModule("upload-webdav-dialog", "/static-assets/components/cstudio-dialogs/uploadWebDAV-dialog.js", moduleConfig, openUploadDialogCb);
+            },
+
             cropperImage: function(site, Message, imageData, imageWidth, imageHeight, aspectRatio, repoImage, callback) {
                 CStudioAuthoring.Operations.openCropDialog(site, Message, imageData, imageWidth, imageHeight, aspectRatio, repoImage, callback);
             },
@@ -2760,8 +2870,53 @@ var nodeOpen = false,
                 }
 
                 CStudioAuthoring.Module.requireModule("rename-folder-dialog", "/static-assets/components/cstudio-dialogs/rename-folder.js", moduleConfig, openCreateFolderDialogCb);
-            }
+            },
 
+            /**
+             * handle macros in file paths
+             */
+            processPathsForMacros: function(path, model) {
+
+                if(path.indexOf("{objectId}") != -1) {
+                    path = path.replace("{objectId}", model["objectId"]);
+                }
+
+                if(path.indexOf("{objectGroupId}") != -1) {
+                    path = path.replace("{objectGroupId}", model["objectGroupId"]);
+                }
+
+                if(path.indexOf("{objectGroupId2}") != -1) {
+                    path = path.replace("{objectGroupId2}", model["objectGroupId"].substring(0,2))
+                }
+
+                /* Date macros */
+                var currentDate = new Date();
+                if(path.indexOf("{year}") != -1) {
+                    path = path.replace("{year}", currentDate.getFullYear());
+                }
+
+                if(path.indexOf("{month}") != -1) {
+                    path = path.replace("{month}", ("0" + (currentDate.getMonth() + 1)).slice(-2));
+                }
+
+                if(path.indexOf("{parentPath}") != -1) {
+                    path = path.replace("{parentPath}", CStudioAuthoring.Utils.getQueryParameterByName("path").replace(/\/[^\/]*\/[^\/]*\/([^\.]*)(\/[^\/]*\.xml)?$/, "$1"));
+                }
+
+                if(path.indexOf("{yyyy}") != -1) {
+                    path = path.replace("{yyyy}", currentDate.getFullYear());
+                }
+
+                if(path.indexOf("{mm}") != -1) {
+                    path = path.replace("{mm}", ("0" + (currentDate.getMonth() + 1)).slice(-2));
+                }
+
+                if(path.indexOf("{dd}") != -1) {
+                    path = path.replace("{dd}", ("0" + (currentDate.getDate())).slice(-2));
+                }
+
+                return path;
+            }
 
         },
         /**
@@ -2924,6 +3079,10 @@ var nodeOpen = false,
             getCMISContentBySearchUri: "/api/1/services/api/1/cmis/search.json",
             getCMISContentByBrowseUri: "/api/1/services/api/1/cmis/list.json",
             getCMISCloneUri: "/api/1/services/api/1/cmis/clone.json",
+
+            //WEBDAV
+            getWebDAVContentByBrowseUri: "/api/1/services/api/1/webdav/list.json",
+            writeWebDAVContentUri: "/api/1/services/api/1/webdav/upload.json",
 
             // WRITE OPS
             getRevertContentServiceUrl: "/api/1/services/api/1/content/revert-content.json",
@@ -4073,16 +4232,27 @@ var nodeOpen = false,
                 var serviceUrl = this.getUserInfoServiceURL;
                 serviceUrl += "?username=" + CStudioAuthoringContext.user;
 
+                var cacheRolesKey = CStudioAuthoringContext.site+'_Roles_'+CStudioAuthoringContext.user,
+                    rolesCached = cache.get(cacheRolesKey);
+
                 var serviceCallback = {
                     success: function(jsonResponse) {
-                        var results = eval("(" + jsonResponse.responseText + ")");
+                        var results =  jsonResponse.responseText ? eval("(" + jsonResponse.responseText + ")") : jsonResponse;
+                        if(!rolesCached){
+                            cache.set(cacheRolesKey, results, CStudioAuthoring.Constants.CACHE_TIME_GET_ROLES);
+                        }
                         callback.success(results);
                     },
                     failure: function(response) {
                         callback.failure(response);
                     }
                 };
-                YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+                if(rolesCached){
+                    var results = rolesCached;
+                    serviceCallback.success(results);
+                }else{
+                    YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+                }
             },
 
             /**
@@ -5390,6 +5560,25 @@ var nodeOpen = false,
                 };
 
 
+                YConnect.asyncRequest("GET", this.createServiceUri(serviceUri), serviceCallback);
+            },
+
+            getWebDAVContentByBrowser: function(site, profileId, path, callback, filter) {
+                var serviceUri = this.getWebDAVContentByBrowseUri + "?site_id=" + site + "&profile=" + profileId + "&path=" + path;
+
+                if(filter){
+                    serviceUri += "&type=" + filter;
+                }
+
+                var serviceCallback = {
+                   success: function(response) {
+                       var contentResults = eval("(" + response.responseText + ")");
+                       callback.success(contentResults);
+                   },
+                    failure: function(response) {
+                       callback.failure(response);
+                   }
+               };
                 YConnect.asyncRequest("GET", this.createServiceUri(serviceUri), serviceCallback);
             },
 
@@ -7113,7 +7302,7 @@ var nodeOpen = false,
                         }else{
                             mainIconClass = defaultIcons.navPage.class;
                         }
-                    }else if(treeNodeTO.contentType.toLowerCase().indexOf("taxonomy") !== -1){
+                    }else if(treeNodeTO.contentType && treeNodeTO.contentType.toLowerCase().indexOf("taxonomy") !== -1){
                         mainIconClass = defaultIcons.taxonomy.class;
                     }
                 }

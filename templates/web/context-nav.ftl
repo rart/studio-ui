@@ -1,4 +1,21 @@
 
+<!--
+  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
 <div id="studioBar" class="studio-view">
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
         <div class="container-fluid">
@@ -41,7 +58,7 @@
                                 <span class="nav-label"><span data-translation="help">Help</span><span class="caret"></span></span>
                             </a>
                             <ul class="dropdown-menu" role="menu">
-                                <li><a href="http://docs.craftercms.org" target="_blank" data-translation="documentation">Documentation</a></li>
+                                <li><a href="https://docs.craftercms.org/en/3.0/index.html" target="_blank" data-translation="documentation">Documentation</a></li>
                                 <li><a href="/studio/#/about-us" data-translation="about">About</a></li>
                             </ul>
                         </li>

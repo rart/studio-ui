@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 var YDom = YAHOO.util.Dom;
 // YConnect.setDefaultPostHeader(false);
 //                YConnect.initHeader("Content-Type", "application/xml; charset=utf-8");
@@ -40,8 +57,8 @@ CStudioAuthoring.Dialogs.CropDialog = CStudioAuthoring.Dialogs.CropDialog || {
         if(window.frameElement){
             var id = window.frameElement.getAttribute("id").split("-editor-")[1];
 
-            var getFormSizeVal = getFormSize ? getFormSize : parent.getFormSize;
-            var setFormSizeVal = setFormSize ? setFormSize : parent.setFormSize;
+            var getFormSizeVal = typeof getFormSize === 'function' ? getFormSize : parent.getFormSize;
+            var setFormSizeVal = typeof setFormSize === 'function' ? setFormSize : parent.setFormSize;
             var formSize = getFormSizeVal(id);
             if(formSize < 320){
                 setFormSizeVal(320, id);
@@ -446,8 +463,8 @@ CStudioAuthoring.Dialogs.CropDialog = CStudioAuthoring.Dialogs.CropDialog || {
     increaseFormDialogForCrop: function(){
         if( window.frameElement) {
             var id = window.frameElement.getAttribute("id").split("-editor-")[1];
-            var getFormSizeVal = getFormSize ? getFormSize : parent.getFormSize;
-            var setFormSizeVal = setFormSize ? setFormSize : parent.setFormSize;
+            var getFormSizeVal = typeof getFormSize === 'function' ? getFormSize : parent.getFormSize;
+            var setFormSizeVal = typeof setFormSize === 'function' ? setFormSize : parent.setFormSize;
             var formSize = getFormSizeVal(id);
             if (formSize < 557) {
                 setFormSizeVal(557, id);

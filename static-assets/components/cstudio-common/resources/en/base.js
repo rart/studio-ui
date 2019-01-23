@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 CStudioAuthoring.Messages.registerBundle("siteDashboard", "en", {
     dashboardTitle: "Dashboard",
 
@@ -501,7 +518,8 @@ CStudioAuthoring.Messages.registerBundle("forms", "en", {
     numberPerPage: "Enter a number in show item per page.",
     revertError: "Revert failed.",
     legacyError: "legacy form server is no longer supported",
-    contentTypesEmpty: "There are no content types available that can be created at the configured path."
+    contentTypesEmpty: "There are no content types available that can be created at the configured path.",
+    componentCategoriesError: "There are no categories available that can be created."
 });
 
 CStudioAuthoring.Messages.registerBundle("search", "en", {
@@ -653,6 +671,12 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     /*Datasources */
     childContent: "Child Content",
     imageUploadedDesktop: "Image Uploaded From Desktop",
+    WebDAVUploadImage: "Image Uploaded to WebDav Repository",
+    WebDAVUploadVideo: "Video Uploaded to WebDav Repository",
+    imageWebDavRepository:"Image From WebDav Repository",
+    videoWebDavRepository:"Video From WebDav Repository",
+    fileWebDavRepository:"File From WebDav Repository",
+    fileUploadedWebDavRepository:"File Uploaded to WebDav Repository",
     DAMImage: "DAM Image Flickr",
     fileUploadedDesktop: "File Uploaded From Desktop",
     flashUploadedDesktop: "Flash Uploaded from Desktop",
@@ -697,6 +721,7 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "en", {
     showSelectAll: 'Show "Select All"',
     allowEmptyValue: "Allow Empty Value",
     thumbnailWidth: "Thumbnail Width",
+    thumbnailHeight: "Thumbnail Height",
     displaySize: "Display Size",
     text: "Text",
     minSize: "Min Size",

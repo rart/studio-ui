@@ -1,5 +1,22 @@
 <#include "/templates/system/common/versionInfo.ftl" />
 <#if envConfig.site?? == false || envConfig.site == "">
+<!--
+  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
 <meta http-equiv="refresh" content="0;URL='/studio/user-dashboard/#/sites/all'" />
 <#else>
 
@@ -41,6 +58,8 @@
 <script src="/studio/static-assets/libs/jquery/dist/jquery.js?version=${UIBuildId!.now?string('Mddyyyy')}"></script>
 <script src="/studio/static-assets/libs/jquery-ui/jquery-ui.js?version=${UIBuildId!.now?string('Mddyyyy')}"></script>
 <script src="/studio/static-assets/yui/bubbling.v1.5.0-min.js?version=${UIBuildId!.now?string('Mddyyyy')}" type="text/javascript"></script>
+<script src="/studio/static-assets/libs/css-element-queries/ElementQueries.js?version=${UIBuildId!.now?string('Mddyyyy')}"></script>
+<script src="/studio/static-assets/libs/css-element-queries/ResizeSensor.js?version=${UIBuildId!.now?string('Mddyyyy')}"></script>
 
 
 <script>document.domain = "${cookieDomain}";</script>

@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 var openerChildformMgr;
 var parentWindowLocation;
 
@@ -105,45 +122,7 @@ var CStudioForms = CStudioForms || function() {
             processPathsForMacros: function(path) {
                 var model = this.form.model;
 
-                if(path.indexOf("{objectId}") != -1) {
-                    path = path.replace("{objectId}", model["objectId"]);
-                }
-
-                if(path.indexOf("{objectGroupId}") != -1) {
-                    path = path.replace("{objectGroupId}", model["objectGroupId"]);
-                }
-
-                if(path.indexOf("{objectGroupId2}") != -1) {
-                    path = path.replace("{objectGroupId2}", model["objectGroupId"].substring(0,2))
-                }
-
-                /* Date macros */
-                var currentDate = new Date();
-                if(path.indexOf("{year}") != -1) {
-                    path = path.replace("{year}", currentDate.getFullYear());
-                }
-
-                if(path.indexOf("{month}") != -1) {
-                    path = path.replace("{month}", ("0" + (currentDate.getMonth() + 1)).slice(-2));
-                }
-
-                if(path.indexOf("{parentPath}") != -1) {
-                    path = path.replace("{parentPath}", CStudioAuthoring.Utils.getQueryParameterByName("path").replace(/\/[^\/]*\/[^\/]*\/([^\.]*)(\/[^\/]*\.xml)?$/, "$1"));
-                }
-
-                if(path.indexOf("{yyyy}") != -1) {
-                    path = path.replace("{yyyy}", currentDate.getFullYear());
-                }
-
-                if(path.indexOf("{mm}") != -1) {
-                    path = path.replace("{mm}", ("0" + (currentDate.getMonth() + 1)).slice(-2));
-                }
-
-                if(path.indexOf("{dd}") != -1) {
-                    path = path.replace("{dd}", ("0" + (currentDate.getDate())).slice(-2));
-                }
-
-                return path;
+                return CStudioAuthoring.Operations.processPathsForMacros(path, model);
             }
         };
 

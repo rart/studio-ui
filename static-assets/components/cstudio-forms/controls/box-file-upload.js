@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 CStudioAuthoring.Utils.addCss('/static-assets/styles/box-file-upload.css');
 CStudioAuthoring.Utils.addJavascript('https://cdn01.boxcdn.net/platform/elements/3.5.1/en-US/picker.js');
 
@@ -30,7 +47,7 @@ function(id, form, owner, properties, constraints, readonly)  {
     }
     var enable_upload = properties.find(function(property){ return property.name === "enable_upload"; });
     if(enable_upload) {
-      this.enable_upload = enable_upload.value;
+      this.enable_upload = enable_upload.value === "true";
     }
     var enable_multi = properties.find(function(property){ return property.name === "enable_multi_selection"; });
     if(enable_multi) {

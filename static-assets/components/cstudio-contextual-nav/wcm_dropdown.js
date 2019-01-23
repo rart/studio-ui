@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 var YDom = YAHOO.util.Dom;
 var YEvent = YAHOO.util.Event;
 
@@ -53,7 +70,7 @@ CStudioAuthoring.ContextualNav.WcmDropDown = CStudioAuthoring.ContextualNav.WcmD
                             '<div id="acn-context-tooltip" class="acn-context-tooltip"></div>' +
                             '<div id="acn-dropdown-menu" style="height:100%" class="acn-dropdown-menu">' +
                                 '<div id="acn-dropdown-menu-inner" class="acn-dropdown-menu-inner unselectable"></div>' +
-                                '<div id="acn-dropdown-footer" class="acn-dropdown-footer"></div>' +
+                                '<div id="acn-dropdown-footer" class="acn-dropdown-footer"><p>'+ entitlementValidator +'</p></div>' +
                             '</div>' +
                         '</div>' +
                         '</div>' +

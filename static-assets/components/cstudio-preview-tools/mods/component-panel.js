@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 (function (CStudioAuthoring, CStudioAuthoringContext, amplify, $) {
 
     var callback = function(isRev){
@@ -79,6 +96,15 @@
 
                                         return;
 
+                                    case "load-components":
+                                        self.rollbackContentMap = CStudioForms.Util.xmlModelToMap(dom);
+                                        // TODO is it requried to send component model to host > guest?
+                                        // self.linkComponentsToModel(contentMap);
+                                        amplify.publish(cstopic('DND_COMPONENTS_MODEL_LOAD'), contentMap);
+                                        amplify.publish('/operation/completed');
+
+                                        return;
+
                                     case "save-components":
                                     case "save-components-new":
                                         CStudioForms.Util.loadFormDefinition(contentMap['content-type'], {
@@ -153,6 +179,10 @@
                             self.getPageModel(item.path, 'init-components', true, false);
                         });
 
+                        amplify.subscribe(cstopic('LOAD_MODEL_REQUEST'), function (item) {
+                            self.getPageModel(item.path, 'load-components', true, false);
+                        });
+
                         var interval = setInterval(function () {
                             if (CStudioAuthoringContext.previewCurrentPath) {
                                 self.init();
@@ -163,7 +193,7 @@
                     }
                 },
 
-                ondrop: function (type, path, isNew, tracking, zones, compPath, conComp) {
+                ondrop: function (type, path, isNew, tracking, zones, compPath, conComp, modelP) {
 
                     if (isNew) {
                         function isNewEvent(value, modelPath){
@@ -188,7 +218,7 @@
                         }
                         if(isNew == true){
                             CStudioAuthoring.Operations.performSimpleIceEdit({
-                                uri: path,
+                                uri: CStudioAuthoring.Operations.processPathsForMacros(path, modelP),
                                 contentType: type
                             }, null, false, {
                                 failure: CStudioAuthoring.Utils.noop,
@@ -252,6 +282,12 @@
                 getPreviewPagePath: function (previewPath) {
                     if(previewPath.indexOf("?") > 0){
                         previewPath = previewPath.split("?")[0];
+                    }
+                    if(previewPath.indexOf('#') > 0){
+                        previewPath = previewPath.split("#")[0];
+                    }
+                    if(previewPath.indexOf(';') > 0){
+                        previewPath = previewPath.split(";")[0];
                     }
                     var pagePath = previewPath.replace(".html", ".xml");
                     if (pagePath.indexOf(".xml") == -1) {
@@ -377,7 +413,7 @@
                             failure: function (err) {
                                 var message = eval("(" + err.responseText + ")");
                                 if (message.message.indexOf('is in system processing') > 0) {
-                                    ComponentsPanel.save(isNew, zones, compPath, conComp);
+                                    ComponentsPanel.save(isNew, zones, compPath?compPath:pagePath, conComp);
                                 }
                                 amplify.publish('/operation/failed');
                             }
@@ -386,14 +422,64 @@
                 },
 
                 expand: function (containerEl, config) {
-                    CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, '/preview-tools/components-config.xml', {
-                        failure: CStudioAuthoring.Utils.noop,
-                        success: function (config) {
-                            amplify.publish(cstopic('START_DRAG_AND_DROP'), {
-                                components: config
-                            });
+                    var self = this,
+                        componentPanelElem = document.getElementById('component-panel-elem');
+
+                    var cacheCompConfKey = CStudioAuthoringContext.site+'_cacheCompConfKey_'+CStudioAuthoringContext.user,
+                        compConfCached;
+
+
+                        var serviceCallback = {
+                            failure: CStudioAuthoring.Utils.noop,
+                            success: function (config) {
+
+                                if(!compConfCached){
+                                   cache.set(cacheCompConfKey, config, CStudioAuthoring.Constants.CACHE_TIME_CONFIGURATION);
+                                   CStudioAuthoring.compConfProcessing = false;
+                                }
+
+                                if (config && config.category) {
+                                    amplify.publish(cstopic('START_DRAG_AND_DROP'), {
+                                        components: config
+                                    });
+                                } else {
+                                    var validationDialog = document.getElementById('expandComponentError');
+                                    if (YDom.hasClass(componentPanelElem, 'expanded')) {
+                                        YDom.replaceClass(componentPanelElem, 'expanded', 'contracted');
+                                        self.collapse(containerEl, config);
+                                    }
+                                    if (!validationDialog) {
+                                        CStudioAuthoring.Operations.showSimpleDialog(
+                                            "expandComponentError",
+                                            CStudioAuthoring.Operations.simpleDialogTypeINFO,
+                                            CMgs.format(formsLangBundle, "notification"),
+                                            CMgs.format(formsLangBundle, "componentCategoriesError"),
+                                            null,
+                                            YAHOO.widget.SimpleDialog.ICON_BLOCK,
+                                            "studioDialog expandComponentError"
+                                        );
+                                    }
+                                }
+
+                            }
                         }
-                    });
+
+                    var getInfo = function(){
+                        if (!CStudioAuthoring.compConfProcessing) {
+                            compConfCached = cache.get(cacheCompConfKey);
+
+                            if (compConfCached) {
+                                var results = compConfCached;
+                                serviceCallback.success(results);
+                            } else {
+                                CStudioAuthoring.compConfProcessing = true;
+                                CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, '/preview-tools/components-config.xml', serviceCallback);
+                            }
+                        }else{
+                            setTimeout(function(){ getInfo(); }, 100);
+                        }
+                    }
+                    getInfo();
                 },
 
                 collapse: function (containerEl, config) {
@@ -1243,6 +1329,7 @@
                                             components: categories,
                                             contentModel: initialContentModel
                                         });
+
                                     });
                                 }
                             });

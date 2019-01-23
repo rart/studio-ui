@@ -1,4 +1,21 @@
-CStudioForms.Controls.Dropdown = CStudioForms.Controls.Dropdown ||  
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+CStudioForms.Controls.Dropdown = CStudioForms.Controls.Dropdown ||
 function(id, form, owner, properties, constraints, readonly)  {
 	this.owner = owner;
 	this.owner.registerField(this);
@@ -164,7 +181,7 @@ YAHOO.extend(CStudioForms.Controls.Dropdown, CStudioForms.CStudioFormField, {
 
                     var configValue = _self.getValue();
                     for(var x = 0; x < _self.inputEl.options.length; x++) {
-                        if(_self.inputEl.options[x].label.toLowerCase() === configValue.toLowerCase()) {
+                        if(_self.inputEl.options[x].value.toLowerCase() === configValue.toLowerCase()) {
                             _self.inputEl.value = configValue; // set value after loading data source
                             _self.validate(_self);
                         }

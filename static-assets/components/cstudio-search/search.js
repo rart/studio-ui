@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /**
  * CStudio Search root namespace.
  * 
@@ -542,7 +559,7 @@ CStudioSearch.preFireSearch = function(searchContext) {
 	var resultHeaderInProgress = YDom.get("cstudio-wcm-search-result-in-progress");
 	var contextPath = document.location.protocol + "//" + document.location.hostname + ":" + document.location.port + CStudioAuthoringContext.baseUri+"/";  
 	var imgEl = document.createElement("img");
-	imgEl.src = contextPath + "/static-assets/themes/cstudioTheme/images/treeview-loading.gif";
+	imgEl.src = contextPath + "static-assets/themes/cstudioTheme/images/treeview-loading.gif";
 	resultHeaderInProgress.appendChild(imgEl);
 	
 	// clear out pagination

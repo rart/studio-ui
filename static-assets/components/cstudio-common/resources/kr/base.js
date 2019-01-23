@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 CStudioAuthoring.Messages.registerBundle("siteDashboard", "kr", {
     dashboardTitle: "대시 보드",
 
@@ -460,7 +477,8 @@ CStudioAuthoring.Messages.registerBundle("forms", "kr", {
     numberPerPage: "페이지 당 표시 항목에 숫자를 입력하십시오.",
     revertError: "되돌리기에 실패했습니다.",
     legacyError: "레거시 양식 서버는 더 이상 지원되지 않습니다.",
-    contentTypesEmpty: "구성된 경로에서 사용할 수있는 콘텐츠 형식이 없습니다"
+    contentTypesEmpty: "구성된 경로에서 사용할 수있는 콘텐츠 형식이 없습니다",
+    componentCategoriesError: "사용할 수있는 카테고리가 없습니다"
 
 
 });
@@ -603,6 +621,12 @@ CStudioAuthoring.Messages.registerBundle("contentTypes", "kr", {
     /*Datasources */
     childContent: "자식 내용",
     imageUploadedDesktop: "이미지 바탕 화면에서 업로드",
+    WebDAVUploadImage: "WebDav 저장소에 업로드 된 이미지",
+    WebDAVUploadVideo: "WebDav 저장소에 업로드 된 비디오",
+    imageWebDavRepository:"WebDav 저장소의 이미지",
+    videoWebDavRepository:"WebDav 저장소의 비디오",
+    fileWebDavRepository:"WebDav 저장소의 파일",
+    fileUploadedWebDavRepository:"WebDav 저장소에 업로드 된 파일",
     DAMImage: "DAM 이미지 플리커 (Flickr)",
     fileUploadedDesktop: "파일 바탕 화면에서 업로드",
     flashUploadedDesktop: "플래시 바탕 화면에서 업로드",

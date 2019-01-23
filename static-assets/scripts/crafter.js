@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 (function (window) {
     'use strict';
 
@@ -74,6 +91,7 @@
                 "DND_COMPONENT_MODEL_LOAD": "DND_COMPONENT_MODEL_LOAD",
                 "DND_COMPONENTS_MODEL_LOAD": "DND_COMPONENTS_MODEL_LOAD",
                 "DND_ZONES_MODEL_REQUEST": "DND_ZONES_MODEL_REQUEST",
+                "LOAD_MODEL_REQUEST": "LOAD_MODEL_REQUEST",
                 "DND_COMPONENTS_PANEL_ON": "DND_COMPONENTS_PANEL_ON",
                 "DND_COMPONENTS_PANEL_OFF": "DND_COMPONENTS_PANEL_OFF",
                 "ICE_TOOLS_ON": "ICE_TOOLS_ON",
@@ -119,6 +137,36 @@
             .replace(/([a-z\d])([A-Z])/g, '$1_$2')
             .replace(/_/g, '-')
             .toLowerCase();
+    }
+
+    crafter.join = function (/* path segments */) {
+        // Split the inputs into a list of path commands.
+        var parts = [];
+        for (var i = 0, l = arguments.length; i < l; i++) {
+            parts = parts.concat(arguments[i].split("/"));
+        }
+        // Interpret the path commands to get the new resolved path.
+        var newParts = [];
+        for (i = 0, l = parts.length; i < l; i++) {
+            var part = parts[i];
+            // Remove leading and trailing slashes
+            // Also remove "." segments
+            if (!part || part === ".") continue;
+            // Interpret ".." to pop the last segment
+            if (part === "..") newParts.pop();
+            // Push new path segments.
+            else newParts.push(part);
+        }
+        // Preserve the initial slash if there was one.
+        if (parts[0] === "") newParts.unshift("");
+        // Turn back into a single string path.
+        return newParts.join("/") || (newParts.length ? "/" : ".");
+    }
+
+    // A simple function to get the dirname of a path
+    // Trailing slashes are ignored. Leading slash is preserved.
+    crafter.dirname = function (path) {
+        return join(path, "..");
     }
 
     if (typeof define === "function" && define.amd) {
