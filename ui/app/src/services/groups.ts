@@ -18,9 +18,10 @@ import PaginationOptions from '../models/PaginationOptions';
 import { PagedArray } from '../models/PagedArray';
 import { Observable } from 'rxjs';
 import { toQueryString } from '../utils/object';
-import { get } from '../utils/ajax';
-import { map } from 'rxjs/operators';
+import { get, postJSON } from '../utils/ajax';
+import { map, pluck } from 'rxjs/operators';
 import Group from '../models/Group';
+import User from '../models/User';
 
 const paginationDefault = {
   limit: 100,
@@ -43,15 +44,22 @@ export function fetchAll(options?: PaginationOptions): Observable<PagedArray<Gro
   );
 }
 
-export function fetchUsersFromGroup(id: number, options?: PaginationOptions): Observable<any> {
-  // TODO: response type
+export function fetchUsersFromGroup(id: number, options?: PaginationOptions): Observable<PagedArray<User>> {
   const qs = toQueryString({
     ...paginationDefault,
     options
   });
   return get(`/studio/api/2/groups/${id}/members${qs}`).pipe(
-    map(({ response }) => {
-      return response;
-    })
+    map(({ response }) =>
+      Object.assign(response.users, {
+        limit: response.limit,
+        offset: response.offset,
+        total: response.total
+      })
+    )
   );
+}
+
+export function create(group: Partial<Group>): Observable<Group> {
+  return postJSON('/studio/api/2/groups', group).pipe(pluck('response', 'group'));
 }

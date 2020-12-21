@@ -93,7 +93,7 @@ export function validatePasswordResetToken(token: string): Observable<boolean> {
   );
 }
 
-export type RefreshSessionResponse = { expiresAt: string; token: string };
+export type RefreshSessionResponse = { expiresAt: { epochSecond: number; nano: number }; token: string };
 
 export function refreshSession(): Observable<RefreshSessionResponse> {
   return get('/studio/refresh.json').pipe(pluck('response'));

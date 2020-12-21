@@ -30,6 +30,7 @@ import * as marketplace from '../services/marketplace';
 import * as publishing from '../services/publishing';
 import * as content from '../services/content';
 import * as users from '../services/users';
+import * as groups from '../services/groups';
 import { forkJoin, fromEvent, Subject } from 'rxjs';
 import { debounceTime, filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { IntlShape } from 'react-intl/src/types';
@@ -206,7 +207,8 @@ export function createCodebaseBridge() {
       security,
       translation,
       monitoring,
-      users
+      users,
+      groups
     },
 
     render(

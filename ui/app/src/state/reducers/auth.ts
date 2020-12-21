@@ -76,8 +76,8 @@ const reducer = createReducer<GlobalState['auth']>(initialState, {
   [logoutComplete.type]: () => initialState
 });
 
-function fromExpiresAtString(expiresAt: string) {
-  return new Date(expiresAt).getTime();
+function fromExpiresAtString(expiresAt: { epochSecond: number }) {
+  return new Date(expiresAt.epochSecond * 1000).getTime();
 }
 
 export default reducer;

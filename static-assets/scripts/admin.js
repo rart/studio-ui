@@ -94,9 +94,7 @@
       };
 
       this.getUsersFromGroup = function(group, params) {
-        groupsApi.fetchUsersFromGroup(group.id, params);
-
-        return $http.get(groupsMembers(group.id, true), { params });
+        return groupsApi.fetchUsersFromGroup(group.id, params).toPromise();
       };
 
       this.deleteUserFromGroup = function(groupId, params) {
@@ -106,7 +104,7 @@
       };
 
       this.createGroup = function(group) {
-        return $http.post(groups2(), group);
+        return groupsApi.create(group).toPromise();
       };
 
       this.editGroup = function(group) {
@@ -1783,18 +1781,18 @@
       $scope.createGroup = function(group) {
         // group.site_id = groups.site;
 
-        adminService
-          .createGroup(group)
-          .success(function(data) {
+        adminService.createGroup(group).then(
+          function(data) {
             $scope.hideModal();
-            $scope.groupsCollection.push(data.group);
+            $scope.groupsCollection.push(data);
             $scope.groups.totalLogs++;
             $scope.groups.pagination.goToLast();
             $rootScope.showNotification(formatMessage(groupsAdminMessages.groupCreated, { group: group.name }));
-          })
-          .error(function(error) {
+          },
+          function(error) {
             $scope.groupsError = `${error.response.message}. ${error.response.remedialAction}`;
-          });
+          }
+        );
       };
       $scope.editGroupDialog = function(group) {
         $scope.editedGroup = group;
@@ -1967,16 +1965,17 @@
             params.limit = groups.members.itemsPerPage;
           }
 
-          adminService
-            .getUsersFromGroup(group, params)
-            .success(function(data) {
+          adminService.getUsersFromGroup(group, params).then(
+            function(data) {
               groups.members.totalLogs = data.total;
-              groups.usersFromGroupCollection = data.users;
+              groups.usersFromGroupCollection = data;
               groups.getUsersAutocomplete();
-            })
-            .error(function(e) {
+              $scope.$apply();
+            },
+            function(e) {
               groups.members.getMembersError = e.response.message + '. ' + e.response.remedialAction;
-            });
+            }
+          );
         }
 
         getResultsPage(1);
