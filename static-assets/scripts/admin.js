@@ -83,11 +83,10 @@
       };
 
       // GROUPS
+      let groupsApi = CrafterCMSNext.services.groups;
 
       this.getGroups = function(params) {
-        return $http.get(groups2(), {
-          params: params
-        });
+        return groupsApi.fetchAll(params).toPromise();
       };
 
       this.getGroup = function(group) {
@@ -95,6 +94,8 @@
       };
 
       this.getUsersFromGroup = function(group, params) {
+        groupsApi.fetchUsersFromGroup(group.id, params);
+
         return $http.get(groupsMembers(group.id, true), { params });
       };
 
@@ -1742,9 +1743,10 @@
             params.limit = groups.itemsPerPage;
           }
 
-          adminService.getGroups(params).success(function(data) {
+          adminService.getGroups(params).then(function(data) {
             groups.totalLogs = data.total;
-            $scope.groupsCollection = data.groups;
+            $scope.groupsCollection = data;
+            $scope.$apply();
           });
         }
       };
@@ -1759,10 +1761,10 @@
           if (!groups.searchdirty) {
             groups.searchdirty = true;
 
-            adminService.getGroups().success(function(data) {
+            adminService.getGroups().then(function(data) {
               groups.groupsCollectionBackup = $scope.groupsCollection;
               groups.itemsPerPageBackup = groups.itemsPerPage;
-              $scope.groupsCollection = data.groups;
+              $scope.groupsCollection = data;
               groups.itemsPerPage = adminService.maxInt;
             });
           }
@@ -1989,7 +1991,7 @@
           if (!groups.members.searchdirty) {
             groups.members.searchdirty = true;
 
-            adminService.getGroups().success(function(data) {
+            adminService.getGroups().then(function(data) {
               groups.usersFromGroupCollectionBackup = groups.usersFromGroupCollection;
               groups.members.itemsPerPageBackup = groups.members.itemsPerPage;
               $scope.usersFromGroupCollection = data.users;
