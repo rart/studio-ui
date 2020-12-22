@@ -164,21 +164,14 @@
       };
 
       // AUDIT
+      let auditApi = CrafterCMSNext.services.audit;
 
       this.getAudit = function(data) {
-        return $http.get(audit(), {
-          params: data
-        });
+        return auditApi.fetchAudit(data).toPromise();
       };
 
       this.getSpecificAudit = function(auditId) {
-        return $http.get(audit(auditId));
-      };
-
-      this.getTimeZone = function(data) {
-        return $http.get(api('get-configuration'), {
-          params: data
-        });
+        return auditApi.fetchSpecificAudit(auditId).toPromise();
       };
 
       // LOGGING
@@ -217,6 +210,12 @@
 
       this.stopPublishStatus = function(site) {
         return $http.post(publish('stop'), site);
+      };
+
+      this.getTimeZone = function(data) {
+        return $http.get(api('get-configuration'), {
+          params: data
+        });
       };
 
       // BULKPUBLISH
@@ -397,15 +396,15 @@
       };
 
       var getUsers = function(site) {
-        adminService
-          .getUsers(site)
-          .success(function(data) {
+        adminService.getUsers(site).then(
+          function(data) {
             audit.users = data.users;
             audit.userSelected = '';
-          })
-          .error(function() {
+          },
+          function() {
             audit.users = null;
-          });
+          }
+        );
       };
 
       var getAudit = function(site) {
@@ -488,26 +487,26 @@
             params.limit = audit.logsPerPage;
           }
 
-          adminService
-            .getAudit(params)
-            .success(function(data) {
+          adminService.getAudit(params).then(
+            function(data) {
               audit.totalLogs = data.total;
-              audit.logs = data.auditLog;
-            })
-            .error(function(err) {
+              audit.logs = data;
+              $scope.$apply();
+            },
+            function(err) {
               audit.totalLogs = 0;
               audit.logs = '';
-            });
+            }
+          );
         }
       };
 
       var getSpecificAudit = function(id) {
         var collapseContainer = $('#collapseContainer' + id);
         var html;
-        adminService
-          .getSpecificAudit(id)
-          .success(function(data) {
-            var parameters = data.auditLog.parameters;
+        adminService.getSpecificAudit(id).then(
+          function(data) {
+            var parameters = data.parameters;
             // parameters = [{id: 0, auditId: 0, targetId: "2", targetType: "User", targetSubtype: null, targetValue: "reviewer"}, {id: 0, auditId: 0, targetId: "2", targetType: "User", targetSubtype: null, targetValue: "reviewer"}]
 
             if (parameters.length > 0) {
@@ -574,13 +573,14 @@
 
             collapseContainer.append(html);
             collapseMethod(id);
-          })
-          .error(function(err) {
+          },
+          function(err) {
             html =
               "<div class='mt10 has-children'><span>" + $translate.instant('admin.audit.ERROR_PARAM') + '</span></div>';
             collapseContainer.append(html);
             collapseMethod(id);
-          });
+          }
+        );
       };
 
       audit.initCalendar = function() {
