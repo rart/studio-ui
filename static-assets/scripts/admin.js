@@ -74,12 +74,14 @@
       };
 
       // CLUSTERS
-      this.getClusterMembers = function(id) {
-        return $http.get(cluster(id));
+      let clustersApi = CrafterCMSNext.services.clusters;
+
+      this.getClusterMembers = function() {
+        return clustersApi.fetchClusterMembers().toPromise();
       };
 
       this.deleteClusterMember = function(clusterParam) {
-        return $http.delete(cluster('id=' + clusterParam.id));
+        return clustersApi.deleteClusterMember(clusterParam.id).toPromise();
       };
 
       // GROUPS
@@ -89,18 +91,12 @@
         return groupsApi.fetchAll(params).toPromise();
       };
 
-      this.getGroup = function(group) {
-        return $http.get(groups('get', 'group_name=' + group.group_name + '&site_id=' + group.site_id));
-      };
-
       this.getUsersFromGroup = function(group, params) {
         return groupsApi.fetchUsersFromGroup(group.id, params).toPromise();
       };
 
       this.deleteUserFromGroup = function(groupId, params) {
-        return $http.delete(groupsMembers(groupId, true), {
-          params: params
-        });
+        return groupsApi.deleteUserFromGroup(groupId, params.userId, params.username).toPromise();
       };
 
       this.createGroup = function(group) {
@@ -108,11 +104,11 @@
       };
 
       this.editGroup = function(group) {
-        return $http.patch(groups2(), group);
+        return groupsApi.update(group).toPromise();
       };
 
       this.deleteGroup = function(group) {
-        return $http.delete(groups2('id=' + group.id));
+        return groupsApi.trash(group.id).toPromise();
       };
 
       this.addUserToGroup = function(data) {
@@ -120,7 +116,7 @@
           ids: [data.userId.toString()],
           usernames: [data.username]
         };
-        return $http.post(groupsMembers(data.groupId, true), body);
+        return groupsApi.addUsersToGroup(data.groupId, body).toPromise();
       };
 
       // REPOSITORIES
@@ -1596,8 +1592,9 @@
       $scope.membersCollection = [];
 
       clusters.getClusters = function() {
-        adminService.getClusterMembers().success(function(data) {
-          $scope.membersCollection = data.clusterMembers;
+        adminService.getClusterMembers().then(function(data) {
+          $scope.membersCollection = data;
+          $scope.$apply();
         });
       };
 
@@ -1612,9 +1609,8 @@
       };
       clusters.removeClusterMember = function(clusterMember) {
         var deleteClusterMember = function() {
-          adminService
-            .deleteClusterMember(clusterMember)
-            .success(function(data) {
+          adminService.deleteClusterMember(clusterMember).then(
+            function(data) {
               var index = $scope.membersCollection.indexOf(clusterMember);
               if (index !== -1) {
                 $scope.membersCollection.splice(index, 1);
@@ -1624,11 +1620,12 @@
                   cluster: clusterMember.gitUrl
                 })
               );
-            })
-            .error(function(data) {
+            },
+            function(data) {
               $scope.error = data.response.message;
               $scope.adminModal = $scope.showModal('deleteClusterError.html', 'md', true);
-            });
+            }
+          );
         };
 
         $scope.confirmationAction = deleteClusterMember;
@@ -1794,47 +1791,34 @@
           }
         );
       };
-      $scope.editGroupDialog = function(group) {
-        $scope.editedGroup = group;
-        $scope.group = {};
-        $scope.okModalFunction = $scope.editGroup;
-
-        $scope.adminModal = $scope.showModal('modalView.html');
-        $scope.dialogMode = 'EDIT';
-        $scope.dialogTitle = $translate.instant('admin.groups.EDIT_GROUP');
-
-        adminService
-          .getGroup(group)
-          .success(function(data) {
-            $scope.group = data;
-          })
-          .error(function() {
-            // TODO: properly display error.
-          });
-      };
       $scope.editGroup = function(group) {
         // group.site_id = groups.site;
 
         adminService
-          .editGroup(group)
-          .success(function(data) {
-            $rootScope.showNotification(formatMessage(groupsAdminMessages.groupEdited, { group: group.name }));
+          .editGroup({
+            id: group.id,
+            name: group.name,
+            desc: group.desc
           })
-          .error(function(error) {
-            if ('Unauthorized' === error.response.message) {
-              $rootScope.showNotification($translate.instant('admin.groups.UNAUTHORIZED'), null, null, 'error');
-            } else {
-              $rootScope.showNotification(error.response.message, null, null, 'error');
+          .then(
+            function(data) {
+              $rootScope.showNotification(formatMessage(groupsAdminMessages.groupEdited, { group: group.name }));
+            },
+            function(error) {
+              if ('Unauthorized' === error.response.message) {
+                $rootScope.showNotification($translate.instant('admin.groups.UNAUTHORIZED'), null, null, 'error');
+              } else {
+                $rootScope.showNotification(error.response.message, null, null, 'error');
+              }
             }
-          });
+          );
       };
       $scope.removeGroup = function(group) {
         var deleteGroup = function() {
           // group.site_id = groups.site;
 
-          adminService
-            .deleteGroup(group)
-            .success(function(data) {
+          adminService.deleteGroup(group).then(
+            function(data) {
               var index = $scope.groupsCollection.indexOf(group);
               if (index !== -1) {
                 $scope.groupsCollection.splice(index, 1);
@@ -1845,14 +1829,15 @@
               $scope.noGroupSelected = true;
 
               $rootScope.showNotification(formatMessage(groupsAdminMessages.groupDeleted, { group: group.name }));
-            })
-            .error(function(error) {
+            },
+            function(error) {
               if ('Unauthorized' === error.response.message) {
                 $rootScope.showNotification($translate.instant('admin.groups.UNAUTHORIZED'), null, null, 'error');
               } else {
                 $rootScope.showNotification(error.response.message, null, null, 'error');
               }
-            });
+            }
+          );
         };
 
         $scope.confirmationAction = deleteGroup;
@@ -2007,9 +1992,8 @@
         // user.site_id = groups.site;
 
         var removeUserFromGroup = function() {
-          adminService
-            .deleteUserFromGroup(group.id, deleteUserFromGroupParams)
-            .success(function() {
+          adminService.deleteUserFromGroup(group.id, deleteUserFromGroupParams).then(
+            function() {
               $scope.getGroupMembers(group);
               $rootScope.showNotification(
                 formatMessage(groupsAdminMessages.userRemoved, {
@@ -2017,10 +2001,11 @@
                   group: group.name
                 })
               );
-            })
-            .error(function(error) {
+            },
+            function(error) {
               $rootScope.showNotification(error.response.message, null, null, 'error');
-            });
+            }
+          );
         };
 
         $scope.confirmationAction = removeUserFromGroup;
@@ -2040,10 +2025,9 @@
             userId: user.id,
             groupId: activeGroup.id
           })
-          .success(function(data) {
+          .then(function(data) {
             $scope.getGroupMembers(activeGroup);
-          })
-          .error(function() {});
+          });
       };
     }
   ]);

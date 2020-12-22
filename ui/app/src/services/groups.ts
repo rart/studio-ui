@@ -18,8 +18,8 @@ import PaginationOptions from '../models/PaginationOptions';
 import { PagedArray } from '../models/PagedArray';
 import { Observable } from 'rxjs';
 import { toQueryString } from '../utils/object';
-import { get, postJSON } from '../utils/ajax';
-import { map, pluck } from 'rxjs/operators';
+import { del, get, patchJSON, postJSON } from '../utils/ajax';
+import { map, mapTo, pluck } from 'rxjs/operators';
 import Group from '../models/Group';
 import User from '../models/User';
 
@@ -62,4 +62,24 @@ export function fetchUsersFromGroup(id: number, options?: PaginationOptions): Ob
 
 export function create(group: Partial<Group>): Observable<Group> {
   return postJSON('/studio/api/2/groups', group).pipe(pluck('response', 'group'));
+}
+
+export function update(group: Partial<Group>): Observable<Group> {
+  return patchJSON(`/studio/api/2/groups`, group).pipe(pluck('response', 'group'));
+}
+
+export function trash(groupId: string): Observable<true> {
+  return del(`/studio/api/2/groups?id=${groupId}`).pipe(mapTo(true));
+}
+
+export function addUsersToGroup(id: number, users: { ids: string[]; usernames: string[] }): Observable<User[]> {
+  return postJSON(`/studio/api/2/groups/${id}/members`, users).pipe(pluck('response', 'users'));
+}
+
+export function deleteUserFromGroup(id: number, userId: number, username: string): Observable<true> {
+  const qs = toQueryString({
+    userId,
+    username
+  });
+  return del(`/studio/api/2/groups/${id}/members${qs}`).pipe(mapTo(true));
 }
