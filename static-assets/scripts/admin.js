@@ -120,9 +120,10 @@
       };
 
       // REPOSITORIES
+      let repositoriesApi = CrafterCMSNext.services.repositories;
 
       this.getRepositories = function(data) {
-        return $http.get(repositories('list_remotes', 'siteId=' + data.site));
+        return repositoriesApi.fetchRepositories(data.site).toPromise();
       };
 
       this.createRepository = function(data) {
@@ -2099,7 +2100,7 @@
       function repositoriesReceived(data) {
         const reachable = [],
           unreachable = [];
-        data.remotes.forEach((remote) => {
+        data.forEach((remote) => {
           if (remote.reachable) {
             reachable.push(remote);
           } else {
@@ -2144,12 +2145,9 @@
         repositories.spinnerOverlay = $scope.spinnerOverlay();
         repositories.getRepositoryStatus();
 
-        adminService
-          .getRepositories(repositories)
-          .success(repositoriesReceived)
-          .error(function(error) {
-            $scope.showError(error.response);
-          });
+        adminService.getRepositories(repositories).then(repositoriesReceived, function(error) {
+          $scope.showError(error.response);
+        });
       };
       this.init();
 
@@ -2172,13 +2170,10 @@
           .createRepository(repo)
           .success(function(data) {
             $scope.hideModal();
-            adminService
-              .getRepositories(repositories)
-              .success(repositoriesReceived)
-              .error(function(error) {
-                $scope.showError(error.response);
-                repositories.spinnerOverlay.close();
-              });
+            adminService.getRepositories(repositories).then(repositoriesReceived, function(error) {
+              $scope.showError(error.response);
+              repositories.spinnerOverlay.close();
+            });
           })
           .error(function(error) {
             $scope.showError(error.response);
