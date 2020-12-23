@@ -175,22 +175,21 @@
       };
 
       // LOGGING
+      let loggersApi = CrafterCMSNext.services.loggers;
 
       this.getLoggers = function() {
-        return $http.get(Constants.SERVICE + 'server/get-loggers.json');
+        return loggersApi.fetchLoggers().toPromise();
       };
 
       this.setLogger = function(data) {
-        return $http.get(Constants.SERVICE + 'server/set-logger-state.json', {
-          params: data
-        });
+        return loggersApi.setLogger(data.logger, data.level).toPromise();
       };
 
       // LOG CONSOLE
+      let logConsoleApi = CrafterCMSNext.services.logs;
+
       this.getLogStudio = function(data) {
-        return $http.get(Constants.SERVICE2 + 'monitoring/log', {
-          params: data
-        });
+        return logConsoleApi.fetchLogs(data.since).toPromise();
       };
 
       this.getLogPreview = function(data) {
@@ -715,8 +714,9 @@
       $scope.logging = {};
       var logging = $scope.logging;
 
-      adminService.getLoggers().success(function(data) {
+      adminService.getLoggers().then(function(data) {
         logging.levels = data;
+        $scope.$apply();
       });
 
       logging.setLevel = function(log, level) {
@@ -725,9 +725,10 @@
             logger: log,
             level: level
           })
-          .success(function() {
-            adminService.getLoggers().success(function(data) {
+          .then(function() {
+            adminService.getLoggers().then(function(data) {
               logging.levels = data;
+              $scope.$apply();
             });
           });
       };
@@ -801,10 +802,11 @@
           data.crafterSite = data.site;
         }
 
-        logService(data).success(function(data) {
-          var events = data.events ? data.events : data;
+        logService(data).then(function(data) {
+          var events = data;
           if (events.length > 0) {
             logs.entries = logs.entries.concat(events);
+            $scope.$apply();
 
             $timeout(
               function() {

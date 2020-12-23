@@ -33,6 +33,8 @@ import * as users from '../services/users';
 import * as groups from '../services/groups';
 import * as clusters from '../services/clusters';
 import * as audit from '../services/audit';
+import * as logs from '../services/logs';
+import * as loggers from '../services/loggers';
 import { forkJoin, fromEvent, Subject } from 'rxjs';
 import { debounceTime, filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { IntlShape } from 'react-intl/src/types';
@@ -212,7 +214,9 @@ export function createCodebaseBridge() {
       users,
       groups,
       clusters,
-      audit
+      audit,
+      logs,
+      loggers
     },
 
     render(
