@@ -5696,30 +5696,17 @@ var nodeOpen = false,
        * given a site id returns the available All content types
        */
       getAllContentTypesForSite: function(site, callback) {
-        var serviceUri = this.allContentTypesForSite + '?site=' + site;
-
-        var serviceCallback = {
-          success: function(oResponse) {
-            var contentTypeJson = oResponse.responseText;
-
-            try {
-              var contentTypes = eval('(' + contentTypeJson + ')');
-
-              if (!contentTypes.length) {
-                contentTypes = [contentTypes];
-              }
-              callback.success(contentTypes);
-            } catch (err) {
-              callback.failure(err);
+        CrafterCMSNext.services.contentTypes.fetchLegacyContentTypes(site).subscribe(
+          (contentTypes) => {
+            if (!contentTypes.length) {
+              contentTypes = [contentTypes];
             }
+            callback.success(contentTypes);
           },
-
-          failure: function(response) {
-            callback.failure(response);
+          (error) => {
+            callback.failure(error);
           }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
+        );
       },
 
       /**
