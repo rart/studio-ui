@@ -320,19 +320,61 @@
                               '&path=' +
                               defPath;
 
-                            YAHOO.util.Connect.resetFormState();
-                            YAHOO.util.Connect.setDefaultPostHeader(false);
-                            YAHOO.util.Connect.initHeader('Content-Type', 'application/xml; charset=utf-8');
-                            YAHOO.util.Connect.initHeader(
-                              CStudioAuthoringContext.xsrfHeaderName,
-                              CrafterCMSNext.util.auth.getRequestForgeryToken()
-                            );
-                            YAHOO.util.Connect.asyncRequest(
-                              'POST',
-                              CStudioAuthoring.Service.createServiceUri(url),
-                              cb,
-                              xmlFormDef
-                            );
+                            CrafterCMSNext.services.configuration
+                              .writeConfiguration(CStudioAuthoringContext.site, defPath, 'studio', xmlFormDef)
+                              .subscribe(
+                                () => {
+                                  var callBack = {
+                                    success: function() {},
+                                    failure: function() {},
+                                    CMgs: CMgs,
+                                    langBundle: langBundle
+                                  };
+
+                                  var confPath =
+                                    configFilesPath + '/content-types' + formDef.contentType + '/config.xml';
+
+                                  CrafterCMSNext.services.configuration
+                                    .writeConfiguration(CStudioAuthoringContext.site, confPath, 'studio', xmlConfig)
+                                    .subscribe(
+                                      () => {
+                                        CStudioAdminConsole.isDirty = false;
+                                        CStudioAuthoring.Utils.showNotification(
+                                          CMgs.format(langBundle, 'saved'),
+                                          'top',
+                                          'left',
+                                          'success',
+                                          48,
+                                          197,
+                                          'saveContentType'
+                                        );
+                                        _self.clearCache();
+                                      },
+                                      () => {
+                                        CStudioAuthoring.Operations.showSimpleDialog(
+                                          'errorDialog-dialog',
+                                          CStudioAuthoring.Operations.simpleDialogTypeINFO,
+                                          CMgs.format(langBundle, 'notification'),
+                                          CMgs.format(langBundle, 'saveFailed'),
+                                          null, // use default button
+                                          YAHOO.widget.SimpleDialog.ICON_BLOCK,
+                                          'studioDialog'
+                                        );
+                                      }
+                                    );
+                                },
+                                () => {
+                                  CStudioAuthoring.Operations.showSimpleDialog(
+                                    'errorDialog-dialog',
+                                    CStudioAuthoring.Operations.simpleDialogTypeINFO,
+                                    CMgs.format(langBundle, 'notification'),
+                                    CMgs.format(langBundle, 'saveFailed'),
+                                    null, // use default button
+                                    YAHOO.widget.SimpleDialog.ICON_BLOCK,
+                                    'studioDialog'
+                                  );
+                                }
+                              );
 
                             document.getElementById(
                               'cstudio-admin-console-command-bar'
@@ -516,14 +558,9 @@
       },
 
       clearCache: function() {
-        var serviceUri =
-          '/api/1/services/api/1/site/clear-configuration-cache.json?site=' + CStudioAuthoringContext.site;
-
-        var clearCacheCb = {
-          success: function() {}
-        };
-
-        YConnect.asyncRequest('GET', CStudioAuthoring.Service.createServiceUri(serviceUri), clearCacheCb);
+        CrafterCMSNext.util.ajax
+          .get(`/studio/api/1/services/api/1/site/clear-configuration-cache.json?site=${CStudioAuthoringContext.site}`)
+          .subscribe(() => {});
       },
 
       /**
