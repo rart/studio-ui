@@ -83,3 +83,7 @@ export function reject(
     )
   );
 }
+
+export function fetchPublishStatus(siteId: string): Observable<{ message: string; status: string }> {
+  return get(`/studio/api/1/services/api/1/publish/status.json?site_id=${siteId}`).pipe(pluck('response'));
+}

@@ -4126,43 +4126,43 @@ var nodeOpen = false,
        * lookup configuration
        */
       lookupConfigurtion: function(site, configPath, callback) {
-        var serviceUrl = this.getConfigurationUrl;
-        serviceUrl += '?site=' + site;
-        serviceUrl += '&path=' + configPath;
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), {
-          success: function(response) {
-            var res = response.responseText || 'null'; // Some native JSON parsers (e.g. Chrome) don't like the empty string for input
-            callback.success(YAHOO.lang.JSON.parse(res));
-            try {
-              var CMgs = CStudioAuthoring.Messages,
-                previewLangBundle = previewLangBundle
-                  ? previewLangBundle
-                  : CMgs.getBundle('previewTools', CStudioAuthoringContext.lang);
-              CStudioAuthoring.Operations.translateContent(previewLangBundle);
-            } catch (err) {}
-          },
-          failure: callback.failure
-        });
+        CrafterCMSNext.util.ajax
+          .get(`/studio/api/1/services/api/1/site/get-configuration.json?site=${site}&path=${configPath}`)
+          .subscribe(
+            (config) => {
+              callback.success(config.response);
+              try {
+                var CMgs = CStudioAuthoring.Messages,
+                  previewLangBundle = previewLangBundle
+                    ? previewLangBundle
+                    : CMgs.getBundle('previewTools', CStudioAuthoringContext.lang);
+                CStudioAuthoring.Operations.translateContent(previewLangBundle);
+              } catch (err) {}
+            },
+            () => {
+              if (callback.failure) {
+                callback.failure();
+              }
+            }
+          );
       },
 
       /**
        * lookup configuration
        */
       getConfiguration: function(site, configPath, callback) {
-        var serviceUrl = this.getConfigurationUrl;
-        serviceUrl += '?site=' + site;
-        serviceUrl += '&path=' + configPath;
-
-        var serviceCallback = {
-          success: function(response) {
-            var res = response.responseText || 'null'; // Some native JSON parsers (e.g. Chrome) don't like the empty string for input
-            callback.success(YAHOO.lang.JSON.parse(res));
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+        CrafterCMSNext.util.ajax
+          .get(`/studio/api/1/services/api/1/site/get-configuration.json?site=${site}&path=${configPath}`)
+          .subscribe(
+            (config) => {
+              callback.success(config.response);
+            },
+            () => {
+              if (callback.failure) {
+                callback.failure();
+              }
+            }
+          );
       },
 
       /**
@@ -4740,18 +4740,16 @@ var nodeOpen = false,
       },
 
       getUserPermissions: function(site, path, callback) {
-        var serviceUrl = this.getPermissionsServiceUrl;
-        serviceUrl += '?site=' + site + '&path=' + encodeURI(path) + '&user=' + CStudioAuthoringContext.user;
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            var results = eval('(' + jsonResponse.responseText + ')');
-            callback.success(results);
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+        CrafterCMSNext.services.security
+          .getUserPermissions(site, encodeURI(path), CStudioAuthoringContext.user)
+          .subscribe(
+            function(response) {
+              callback.success({ permissions: response });
+            },
+            function(response) {
+              callback.failure(response);
+            }
+          );
       },
 
       /**
@@ -4897,47 +4895,13 @@ var nodeOpen = false,
        * get user roles
        */
       getUserRoles: function(callback, user) {
-        var serviceUrl = this.getUserInfoServiceURL,
-          self = this;
-        var user = !user ? 'me' : user;
-        serviceUrl += '/' + user + '/sites/' + CStudioAuthoringContext.site + '/roles';
+        const roles = CrafterCMSNext.system.store.getState().user.rolesBySite[CStudioAuthoringContext.site];
 
-        var cacheRolesKey = CStudioAuthoringContext.site + '_Roles_' + CStudioAuthoringContext.user,
-          rolesCached;
-
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            var results = jsonResponse.responseText ? eval('(' + jsonResponse.responseText + ')') : jsonResponse;
-            if (!rolesCached) {
-              results = results.roles;
-              cache.set(cacheRolesKey, results, CStudioAuthoring.Constants.CACHE_TIME_GET_ROLES);
-              CStudioAuthoring.processing = false;
-            }
-            callback.success(results);
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        var getInfo = function() {
-          if (!CStudioAuthoring.processing) {
-            rolesCached = cache.get(cacheRolesKey);
-
-            if (rolesCached) {
-              var results = rolesCached;
-              serviceCallback.success(results);
-            } else {
-              CStudioAuthoring.processing = true;
-              YConnect.asyncRequest('GET', self.createServiceUri(serviceUrl), serviceCallback);
-            }
-          } else {
-            setTimeout(function() {
-              getInfo();
-            }, 100);
-          }
-        };
-        getInfo();
+        if (roles) {
+          callback.success(roles);
+        } else {
+          console.error(`No roles were found for current user in site '${CStudioAuthoringContext.site}'`);
+        }
       },
 
       /**
@@ -5227,20 +5191,21 @@ var nodeOpen = false,
        * given a context, retrieve the site dropdown context
        */
       retrieveContextNavConfiguration: function(context, callback) {
-        CStudioAuthoring.Service.lookupConfigurtion(CStudioAuthoringContext.site, '/context-nav/contextual-nav.xml', {
-          success: function(config) {
-            if (!config.context.length) {
-              this.callback.success(config.context);
+        const site = CStudioAuthoringContext.site;
+        const path = '/context-nav/contextual-nav.xml';
+
+        CrafterCMSNext.util.ajax
+          .get(`/studio/api/1/services/api/1/site/get-configuration.json?site=${site}&path=${path}`)
+          .subscribe(
+            (config) => {
+              if (!config.response.context.length) {
+                callback.success(config.response.context);
+              }
+            },
+            () => {
+              callback.failure();
             }
-          },
-
-          failure: function() {
-            this.callback.failure();
-          },
-
-          context: this,
-          callback: callback
-        });
+          );
       },
 
       /**
