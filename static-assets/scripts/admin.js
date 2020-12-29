@@ -77,11 +77,11 @@
       let clustersApi = CrafterCMSNext.services.clusters;
 
       this.getClusterMembers = function() {
-        return clustersApi.fetchClusterMembers().toPromise();
+        return clustersApi.fetchMembers().toPromise();
       };
 
       this.deleteClusterMember = function(clusterParam) {
-        return clustersApi.deleteClusterMember(clusterParam.id).toPromise();
+        return clustersApi.deleteMember(clusterParam.id).toPromise();
       };
 
       // GROUPS

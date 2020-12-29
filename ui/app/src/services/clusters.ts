@@ -19,10 +19,10 @@ import { ClusterMember } from '../models/Clusters';
 import { mapTo, pluck } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-export function fetchClusterMembers(): Observable<ClusterMember[]> {
+export function fetchMembers(): Observable<ClusterMember[]> {
   return get(`/studio/api/2/cluster`).pipe(pluck('response', 'clusterMembers'));
 }
 
-export function deleteClusterMember(id: number): Observable<true> {
+export function deleteMember(id: number): Observable<true> {
   return del(`/studio/api/2/cluster?id=${id}`).pipe(mapTo(true));
 }
