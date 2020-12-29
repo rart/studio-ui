@@ -77,41 +77,31 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
       '</tr>' +
       '</table>';
 
-    cb = {
-      success: function(response) {
-        var states = eval('(' + response.responseText + ')');
-        wfStates = states.items;
+    CrafterCMSNext.services.content.fetchItemStates(CStudioAuthoringContext.site, 'ALL').subscribe((items) => {
+      wfStates = items;
 
-        var statesTableEl = document.getElementById('statesTable');
-        for (var i = 0; i < states.items.length; i++) {
-          var state = states.items[i];
-          var trEl = document.createElement('tr');
+      var statesTableEl = document.getElementById('statesTable');
+      for (var i = 0; i < items.length; i++) {
+        var state = items[i];
+        var trEl = document.createElement('tr');
 
-          var rowHTML =
-            "<td class='cs-statelist-detail'><input class='act'  type='checkbox' value='" +
-            state.path +
-            "' /></td>" +
-            "<td class='cs-statelist-detail-id'>" +
-            state.path +
-            '</td>' +
-            "<td class='cs-statelist-detail'>" +
-            state.state +
-            '</td>' +
-            "<td class='cs-statelist-detail'>" +
-            CMgs.format(langBundle, (state.systemProcessing == '1').toString()) +
-            '</td>';
-          trEl.innerHTML = rowHTML;
-          statesTableEl.appendChild(trEl);
-        }
-      },
-      failure: function(response) {},
-      self: this
-    };
-
-    var serviceUri =
-      '/api/1/services/api/1/content/get-item-states.json?site=' + CStudioAuthoringContext.site + '&state=ALL';
-
-    YConnect.asyncRequest('GET', CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
+        var rowHTML =
+          "<td class='cs-statelist-detail'><input class='act'  type='checkbox' value='" +
+          state.path +
+          "' /></td>" +
+          "<td class='cs-statelist-detail-id'>" +
+          state.path +
+          '</td>' +
+          "<td class='cs-statelist-detail'>" +
+          state.state +
+          '</td>' +
+          "<td class='cs-statelist-detail'>" +
+          CMgs.format(langBundle, (state.systemProcessing == '1').toString()) +
+          '</td>';
+        trEl.innerHTML = rowHTML;
+        statesTableEl.appendChild(trEl);
+      }
+    });
   },
 
   setStates: function() {

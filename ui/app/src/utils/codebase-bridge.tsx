@@ -37,6 +37,7 @@ import * as logs from '../services/logs';
 import * as loggers from '../services/loggers';
 import * as repositories from '../services/repositories';
 import * as contentTypes from '../services/contentTypes';
+import * as environment from '../services/environment';
 import { forkJoin, fromEvent, Subject } from 'rxjs';
 import { debounceTime, filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { IntlShape } from 'react-intl/src/types';
@@ -220,7 +221,8 @@ export function createCodebaseBridge() {
       logs,
       loggers,
       repositories,
-      contentTypes
+      contentTypes,
+      environment
     },
 
     render(

@@ -103,3 +103,11 @@ export interface PasteItem {
   path: string;
   children?: PasteItem[];
 }
+
+export interface ItemState {
+  objectId: string;
+  site: string;
+  path: string;
+  state: string;
+  systemProcessing: number;
+}
