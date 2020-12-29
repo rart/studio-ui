@@ -14,11 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { errorSelectorApi1, get, postJSON } from '../utils/ajax';
+import { errorSelectorApi1, get, post, postJSON } from '../utils/ajax';
 import { forkJoin, Observable } from 'rxjs';
-import { catchError, pluck, switchMap } from 'rxjs/operators';
+import { catchError, mapTo, pluck, switchMap } from 'rxjs/operators';
 import { LegacyItem } from '../models/Item';
 import { fetchDependencies } from './dependencies';
+import { toQueryString } from '../utils/object';
 
 export function fetchPackages(siteId: string, filters: any) {
   let queryS = new URLSearchParams(filters).toString();
@@ -86,4 +87,36 @@ export function reject(
 
 export function fetchPublishStatus(siteId: string): Observable<{ message: string; status: string }> {
   return get(`/studio/api/1/services/api/1/publish/status.json?site_id=${siteId}`).pipe(pluck('response'));
+}
+
+export function startPublish(siteId: string): Observable<true> {
+  return postJSON('/studio/api/1/services/api/1/publish/start.json', { site_id: siteId }).pipe(mapTo(true));
+}
+
+export function stopPublish(siteId: string): Observable<true> {
+  return postJSON('/studio/api/1/services/api/1/publish/stop.json', { site_id: siteId }).pipe(mapTo(true));
+}
+
+export function bulkGoLive(siteId: string, path: string, environment: string, comment: string): Observable<true> {
+  const qs = toQueryString({
+    site_id: siteId,
+    path,
+    environment,
+    comment
+  });
+  return post(`/studio/api/1/services/api/1/deployment/bulk-golive.json${qs}`).pipe(mapTo(true));
+}
+
+export function commitById(
+  siteId: string,
+  commitIds: string[],
+  environment: string,
+  comment: string
+): Observable<true> {
+  return postJSON('/studio/api/1/services/api/1/publish/commits.json', {
+    site_id: siteId,
+    commit_ids: commitIds,
+    environment,
+    comment
+  }).pipe(mapTo(true));
 }

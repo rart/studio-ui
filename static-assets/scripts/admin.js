@@ -127,41 +127,39 @@
       };
 
       this.createRepository = function(data) {
-        return $http.post(repositories('add_remote'), data);
+        return repositoriesApi.createRemote(data).toPromise();
       };
 
       this.deleteRepository = function(data) {
-        return $http.post(repositories('remove_remote'), data);
+        return repositoriesApi.deleteRemote(data.siteId, data.remoteName).toPromise();
       };
 
       this.pullRepository = function(data) {
-        return $http.post(repositories('pull_from_remote'), data);
+        return repositoriesApi.pullFromRemote(data).toPromise();
       };
 
       this.pushRepository = function(data) {
-        return $http.post(repositories('push_to_remote'), data);
+        return repositoriesApi.pushToRemote(data).toPromise();
       };
 
-      this.repositoryStatus = function(data) {
-        return $http.get(repositories('status', 'siteId=' + data));
+      this.repositoryStatus = function(site) {
+        return repositoriesApi.status(site).toPromise();
       };
 
       this.resolveConflict = function(data) {
-        return $http.post(repositories('resolve_conflict'), data);
+        return repositoriesApi.resolveConflict(data.siteId, data.path, data.resolution).toPromise();
       };
 
       this.diffConflictedFile = function(data) {
-        return $http.get(repositories('diff_conflicted_file'), {
-          params: data
-        });
+        return repositoriesApi.diffConflictedFile(data.siteId, data.path).toPromise();
       };
 
       this.commitResolution = function(data) {
-        return $http.post(repositories('commit_resolution'), data);
+        return repositoriesApi.commitResolution(data.siteId, data.commitMessage).toPromise();
       };
 
       this.cancelFailedPull = function(data) {
-        return $http.post(repositories('cancel_failed_pull'), data);
+        return repositoriesApi.cancelFailedPull(data.siteId).toPromise();
       };
 
       // AUDIT
@@ -200,140 +198,49 @@
       };
 
       // PUBLISHING
+      let publishingApi = CrafterCMSNext.services.publishing;
+
       this.getPublishStatus = function(site) {
-        return $http.get(publish('status', 'site_id=' + site));
+        return publishingApi.fetchPublishStatus(site).toPromise();
       };
 
       this.startPublishStatus = function(site) {
-        return $http.post(publish('start'), site);
+        return publishingApi.startPublish(site.site_id).toPromise();
       };
 
       this.stopPublishStatus = function(site) {
-        return $http.post(publish('stop'), site);
+        return publishingApi.stopPublish(site.site_id).toPromise();
       };
 
       this.getTimeZone = function(data) {
-        return $http.get(api('get-configuration'), {
-          params: data
-        });
+        return CrafterCMSNext.util.ajax
+          .get(`/studio/api/1/services/api/1/site/get-configuration.json?site=${data.site}&path=${data.path}`)
+          .toPromise();
       };
 
       // BULKPUBLISH
       this.getPublishingChannels = function(site) {
-        return $http.get(bulkPublish('get-available-publishing-channels', 'site=' + site));
+        return publishingApi.fetchPublishingTargets(site).toPromise();
       };
 
-      this.bulkGoLive = function(site, path, environmet, submissionComment) {
-        environmet = environmet ? environmet : Constants.BULK_ENVIRONMENT;
+      this.bulkGoLive = function(site, path, environment, submissionComment) {
+        environment = environment ? environment : Constants.BULK_ENVIRONMENT;
         submissionComment = submissionComment ? submissionComment : '';
-        return $http.post(
-          bulkPublish(
-            'bulk-golive',
-            'site_id=' + site + '&path=' + path + '&environment=' + environmet + '&comment=' + submissionComment
-          )
-        );
+
+        return publishingApi.bulkGoLive(site, path, environment, submissionComment).toPromise();
       };
 
       // COMMITSPUBLISH
 
       this.commitsPublish = function(data) {
-        // return $http.post(publish('commits', 'site_id=' + site + "&commit_ids=" + commitIds + "&environment=" + environmet));
-        return $http.post(publish('commits'), data);
+        return publishingApi.commitById(data.site_id, data.commit_ids, data.environment, data.comment).toPromise();
       };
-
-      function api(action) {
-        return Constants.SERVICE + 'site/' + action + '.json';
-      }
-
-      function users(action, params) {
-        if (params) {
-          return Constants.SERVICE + 'user/' + action + '.json?' + params;
-        } else {
-          return Constants.SERVICE + 'user/' + action + '.json';
-        }
-      }
-
-      function users2(params) {
-        if (params) {
-          return Constants.SERVICE2 + 'users?' + params;
-        } else {
-          return Constants.SERVICE2 + 'users';
-        }
-      }
-
-      function usersActions(action, params) {
-        if (params) {
-          return Constants.SERVICE2 + 'users/' + action + params;
-        } else {
-          return Constants.SERVICE2 + 'users/' + action;
-        }
-      }
-
-      function cluster(params) {
-        if (params) {
-          return Constants.SERVICE2 + 'cluster?' + params;
-        } else {
-          return Constants.SERVICE2 + 'cluster';
-        }
-      }
-
-      function publish(action, params) {
-        if (params) {
-          return Constants.SERVICE + 'publish/' + action + '.json?' + params;
-        } else {
-          return Constants.SERVICE + 'publish/' + action + '.json';
-        }
-      }
-
-      function bulkPublish(action, params) {
-        if (params) {
-          return Constants.SERVICE + 'deployment/' + action + '.json?' + params;
-        } else {
-          return Constants.SERVICE + 'deployment/' + action + '.json';
-        }
-      }
-
-      function groups(action, params) {
-        if (params) {
-          return Constants.SERVICE + 'group/' + action + '.json?' + params;
-        } else {
-          return Constants.SERVICE + 'group/' + action + '.json';
-        }
-      }
-
-      function groups2(params) {
-        if (params) {
-          return Constants.SERVICE2 + 'groups?' + params;
-        } else {
-          return Constants.SERVICE2 + 'groups';
-        }
-      }
-
-      function groupsMembers(id, isMember, params) {
-        var url = Constants.SERVICE2 + 'groups/' + id;
-        if (isMember) {
-          url += '/members';
-        }
-        if (params) {
-          url += '?' + params;
-        }
-        return url;
-        // '/members.json?offset=0&limit=1000&sort=desc';
-      }
 
       function repositories(action, params) {
         if (params) {
           return Constants.SERVICE2 + 'repository/' + action + '?' + params;
         } else {
           return Constants.SERVICE2 + 'repository/' + action;
-        }
-      }
-
-      function audit(id) {
-        if (id) {
-          return Constants.SERVICE2 + 'audit/' + id;
-        } else {
-          return Constants.SERVICE2 + 'audit';
         }
       }
 
@@ -976,7 +883,7 @@
           site: publish.site,
           path: '/site-config.xml'
         })
-        .success(function(data) {
+        .then(function(data) {
           var publishing = data['publishing'];
           publish.timeZone = data['default-timezone'];
           publish.isValidateCommentOn =
@@ -998,9 +905,8 @@
         });
 
       publish.getPublish = function() {
-        adminService
-          .getPublishStatus(publish.site)
-          .success(function(data) {
+        adminService.getPublishStatus(publish.site).then(
+          function(data) {
             publish.stopDisabled = false;
             publish.startDisabled = false;
             switch (data.status.toLowerCase()) {
@@ -1026,8 +932,10 @@
             publish.iconColor = currentIconColor;
             publish.message = data.message;
             publish.statusText = formatMessage(publishingMessages[data.status.toLowerCase()]);
-          })
-          .error(function(err) {});
+            $scope.$apply();
+          },
+          function(err) {}
+        );
       };
 
       var renderStatusView = function() {
@@ -1044,38 +952,38 @@
 
       publish.startPublish = function() {
         var requestAsString = { site_id: publish.site };
-        adminService
-          .startPublishStatus(requestAsString)
-          .success(function(data) {
+        adminService.startPublishStatus(requestAsString).then(
+          function(data) {
             publish.getPublish(requestAsString);
             getTopLegacyWindow().postMessage('status-changed', '*');
-          })
-          .error(function(err) {
+          },
+          function(err) {
             if (err.message) {
               publish.error = err.message;
             } else {
               publish.error = err.match(/<title[^>]*>([^<]+)<\/title>/)[1];
             }
             $scope.errorDialog = publish.showModal('errorDialog.html', 'md');
-          });
+          }
+        );
       };
 
       publish.stopPublish = function() {
         var requestAsString = { site_id: publish.site };
-        adminService
-          .stopPublishStatus(requestAsString)
-          .success(function(data) {
+        adminService.stopPublishStatus(requestAsString).then(
+          function(data) {
             publish.getPublish(requestAsString);
             getTopLegacyWindow().postMessage('status-changed', '*');
-          })
-          .error(function(err) {
+          },
+          function(err) {
             if (err.message) {
               publish.error = err.message;
             } else {
               publish.error = err.match(/<title[^>]*>([^<]+)<\/title>/)[1];
             }
             $scope.errorDialog = publish.showModal('errorDialog.html', 'md');
-          });
+          }
+        );
       };
 
       // BULK PUBLISH
@@ -1090,16 +998,16 @@
       publish.pathPublish = '';
 
       publish.getPublishingChannels = function() {
-        adminService
-          .getPublishingChannels(publish.site)
-          .success(function(data) {
-            publish.channels = data.availablePublishChannels;
+        adminService.getPublishingChannels(publish.site).then(
+          function(data) {
+            publish.channels = data;
             publish.selectedChannel = publish.channels[0].name.toString();
             publish.selectedChannelCommit = publish.channels[0].name.toString();
-          })
-          .error(function() {
+          },
+          function() {
             publish.channels = [];
-          });
+          }
+        );
       };
 
       publish.getPublishingChannels();
@@ -1115,17 +1023,19 @@
 
         adminService
           .bulkGoLive(publish.site, publish.pathPublish, publish.selectedChannel, publish.submissionComment)
-          .success(function(data) {
-            publish.disable = false;
-            spinnerOverlay.close();
-            $scope.confirmationBulk = publish.showModal('confirmationBulk.html', 'md');
-          })
-          .error(function(err) {
-            publish.error = err.message;
-            $scope.errorDialog = publish.showModal('errorDialog.html', 'md');
-            spinnerOverlay.close();
-            publish.disable = false;
-          });
+          .then(
+            function() {
+              publish.disable = false;
+              spinnerOverlay.close();
+              $scope.confirmationBulk = publish.showModal('confirmationBulk.html', 'md');
+            },
+            function(err) {
+              publish.error = err.message;
+              $scope.errorDialog = publish.showModal('errorDialog.html', 'md');
+              spinnerOverlay.close();
+              publish.disable = false;
+            }
+          );
       };
 
       angular.element(document).ready(function() {
@@ -1136,7 +1046,7 @@
 
         document.getElementById('submissionComment').addEventListener('keyup', function(e) {
           CrafterCMSNext.render(el, 'CharCountStatusContainer', {
-            commentLength: publish.submissionComment.length
+            commentLength: publish.submissionComment.length ? publish.submissionComment.length : 0
           });
         });
       });
@@ -1157,19 +1067,19 @@
         publish.commitIdsDisable = true;
         spinnerOverlay = $scope.spinnerOverlay();
 
-        adminService
-          .commitsPublish(data)
-          .success(function(data) {
+        adminService.commitsPublish(data).then(
+          function(data) {
             publish.commitIdsDisable = false;
             spinnerOverlay.close();
             $rootScope.showNotification($translate.instant('admin.publishing.PUBLISHBYCOMMITS_SUCCESS'));
-          })
-          .error(function(err) {
+          },
+          function(err) {
             publish.error = err.message;
             $scope.errorDialog = publish.showModal('errorDialog.html', 'md');
             spinnerOverlay.close();
             publish.commitIdsDisable = false;
-          });
+          }
+        );
       };
 
       angular.element(document).ready(function() {
@@ -2089,8 +1999,8 @@
       });
 
       repositories.getRepositoryStatus = function() {
-        adminService.repositoryStatus($location.search().site).success(function(data) {
-          repositories.status = data.repositoryStatus;
+        adminService.repositoryStatus($location.search().site).then(function(data) {
+          repositories.status = data;
         });
       };
       repositories.getFileName = function(filePath) {
@@ -2166,19 +2076,19 @@
         repo.siteId = repositories.site;
         repo.authenticationType = repo.authenticationType ? repo.authenticationType : 'none';
 
-        adminService
-          .createRepository(repo)
-          .success(function(data) {
+        adminService.createRepository(repo).then(
+          function(data) {
             $scope.hideModal();
             adminService.getRepositories(repositories).then(repositoriesReceived, function(error) {
               $scope.showError(error.response);
               repositories.spinnerOverlay.close();
             });
-          })
-          .error(function(error) {
+          },
+          function(error) {
             $scope.showError(error.response);
             repositories.spinnerOverlay.close();
-          });
+          }
+        );
       };
 
       $scope.removeRepo = function(repo) {
@@ -2186,16 +2096,16 @@
           var currentRepo = {};
           currentRepo.siteId = repositories.site;
           currentRepo.remoteName = repo.name;
-          adminService
-            .deleteRepository(currentRepo)
-            .success(function(data) {
+          adminService.deleteRepository(currentRepo).then(
+            function(data) {
               repositories.repositories.reachable = repositories.repositories.reachable.filter((r) => r !== repo);
               repositories.repositories.unreachable = repositories.repositories.unreachable.filter((r) => r !== repo);
               $rootScope.showNotification(`'${repo.name}' ${$translate.instant('admin.repositories.REPO_DELETED')}.`);
-            })
-            .error(function(error) {
+            },
+            function(error) {
               $scope.showError(error.response);
-            });
+            }
+          );
         };
 
         $scope.confirmationAction = deleteRepo;
@@ -2214,18 +2124,18 @@
           currentRepo.remoteBranch = branch;
           currentRepo.mergeStrategy = repositories.mergeStrategy;
 
-          adminService
-            .pullRepository(currentRepo)
-            .success(function(data) {
+          adminService.pullRepository(currentRepo).then(
+            function(data) {
               repositories.spinnerOverlay.close();
               repositories.getRepositoryStatus();
               $rootScope.showNotification($translate.instant('admin.repositories.SUCCESSFULLY_PULLED'));
-            })
-            .error(function(error) {
+            },
+            function(error) {
               repositories.getRepositoryStatus();
               repositories.spinnerOverlay.close();
               $scope.showError(error.response);
-            });
+            }
+          );
         };
 
         repositories.repoAction = 'pull';
@@ -2246,16 +2156,16 @@
           currentRepo.remoteName = repo.name;
           currentRepo.remoteBranch = branch;
 
-          adminService
-            .pushRepository(currentRepo)
-            .success(function(data) {
+          adminService.pushRepository(currentRepo).then(
+            function(data) {
               repositories.spinnerOverlay.close();
               $rootScope.showNotification($translate.instant('admin.repositories.SUCCESSFULLY_PUSHED'));
-            })
-            .error(function(error) {
+            },
+            function(error) {
               repositories.spinnerOverlay.close();
               $scope.showError(error.response);
-            });
+            }
+          );
         };
 
         repositories.repoAction = 'push';
@@ -2278,7 +2188,7 @@
             siteId: repositories.site,
             commitMessage: repositories.commitMsg
           })
-          .success(function(data) {
+          .then(function(data) {
             repositories.status = data.repositoryStatus;
             repositories.commitMsg = '';
           });
@@ -2292,7 +2202,7 @@
             siteId: repositories.site,
             path: path
           })
-          .success(function(data) {
+          .then(function(data) {
             repositories.diff = {
               diff: data.diff.diff,
               studioVersion: data.diff.studioVersion,
@@ -2313,8 +2223,9 @@
             path,
             resolution
           })
-          .success(function(data) {
-            repositories.status = data.repositoryStatus;
+          .then(function(data) {
+            repositories.status = data;
+            $scope.$apply();
           });
       };
 
@@ -2323,7 +2234,7 @@
           .cancelFailedPull({
             siteId: repositories.site
           })
-          .success(function(data) {
+          .then(function(data) {
             repositories.status = data.repositoryStatus;
           });
       };
