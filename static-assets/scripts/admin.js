@@ -174,21 +174,19 @@
       };
 
       // LOGGING
-      let loggersApi = CrafterCMSNext.services.loggers;
+      let logsApi = CrafterCMSNext.services.logs;
 
       this.getLoggers = function() {
-        return loggersApi.fetchLoggers().toPromise();
+        return logsApi.fetchLoggers().toPromise();
       };
 
       this.setLogger = function(data) {
-        return loggersApi.setLogger(data.logger, data.level).toPromise();
+        return logsApi.setLogger(data.logger, data.level).toPromise();
       };
 
       // LOG CONSOLE
-      let logConsoleApi = CrafterCMSNext.services.logs;
-
       this.getLogStudio = function(data) {
-        return logConsoleApi.fetchLogs(data.since).toPromise();
+        return logsApi.fetchLogs(data.since).toPromise();
       };
 
       this.getLogPreview = function(data) {
