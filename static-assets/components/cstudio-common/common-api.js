@@ -5229,20 +5229,14 @@ var nodeOpen = false,
        * lookup content type metadata
        */
       lookupContentType: function(site, type, callback) {
-        var serviceUri = this.lookupContentTypeServiceUri + '?site=' + site + '&type=' + type;
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), {
-          success: function(oResponse) {
-            var contentTypeJson = oResponse.responseText || 'null'; // Some native JSON parsers (e.g. Chrome) don't like the empty string for input
-
-            try {
-              var contentType = YAHOO.lang.JSON.parse(contentTypeJson);
-              callback.success(contentType);
-            } catch (err) {
-              callback.failure(err);
-            }
+        CrafterCMSNext.services.contentTypes.fetchLegacyContentType(site, type).subscribe(
+          function(contentType) {
+            callback.success(contentType);
           },
-          failure: callback.failure
-        });
+          function(err) {
+            callback.failure(err);
+          }
+        );
       },
 
       /**
@@ -9519,41 +9513,51 @@ CStudioAuthoring.FilesDiff = {
       CrafterCMSNext.util.auth.setSiteCookie(win.CStudioAuthoringContext.site);
     }
 
-    CStudioAuthoring.Service.getConfiguration(CStudioAuthoringContext.site, '/mime-type.xml', {
-      success: function(data) {
-        var mimeTypes = {}, //object to be stored
-          confMimeType, //current mimeType json object from service
-          mimeType,
-          key;
+    const getInitialConfiguration = () => {
+      CStudioAuthoring.Service.getConfiguration(CStudioAuthoringContext.site, '/mime-type.xml', {
+        success: function(data) {
+          var mimeTypes = {}, //object to be stored
+            confMimeType, //current mimeType json object from service
+            mimeType,
+            key;
 
-        if (data && data['mime-type']) {
-          var mimeTypes = data['mime-type'];
-          if (!Array.isArray(mimeTypes)) {
-            //support single values coming from SiteServiceImpl#createMap
-            mimeTypes = [mimeTypes];
-          }
-          for (var i = 0; i < mimeTypes.length; i++) {
-            confMimeType = mimeTypes[i];
-            mimeType = {};
-
-            if (confMimeType.icon) {
-              if (confMimeType.icon.class) {
-                mimeType.class = confMimeType.icon.class;
-              }
-              if (confMimeType.icon.styles) {
-                mimeType.styles = confMimeType.icon.styles;
-              }
+          if (data && data['mime-type']) {
+            var mimeTypes = data['mime-type'];
+            if (!Array.isArray(mimeTypes)) {
+              //support single values coming from SiteServiceImpl#createMap
+              mimeTypes = [mimeTypes];
             }
+            for (var i = 0; i < mimeTypes.length; i++) {
+              confMimeType = mimeTypes[i];
+              mimeType = {};
 
-            mimeTypes[confMimeType.type] = mimeType;
+              if (confMimeType.icon) {
+                if (confMimeType.icon.class) {
+                  mimeType.class = confMimeType.icon.class;
+                }
+                if (confMimeType.icon.styles) {
+                  mimeType.styles = confMimeType.icon.styles;
+                }
+              }
+
+              mimeTypes[confMimeType.type] = mimeType;
+            }
           }
+
+          CStudioAuthoring.mimeTypes = mimeTypes;
         }
+      });
 
-        CStudioAuthoring.mimeTypes = mimeTypes;
-      }
-    });
+      CStudioAuthoring.Utils.getTimeZoneConfig();
+    };
 
-    CStudioAuthoring.Utils.getTimeZoneConfig();
+    if (CrafterCMSNext.system.store) {
+      getInitialConfiguration();
+    } else {
+      setTimeout(() => {
+        getInitialConfiguration();
+      }, 500);
+    }
   }, w);
 })(window);
 

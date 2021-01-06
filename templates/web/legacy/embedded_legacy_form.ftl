@@ -257,7 +257,13 @@
     }
   }
 
-  openDialog(type, path);
+  if (CrafterCMSNext.system.store) {
+    openDialog(type, path);
+  } else {
+    setTimeout(() => {
+      openDialog(type, path);
+    }, 500)
+  }
 </script>
 </body>
 </html>

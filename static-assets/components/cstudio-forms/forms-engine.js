@@ -1374,151 +1374,140 @@ var CStudioForms =
                 edit
               });
             } else {
-              YAHOO.util.Connect.setDefaultPostHeader(false);
-              YAHOO.util.Connect.initHeader('Content-Type', 'application/xml; charset=utf-8');
-              YAHOO.util.Connect.initHeader(
-                CStudioAuthoringContext.xsrfHeaderName,
-                CrafterCMSNext.util.auth.getRequestForgeryToken()
-              );
-              YAHOO.util.Connect.asyncRequest(
-                'POST',
-                CStudioAuthoring.Service.createServiceUri(serviceUrl),
-                {
-                  success: function() {
-                    YAHOO.util.Event.removeListener(window, 'beforeunload', unloadFn, me);
+              CrafterCMSNext.util.ajax.post(CStudioAuthoring.Service.createServiceUri(serviceUrl), xml).subscribe(
+                function() {
+                  YAHOO.util.Event.removeListener(window, 'beforeunload', unloadFn, me);
 
-                    var getContentItemCb = {
-                      success: function(contentTO) {
-                        var previewUrl = CStudioAuthoringContext.previewAppBaseUri + contentTO.item.browserUri;
-                        path = entityId;
-                        var formId = CStudioAuthoring.Utils.getQueryVariable(location.search.substring(1), 'wid');
-                        var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
+                  var getContentItemCb = {
+                    success: function(contentTO) {
+                      var previewUrl = CStudioAuthoringContext.previewAppBaseUri + contentTO.item.browserUri;
+                      path = entityId;
+                      var formId = CStudioAuthoring.Utils.getQueryVariable(location.search.substring(1), 'wid');
+                      var editorId = CStudioAuthoring.Utils.getQueryVariable(location.search, 'editorId');
 
-                        setButtonsEnabled(true);
-                        sendMessage({ type: CHILD_FORM_DRAFT_COMPLETE });
+                      setButtonsEnabled(true);
+                      sendMessage({ type: CHILD_FORM_DRAFT_COMPLETE });
 
-                        if (typeof window.parent.CStudioAuthoring.editDisabled !== 'undefined') {
-                          for (var x = 0; x < window.parent.CStudioAuthoring.editDisabled.length; x++) {
-                            window.parent.CStudioAuthoring.editDisabled[x].style.pointerEvents = '';
-                          }
-                          window.parent.CStudioAuthoring.editDisabled = [];
+                      if (typeof window.parent.CStudioAuthoring.editDisabled !== 'undefined') {
+                        for (var x = 0; x < window.parent.CStudioAuthoring.editDisabled.length; x++) {
+                          window.parent.CStudioAuthoring.editDisabled[x].style.pointerEvents = '';
                         }
-
-                        if (iceWindowCallback && iceWindowCallback.success) {
-                          var value = form.model['internal-name'];
-                          var name = entityId;
-
-                          contentTO.initialModel = CStudioForms.initialModel;
-                          contentTO.updatedModel = CStudioForms.updatedModel;
-
-                          iceWindowCallback.success(contentTO, editorId, name, value, draft, action);
-                          if (draft) {
-                            CStudioAuthoring.Utils.Cookies.createCookie('cstudio-save-draft', 'true');
-                          } else {
-                            CStudioAuthoring.Utils.Cookies.eraseCookie('cstudio-save-draft');
-                            CStudioAuthoring.InContextEdit.unstackDialog(editorId);
-                            CStudioAuthoring.Operations.refreshPreview();
-                          }
-                        } else {
-                          if (draft) {
-                            CStudioAuthoring.Utils.Cookies.createCookie('cstudio-save-draft', 'true');
-                            CStudioAuthoring.Operations.refreshPreview();
-                          } else {
-                            CStudioAuthoring.Utils.Cookies.eraseCookie('cstudio-save-draft');
-                            CStudioAuthoring.InContextEdit.unstackDialog(editorId);
-                            CStudioAuthoring.Operations.refreshPreview();
-                          }
-                        }
-                        var page = CStudioAuthoring.Utils.getQueryParameterURLParentWindow('page');
-                        var currentPage = page.split('/')[page.split('/').length - 1];
-                        var acnDraftContent = YDom.getElementsByClassName('acnDraftContent', null, parent.document)[0];
-                        if (acnDraftContent && !saveDraft) {
-                          acnDraftContent.parentNode.removeChild(acnDraftContent);
-                        }
-                        if (!acnDraftContent && saveDraft && contentTO.item.browserUri == page) {
-                          var noticeEl = document.createElement('div');
-                          parent.document.querySelector('#studioBar nav .container-fluid').appendChild(noticeEl);
-                          YDom.addClass(noticeEl, 'acnDraftContent');
-                          noticeEl.innerHTML = CMgs.format(formsLangBundle, 'wcmContentSavedAsDraft');
-                        }
-
-                        if (embeddedIceDraft) {
-                          //close parent form when embeddedIce is saved as draft
-                          sendMessage({ type: FORM_CANCEL_REQUEST });
-                        }
-                      },
-                      failure: function(err) {
-                        CStudioAuthoring.Operations.showSimpleDialog(
-                          'error-dialog',
-                          CStudioAuthoring.Operations.simpleDialogTypeINFO,
-                          CMgs.format(formsLangBundle, 'notification'),
-                          err,
-                          [
-                            {
-                              text: 'OK',
-                              handler: function() {
-                                this.hide();
-                                form.onAfterSave();
-                                setButtonsEnabled(true);
-                              },
-                              isDefault: false
-                            }
-                          ],
-                          YAHOO.widget.SimpleDialog.ICON_BLOCK,
-                          'studioDialog'
-                        );
+                        window.parent.CStudioAuthoring.editDisabled = [];
                       }
-                    };
 
-                    if (entityId == path) {
-                      CStudioAuthoring.Service.lookupContentItem(
-                        CStudioAuthoringContext.site,
-                        entityId,
-                        getContentItemCb,
-                        false,
-                        false
-                      );
-                    } else {
-                      CStudioAuthoring.Service.lookupSiteContent(
-                        CStudioAuthoringContext.site,
-                        entityId,
-                        1,
-                        'default',
-                        getContentItemCb
-                      );
-                    }
-                  },
-                  failure: function(err) {
-                    try {
+                      if (iceWindowCallback && iceWindowCallback.success) {
+                        var value = form.model['internal-name'];
+                        var name = entityId;
+
+                        contentTO.initialModel = CStudioForms.initialModel;
+                        contentTO.updatedModel = CStudioForms.updatedModel;
+
+                        iceWindowCallback.success(contentTO, editorId, name, value, draft, action);
+                        if (draft) {
+                          CStudioAuthoring.Utils.Cookies.createCookie('cstudio-save-draft', 'true');
+                        } else {
+                          CStudioAuthoring.Utils.Cookies.eraseCookie('cstudio-save-draft');
+                          CStudioAuthoring.InContextEdit.unstackDialog(editorId);
+                          CStudioAuthoring.Operations.refreshPreview();
+                        }
+                      } else {
+                        if (draft) {
+                          CStudioAuthoring.Utils.Cookies.createCookie('cstudio-save-draft', 'true');
+                          CStudioAuthoring.Operations.refreshPreview();
+                        } else {
+                          CStudioAuthoring.Utils.Cookies.eraseCookie('cstudio-save-draft');
+                          CStudioAuthoring.InContextEdit.unstackDialog(editorId);
+                          CStudioAuthoring.Operations.refreshPreview();
+                        }
+                      }
+                      var page = CStudioAuthoring.Utils.getQueryParameterURLParentWindow('page');
+                      var currentPage = page.split('/')[page.split('/').length - 1];
+                      var acnDraftContent = YDom.getElementsByClassName('acnDraftContent', null, parent.document)[0];
+                      if (acnDraftContent && !saveDraft) {
+                        acnDraftContent.parentNode.removeChild(acnDraftContent);
+                      }
+                      if (!acnDraftContent && saveDraft && contentTO.item.browserUri == page) {
+                        var noticeEl = document.createElement('div');
+                        parent.document.querySelector('#studioBar nav .container-fluid').appendChild(noticeEl);
+                        YDom.addClass(noticeEl, 'acnDraftContent');
+                        noticeEl.innerHTML = CMgs.format(formsLangBundle, 'wcmContentSavedAsDraft');
+                      }
+
+                      if (embeddedIceDraft) {
+                        //close parent form when embeddedIce is saved as draft
+                        sendMessage({ type: FORM_CANCEL_REQUEST });
+                      }
+                    },
+                    failure: function(err) {
                       CStudioAuthoring.Operations.showSimpleDialog(
                         'error-dialog',
                         CStudioAuthoring.Operations.simpleDialogTypeINFO,
                         CMgs.format(formsLangBundle, 'notification'),
-                        YAHOO.lang.JSON.parse(err.responseText).callstack[1].substring(
-                          YAHOO.lang.JSON.parse(err.responseText).callstack[1].indexOf(':') + 1
-                        ),
-                        null,
-                        YAHOO.widget.SimpleDialog.ICON_BLOCK,
-                        'studioDialog'
-                      );
-                    } catch (e) {
-                      var error = eval('(' + err.responseText + ')'),
-                        errorMessage = error.message ? error.message : CMgs.format(formsLangBundle, 'errSaveFailed');
-
-                      CStudioAuthoring.Operations.showSimpleDialog(
-                        'error-dialog',
-                        CStudioAuthoring.Operations.simpleDialogTypeINFO,
-                        CMgs.format(formsLangBundle, 'notification'),
-                        errorMessage,
-                        null,
+                        err,
+                        [
+                          {
+                            text: 'OK',
+                            handler: function() {
+                              this.hide();
+                              form.onAfterSave();
+                              setButtonsEnabled(true);
+                            },
+                            isDefault: false
+                          }
+                        ],
                         YAHOO.widget.SimpleDialog.ICON_BLOCK,
                         'studioDialog'
                       );
                     }
-                    setButtonsEnabled(true);
+                  };
+
+                  if (entityId == path) {
+                    CStudioAuthoring.Service.lookupContentItem(
+                      CStudioAuthoringContext.site,
+                      entityId,
+                      getContentItemCb,
+                      false,
+                      false
+                    );
+                  } else {
+                    CStudioAuthoring.Service.lookupSiteContent(
+                      CStudioAuthoringContext.site,
+                      entityId,
+                      1,
+                      'default',
+                      getContentItemCb
+                    );
                   }
                 },
-                xml
+                function(err) {
+                  try {
+                    CStudioAuthoring.Operations.showSimpleDialog(
+                      'error-dialog',
+                      CStudioAuthoring.Operations.simpleDialogTypeINFO,
+                      CMgs.format(formsLangBundle, 'notification'),
+                      YAHOO.lang.JSON.parse(err.responseText).callstack[1].substring(
+                        YAHOO.lang.JSON.parse(err.responseText).callstack[1].indexOf(':') + 1
+                      ),
+                      null,
+                      YAHOO.widget.SimpleDialog.ICON_BLOCK,
+                      'studioDialog'
+                    );
+                  } catch (e) {
+                    var error = eval('(' + err.responseText + ')'),
+                      errorMessage = error.message ? error.message : CMgs.format(formsLangBundle, 'errSaveFailed');
+
+                    CStudioAuthoring.Operations.showSimpleDialog(
+                      'error-dialog',
+                      CStudioAuthoring.Operations.simpleDialogTypeINFO,
+                      CMgs.format(formsLangBundle, 'notification'),
+                      errorMessage,
+                      null,
+                      YAHOO.widget.SimpleDialog.ICON_BLOCK,
+                      'studioDialog'
+                    );
+                  }
+                  setButtonsEnabled(true);
+                }
               );
             }
           };
@@ -2707,11 +2696,21 @@ var CStudioForms =
           failure: function() {}
         };
 
-        CStudioAuthoring.Service.lookupConfigurtion(
-          CStudioAuthoringContext.site,
-          '/content-types/' + formId + '/form-definition.xml',
-          configCb
-        );
+        const getFormDefinition = () => {
+          CStudioAuthoring.Service.lookupConfigurtion(
+            CStudioAuthoringContext.site,
+            '/content-types/' + formId + '/form-definition.xml',
+            configCb
+          );
+        };
+
+        if (CrafterCMSNext.system.store) {
+          getFormDefinition();
+        } else {
+          setTimeout(() => {
+            getFormDefinition();
+          }, 500);
+        }
       },
 
       /**
