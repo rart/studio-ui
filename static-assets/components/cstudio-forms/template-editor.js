@@ -622,13 +622,6 @@ CStudioAuthoring.Module.requireModule(
                     }
 
                     var cancelEdit = function() {
-                      var cancelEditServiceUrl =
-                        '/api/1/services/api/1/content/unlock-content.json' +
-                        '?site=' +
-                        CStudioAuthoringContext.site +
-                        '&path=' +
-                        encodeURI(templatePath);
-
                       var cancelEditCb = {
                         success: function(response) {
                           // dispatch legacyTemplateEditor.opened
@@ -646,9 +639,9 @@ CStudioAuthoring.Module.requireModule(
                         window.parent.CStudioAuthoring.editDisabled = [];
                       }
 
-                      YAHOO.util.Connect.asyncRequest(
-                        'GET',
-                        CStudioAuthoring.Service.createServiceUri(cancelEditServiceUrl),
+                      CStudioAuthoring.Service.unlockContentItem(
+                        CStudioAuthoringContext.site,
+                        templatePath,
                         cancelEditCb
                       );
                     };

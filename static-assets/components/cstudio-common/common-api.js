@@ -4198,18 +4198,14 @@ var nodeOpen = false,
        * unlock the content item
        */
       unlockContentItem: function(site, path, callback) {
-        var serviceUrl = this.unlockContentItemUrl + '?site=' + site + '&path=' + encodeURI(path);
-
-        var serviceCallback = {
-          success: function(response) {
+        CrafterCMSNext.services.content.unlock(site, encodeURI(path)).subscribe(
+          function() {
             callback.success();
           },
-          failure: function(response) {
+          function() {
             callback.failure();
           }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+        );
       },
       /**
        *  unlock the content item synchronous
@@ -4423,23 +4419,18 @@ var nodeOpen = false,
        *  If edit equals true, tries to lock the content
        */
       getContent: function(path, edit, callback) {
-        var serviceUrl =
-          CStudioAuthoring.Service.getContentUri +
-          `?site=${CStudioAuthoringContext.site}` +
-          `&path=${encodeURI(path)}` +
-          `&edit=${edit}` +
-          `&ticket=${CStudioAuthoring.Utils.Cookies.readCookie('ccticket')}` +
-          `&nocache=${Date.now()}`;
-
-        YConnect.asyncRequest('GET', CStudioAuthoring.Service.createServiceUri(serviceUrl), {
-          success: function(content) {
-            var contentData = YAHOO.lang.JSON.parse(content.responseText);
-            callback.success(contentData.content);
-          },
-          failure: function(err) {
-            callback.failure(err);
-          }
-        });
+        CrafterCMSNext.services.content
+          .getContentXML(CStudioAuthoringContext.site, encodeURI(path), {
+            lock: !edit
+          })
+          .subscribe(
+            function(content) {
+              callback.success(content);
+            },
+            function(err) {
+              callback.failure(err);
+            }
+          );
       },
       /**
        * determine if content exists
@@ -4804,70 +4795,41 @@ var nodeOpen = false,
        */
       getGoLiveQueueItems: function(site, includeInprogressItems, sortBy, sortAscDesc, callback, filterByNumber) {
         callback.beforeServiceCall();
-        var serviceUrl = this.getGoLiveQueueItemsServiceUrl;
-        serviceUrl += '?site=' + site;
-        if (sortBy != null && sortBy != null) {
-          serviceUrl += '&sort=' + sortBy;
-          if (sortAscDesc != undefined && sortAscDesc != null) {
-            serviceUrl += '&ascending=' + sortAscDesc;
-          }
-        }
-        if (filterByNumber != null && filterByNumber != '') {
-          serviceUrl += '&num=' + filterByNumber;
-        }
-        if (includeInprogressItems) {
-          serviceUrl += '&includeInProgress=true';
-        }
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            var results = eval('(' + jsonResponse.responseText + ')');
-            CStudioAuthoringWidgets.GoLiveQueueDashboard.resultMap = CStudioAuthoring.Service.createFlatMap(
-              results.documents
-            );
-            callback.success(results);
-          },
 
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+        CrafterCMSNext.services.workflow
+          .fetchGoLive(site, sortBy, sortAscDesc, includeInprogressItems, filterByNumber)
+          .subscribe(
+            function(response) {
+              CStudioAuthoringWidgets.GoLiveQueueDashboard.resultMap = CStudioAuthoring.Service.createFlatMap(
+                response.documents
+              );
+              callback.success(response);
+            },
+            function(response) {
+              callback.failure(response);
+            }
+          );
       },
       /**
        * get user activites items
        */
       getUserActivitiesServices: function(site, user, sortBy, sortAscDesc, number, filterBy, hideLive, callback) {
         callback.beforeServiceCall();
-        var serviceUrl = this.getUserActivitiesServiceUrl;
-        serviceUrl += '?site=' + site;
-        if (user != undefined && user != null) {
-          serviceUrl += '&user=' + user;
-        }
-        if (sortBy != null && sortBy != null) {
-          serviceUrl += '&sort=' + sortBy;
 
-          if (sortAscDesc != undefined && sortAscDesc != null) {
-            serviceUrl += '&ascending=' + sortAscDesc;
-          }
-        }
-        if (number != undefined && number != null) {
-          serviceUrl += '&num=' + number;
-        }
         if (filterBy == undefined && filterBy == null) {
           filterBy = 'page';
         }
-        serviceUrl += '&filterType=' + filterBy;
-        serviceUrl += '&excludeLive=' + (hideLive != undefined && hideLive != null ? hideLive : false);
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            var results = eval('(' + jsonResponse.responseText + ')');
-            callback.success(results);
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+
+        CrafterCMSNext.services.workflow
+          .fetchUserActivities(site, user, sortBy, sortAscDesc, number, filterBy, hideLive)
+          .subscribe(
+            function(response) {
+              callback.success(response);
+            },
+            function(response) {
+              callback.failure(response);
+            }
+          );
       },
 
       /**
@@ -4987,64 +4949,40 @@ var nodeOpen = false,
        */
       getScheduledItems: function(site, sortBy, sortAscDesc, filterBy, callback) {
         callback.beforeServiceCall();
-        var serviceUrl = this.getScheduledItemsServiceUrl;
-        serviceUrl += '?site=' + site;
-        if (sortBy != null && sortBy != null) {
-          serviceUrl += '&sort=' + sortBy;
 
-          if (sortAscDesc != undefined && sortAscDesc != null) {
-            serviceUrl += '&ascending=' + sortAscDesc;
-          }
-        }
-        if (filterBy == undefined && filterBy == null) {
+        if (filterBy === undefined && filterBy === null) {
           filterBy = 'page';
         }
-        serviceUrl += '&filterType=' + filterBy;
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            var results = eval('(' + jsonResponse.responseText + ')');
-            callback.success(results);
-          },
 
-          failure: function(response) {
+        CrafterCMSNext.services.workflow.fetchScheduledItems(site, sortBy, sortAscDesc, filterBy).subscribe(
+          function(response) {
+            callback.success(response);
+          },
+          function(response) {
             callback.failure(response);
           }
-        };
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+        );
       },
       /**
        * get recently deployed items
        */
       getDeploymentHistory: function(site, sortBy, sortAscDesc, days, number, filterBy, callback) {
         callback.beforeServiceCall();
-        var serviceUrl = this.getDeploymentHistoryServiceUrl;
-        serviceUrl += '?site=' + site;
-        if (days != undefined && days != null) {
-          serviceUrl += '&days=' + days;
-        }
-        if (sortBy != null && sortBy != null) {
-          serviceUrl += '&sort=' + sortBy;
-          if (sortAscDesc != undefined && sortAscDesc != null) {
-            serviceUrl += '&ascending=' + sortAscDesc;
-          }
-        }
-        if (number != undefined && number != null) {
-          serviceUrl += '&num=' + number;
-        }
-        if (filterBy == undefined && filterBy == null) {
+
+        if (filterBy === undefined && filterBy === null) {
           filterBy = 'page';
         }
-        serviceUrl += '&filterType=' + filterBy;
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            var results = eval('(' + jsonResponse.responseText + ')');
-            callback.success(results);
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+
+        CrafterCMSNext.services.workflow
+          .fetchDeploymentHistory(site, sortBy, sortAscDesc, days, number, filterBy)
+          .subscribe(
+            function(response) {
+              callback.success(response);
+            },
+            function(response) {
+              callback.failure(response);
+            }
+          );
       },
 
       /**
@@ -5370,29 +5308,24 @@ var nodeOpen = false,
         // same. Then, knowing that path is decoded, gets encoded. That way we avoid encoded paths to be
         // encoded again.
         path = decodeURI(path);
-        var serviceUri = this.lookupContentItemServiceUri + '?site=' + site + '&path=' + encodeURI(path);
-        if (isDraft) {
-          serviceUri = serviceUri + '&draft=true';
-        }
 
-        if (populateDependencies != null && !populateDependencies) {
-          serviceUri = serviceUri + '&populateDependencies=false';
-        }
-        serviceUri = serviceUri + '&nocache=' + new Date();
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), {
-          success: function(response) {
-            var contentResults = eval('(' + response.responseText + ')');
+        CrafterCMSNext.services.content.getLegacyItem(site, encodeURI(path)).subscribe(
+          function(response) {
             try {
-              callback.success(contentResults, callback.argument);
+              callback.success(
+                {
+                  item: response
+                },
+                callback.argument
+              );
             } catch (err) {}
           },
-          failure: function(response) {
+          function() {
             if (callback.failure) {
               callback.failure('Error loading data', callback.argument);
             }
           }
-        });
+        );
       },
 
       /**
@@ -5429,24 +5362,24 @@ var nodeOpen = false,
        * lookup pages
        */
       lookupSiteContent: function(site, path, depth, order, callback) {
-        var serviceUri =
-          this.lookupContentServiceUri + '?site=' + site + '&path=' + path + '&depth=' + depth + '&order=' + order;
-        serviceUri = serviceUri + '&nocache=' + new Date();
-        serviceUri = encodeURI(serviceUri);
-
-        var serviceCallback = {
-          success: function(response) {
-            var contentResults = eval('(' + response.responseText + ')');
-
-            callback.success(contentResults, callback.argument);
-          },
-
-          failure: function(response) {
-            callback.failure(response, callback.argument);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
+        CrafterCMSNext.services.content
+          .getLegacyItemsTree(site, encodeURI(path), {
+            depth,
+            order
+          })
+          .subscribe(
+            function(response) {
+              callback.success(
+                {
+                  item: response
+                },
+                callback.argument
+              );
+            },
+            function(response) {
+              callback.failure(response, callback.argument);
+            }
+          );
       },
 
       /**
