@@ -950,7 +950,7 @@
 
       publish.startPublish = function() {
         var requestAsString = { site_id: publish.site };
-        adminService.start(requestAsString).then(
+        adminService.startPublishStatus(requestAsString).then(
           function(data) {
             publish.getPublish(requestAsString);
             getTopLegacyWindow().postMessage('status-changed', '*');
@@ -968,7 +968,7 @@
 
       publish.stopPublish = function() {
         var requestAsString = { site_id: publish.site };
-        adminService.stop(requestAsString).then(
+        adminService.stopPublishStatus(requestAsString).then(
           function(data) {
             publish.getPublish(requestAsString);
             getTopLegacyWindow().postMessage('status-changed', '*');
