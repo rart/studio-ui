@@ -746,12 +746,6 @@ var nodeOpen = false,
           unsubscribe();
         });
       },
-      viewSchedulingPolicy: function(callback) {
-        CSA.Operations._showDialogueView({
-          fn: CSA.Service.getSchedulingPolicyView,
-          callback: callback
-        });
-      },
 
       viewContentHistory: function(contentObj, isWrite, rootPath) {
         const item = CrafterCMSNext.util.content.parseLegacyItemToSandBoxItem(contentObj);
@@ -2447,64 +2441,6 @@ var nodeOpen = false,
 
         CStudioAuthoring.Service.lookupAllowedContentTypesForPath(site, path, callback);
       },
-      /**
-       * Gets the list of files on workflow that will be affected by editing a given item
-       * @param params {object} The set of parameters to query the service with
-       * @param callback {object} Object containing success and failure callbacks. Success is called with the parsed response as parameter, not the XHR response
-       */
-      getWorkflowAffectedFiles: function(params, callback) {
-        var CSA = CStudioAuthoring,
-          Connect = YAHOO.util.Connect,
-          serviceParams = [],
-          serviceURI;
-
-        if (params)
-          for (var key in params) {
-            serviceParams.push(key + '=' + params[key]);
-          }
-
-        serviceURI = CSA.Service.createServiceUri(
-          CSA.Service.getWorkflowAffectedPathsServiceUrl + '?' + serviceParams.join('&')
-        );
-
-        Connect.asyncRequest('GET', encodeURI(serviceURI), {
-          success: function(response) {
-            var content;
-            try {
-              content = CSA.Utils.decode(response.responseText).items;
-            } catch (ex) {}
-            callback.success && callback.success(content);
-          },
-          failure: function(response) {
-            if (callback.failure) callback.failure(response);
-            else {
-              // TODO can we improve this message to say something useful? will response bring any sort of useful message?
-              var message = 'An error occurred trying to get the affected files.';
-              var dialog = new YAHOO.widget.SimpleDialog(CSA.Utils.getScopedId('error'), {
-                width: '300px',
-                visible: true,
-                fixedcenter: true,
-                draggable: false,
-                close: false,
-                modal: true,
-                text: message,
-                icon: YAHOO.widget.SimpleDialog.ICON_WARN,
-                buttons: [
-                  {
-                    text: 'Accept',
-                    handler: function() {
-                      this.hide();
-                    },
-                    isDefault: true
-                  }
-                ]
-              });
-              dialog.setHeader('Warning');
-              dialog.render(document.body);
-            }
-          }
-        });
-      },
 
       /**
        * edit content
@@ -3306,41 +3242,7 @@ var nodeOpen = false,
         });
       },
 
-      getSchedulingPolicyView: function(callback) {
-        var srv = CStudioAuthoring.Service,
-          url = srv._formatURL(
-            '{base}/service/ui/workflow-actions/schedule-policy?version=' + CStudioAuthoring.UIBuildId + '&site={site}'
-          );
-        srv._getView({
-          url: url,
-          callback: callback,
-          method: 'GET'
-        });
-      },
-
-      getScheduleView: function(callback) {
-        CSA.Service.getViewCommon(
-          '{base}/static-assets/components/cstudio-dialogs-templates/schedule.html',
-          callback,
-          true,
-          true
-        );
-      },
-
-      getInContextEditView: function(callback) {
-        CSA.Service.getViewCommon(
-          '{base}/static-assets/components/cstudio-dialogs-templates/in-context-edit.html',
-          callback,
-          true,
-          false
-        );
-      },
-
       getImageRequest: function(data) {
-        CSA.Service.getViewCommon(data.url, data.callback, false, false);
-      },
-
-      getLoadItemsRequest: function(data) {
         CSA.Service.getViewCommon(data.url, data.callback, false, false);
       },
 
@@ -3629,50 +3531,6 @@ var nodeOpen = false,
       },
 
       /**
-       * set the state of a given object
-       */
-      setObjectState: function(site, path, state, callback) {
-        var serviceUri = this.setObjectStateServiceUrl;
-        serviceUri += '?site=' + site + '&path=' + path + '&state=' + state + '&systemprocessing=false';
-
-        var serviceCallback = {
-          success: function(response) {
-            callback.success({ status: 'success' });
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
-      },
-
-      /**
-       * clean markuo
-       */
-      cleanHtmlMarkup: function(markup, callback) {
-        var serviceUri = this.cleanHtmlUrl;
-
-        var serviceCallback = {
-          success: function(response) {
-            var cleanMarkup = response.responseText;
-            callback.success(cleanMarkup);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          },
-
-          originalMarkup: markup
-        };
-
-        YConnect.setDefaultPostHeader(false);
-        YConnect.initHeader('Content-Type', 'application/xml; charset=utf-8');
-        YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
-        YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, markup);
-      },
-
-      /**
        * write content Asset (NON XML)
        */
       writeContentAsset: function() {
@@ -3777,65 +3635,6 @@ var nodeOpen = false,
           },
           content
         );
-      },
-
-      /**
-       * get content for a specific field
-       */
-      getContentFieldValue: function(itemPath, field, site, callback) {
-        var serviceUri = this.getContentFieldValueServiceUrl;
-        serviceUri += '?siteId=' + site;
-        serviceUri += '&contentPath=' + itemPath;
-        serviceUri += '&field=' + field;
-
-        var serviceCallback = {
-          success: function(response) {
-            var value = response.responseText;
-            callback.success(value);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          },
-
-          itemPath: itemPath,
-          field: field,
-          site: site
-        };
-
-        YConnect.setDefaultPostHeader(false);
-        YConnect.initHeader('Content-Type', 'application/xml; charset=utf-8');
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
-      },
-
-      /**
-       * update content for a specific field
-       */
-      updateContentFieldValue: function(itemPath, field, site, content, callback) {
-        var serviceUri = this.updateContentFieldValueServiceUrl;
-        serviceUri += '?siteId=' + site;
-        serviceUri += '&contentPath=' + itemPath;
-        serviceUri += '&field=' + field;
-
-        var serviceCallback = {
-          success: function(response) {
-            callback.success();
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          },
-
-          itemPath: itemPath,
-          field: field,
-          site: site,
-          content: content
-        };
-
-        YConnect.setDefaultPostHeader(false);
-        YConnect.initHeader('Content-Type', 'application/xml; charset=utf-8');
-        YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
-        YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, content);
       },
 
       /**
@@ -4103,32 +3902,6 @@ var nodeOpen = false,
           new Date()
         );
       },
-      /**
-       * check, if the content is edited by another user.
-       */
-      checkContentStatus: function(path, callback) {
-        var serviceCallback = {
-          success: function(response) {
-            callback.success(response);
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-        var serviceUri =
-          this.createServiceUri(this.getContentUri) +
-          '?site=' +
-          CStudioAuthoringContext.site +
-          '&path=' +
-          encodeURI(path) +
-          '&edit=true' +
-          '&ticket=' +
-          CStudioAuthoring.Utils.Cookies.readCookie('ccticket') +
-          '&nocache=' +
-          new Date();
-
-        YConnect.asyncRequest('GET', serviceUri, serviceCallback);
-      },
 
       /**
        *  Returns the item content
@@ -4257,39 +4030,6 @@ var nodeOpen = false,
           }
         };
         YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
-      },
-
-      /**
-       * Rejection Reason
-       */
-      getRejectionReason: function(locale, type, callback) {
-        var serviceUrl = this.getRejectionReasonServiceUri;
-        serviceUrl += '?site=' + CStudioAuthoringContext.site;
-        serviceUrl += '&locale=' + locale;
-        serviceUrl += '&type=' + type;
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            var results = eval('(' + jsonResponse.responseText + ')');
-            callback.success(results);
-          },
-          failure: function(response) {}
-        };
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
-      },
-
-      /**
-       * load items
-       */
-      loadItems: function(callback, data) {
-        var serviceUrl = this.loadItemsServiceUri;
-        serviceUrl += '?site=' + CStudioAuthoringContext.site;
-        CStudioAuthoring.Service.request({
-          method: 'POST',
-          data: data,
-          resetFormState: true,
-          url: CStudioAuthoringContext.baseUri + serviceUrl,
-          callback: callback
-        });
       },
 
       calculateDependencies: function(data, callback) {
@@ -4453,27 +4193,6 @@ var nodeOpen = false,
       },
 
       /**
-       * get user info
-       */
-      getUserInfo: function(callback, user) {
-        var serviceUrl = this.getUserInfoServiceURL;
-        var user = !user ? 'me' : user;
-        serviceUrl += '/' + user;
-
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            var results = eval('(' + jsonResponse.responseText + ')');
-            results = results.authenticatedUser;
-            callback.success(results);
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
-      },
-
-      /**
        * get user roles
        */
       getUserRoles: function(callback, user) {
@@ -4548,23 +4267,6 @@ var nodeOpen = false,
       },
 
       /**
-       * get Active Environment
-       */
-      getActiveEnvironment: function(callback) {
-        var serviceUrl = this.getActiveEnvironmentURL;
-
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            callback.success(jsonResponse);
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
-      },
-
-      /**
        * get scheduled items
        */
       getScheduledItems: function(site, sortBy, sortAscDesc, filterBy, callback) {
@@ -4606,32 +4308,6 @@ var nodeOpen = false,
       },
 
       /**
-       * revert content item
-       */
-      revertContentItem: function(site, contentTO, version, callback) {
-        var serviceUrl = this.getRevertContentServiceUrl;
-
-        serviceUrl += '?site=' + site;
-        serviceUrl += '&path=' + contentTO.uri;
-        serviceUrl += '&version=' + version;
-
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            var results = eval('(' + jsonResponse.responseText + ')');
-            callback.success(results);
-            const messages = CrafterCMSNext.i18n.messages.itemSuccessMessages;
-            const formatMessage = CrafterCMSNext.i18n.intl.formatMessage;
-            CStudioAuthoring.Utils.showNotification(formatMessage(messages.itemReverted), null, null, 'default');
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
-      },
-
-      /**
        * get version history for given content path
        */
       getVersionHistory: function(site, contentTO, callback) {
@@ -4645,30 +4321,6 @@ var nodeOpen = false,
           success: function(jsonResponse) {
             var results = eval('(' + jsonResponse.responseText + ')');
             callback.success(results);
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
-      },
-
-      /**
-       * get version history for given configuration path
-       */
-      getConfigurationVersionHistory: function(site, configurationTO, callback) {
-        var serviceUrl = this.getConfigurationVersionHistoryServiceUrl;
-        serviceUrl += '?siteId=' + site;
-        serviceUrl += '&module=' + configurationTO.module;
-        serviceUrl += '&path=' + configurationTO.path;
-        serviceUrl += '&environment=' + configurationTO.environment;
-        serviceUrl += '&maxhistory=100';
-
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            var results = eval('(' + jsonResponse.responseText + ')');
-            callback.success(results.history);
           },
           failure: function(response) {
             callback.failure(response);
@@ -4712,22 +4364,7 @@ var nodeOpen = false,
         };
         YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
       },
-      /**
-       * Retrieve the content as a JSON object for a given path
-       */
-      retrieveWcmMapContent: function(path, callback) {
-        var serviceUrl = this.wcmMapContentServiceUri + '?site=' + CStudioAuthoringContext.site + '&path=' + path;
-        var serviceCallback = {
-          success: function(oResponse) {
-            callback.success(JSON.parse(oResponse.responseText));
-          },
 
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
-      },
       /**
        * retrieve the content for a given contextual nav context
        */
@@ -4888,39 +4525,6 @@ var nodeOpen = false,
       },
 
       /**
-       * retrieve a list of sites and their metadata
-       */
-      retrieveSitesList: function(callback) {
-        var retSites = null;
-        var serviceUrl = this.retrieveSitesUrl;
-
-        var serviceCallback = {
-          success: function(response) {
-            var sitesModel = eval('(' + response.responseText + ')');
-            var menuModel = [];
-
-            if (sitesModel.length) {
-              for (var i = 0; i < sitesModel.length; i++) {
-                menuModel.push({
-                  name: sitesModel[i].name,
-                  siteId: sitesModel[i].siteId,
-                  link: '/preview#/?page=/&site=' + sitesModel[i].shortId
-                });
-              }
-            }
-
-            callback.success(menuModel);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
-      },
-
-      /**
        * lookup Content item
        */
       lookupContentItem: function(site, path, callback, isDraft, populateDependencies) {
@@ -5029,27 +4633,6 @@ var nodeOpen = false,
       },
 
       /**
-       * lookup translation jobs
-       */
-      getWorkflowJobs: function(site, callback) {
-        var serviceUri = this.getWorkflowJobsServiceUrl + '?site=' + site;
-
-        var serviceCallback = {
-          success: function(response) {
-            var jobs = eval('(' + response.responseText + ')');
-
-            callback.success(jobs);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
-      },
-
-      /**
        * lookup user profile
        */
       getSite: function(key, mappingKey, callback) {
@@ -5062,99 +4645,6 @@ var nodeOpen = false,
           success: function(response) {
             var result = eval('(' + response.responseText + ')');
             callback.success(result.site);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
-      },
-
-      /**
-       * lookup publish status
-       */
-      getPublishStatus: function(site, callback) {
-        var serviceUri = this.getPublishStatusServiceUrl + '?site_id=' + site;
-
-        var serviceCallback = {
-          success: function(response) {
-            var result = eval('(' + response.responseText + ')');
-            callback.success(result);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
-      },
-
-      /**
-       * start publish status
-       */
-      startPublishStatus: function(site, callback) {
-        var serviceUri = this.startPublishStatusServiceUrl;
-
-        var serviceCallback = {
-          success: function(response) {
-            var result = eval('(' + response.responseText + ')');
-            callback.success(result);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        var requestAsString = JSON.stringify({ site_id: site });
-
-        YConnect.setDefaultPostHeader(false);
-        YConnect.initHeader('Content-Type', 'application/json; charset=utf-8');
-        YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
-        YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, requestAsString);
-      },
-
-      /**
-       * stop publish status
-       */
-      stopPublishStatus: function(site, callback) {
-        var serviceUri = this.stopPublishStatusServiceUrl;
-
-        var serviceCallback = {
-          success: function(response) {
-            var result = eval('(' + response.responseText + ')');
-            callback.success(result);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        var requestAsString = JSON.stringify({ site_id: site });
-
-        YConnect.setDefaultPostHeader(false);
-        YConnect.initHeader('Content-Type', 'application/json; charset=utf-8');
-        YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
-        YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, requestAsString);
-      },
-
-      /**
-       * lookup user profile
-       */
-      lookupUserProfile: function(site, user, callback) {
-        var serviceUri = this.lookupUserProfileServiceUrl + '?site=' + site + '&user=' + user;
-
-        var serviceCallback = {
-          success: function(response) {
-            var contentResults = eval('(' + response.responseText + ')');
-
-            contentResults.studioRole = contentResults.contextual == 'SiteManager' ? 'admin' : 'contributor';
-
-            callback.success(contentResults, callback.argument);
           },
 
           failure: function(response) {
@@ -5300,57 +4790,6 @@ var nodeOpen = false,
       },
 
       /**
-       * given a site id returns All searchable content types
-       */
-      getAllSearchableContentTypesForSite: function(site, user, callback) {
-        var serviceUri = this.allSearchableContentTypesForSite + '?site=' + site + '&user=' + user;
-
-        var serviceCallback = {
-          success: function(oResponse) {
-            var contentTypeJson = oResponse.responseText;
-
-            try {
-              var contentTypes = eval('(' + contentTypeJson + ')');
-              callback.success(contentTypes);
-            } catch (err) {
-              callback.failure(err);
-            }
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
-      },
-
-      /**
-       * given a list of items return the topdown dependencies
-       */
-      lookupContentDependencies: function(site, contentItems, callback) {
-        var serviceUri = this.lookupContentDependenciesServiceUri + 'site=' + site;
-        //var dependencyXml = CStudioAuthoring.Utils.createContentItemsXml(contentItems);
-        var dependencyJson = CStudioAuthoring.Utils.createContentItemsJson(contentItems);
-        var serviceCallback = {
-          success: function(oResponse) {
-            var respJson = oResponse.responseText;
-            try {
-              var dependencies = eval('(' + respJson + ')');
-              callback.success && callback.success(dependencies);
-            } catch (err) {
-              callback.failure && callback.failure(err);
-            }
-          },
-          failure: callback.failure
-        };
-        YConnect.setDefaultPostHeader(false);
-        YConnect.initHeader('Content-Type', 'application/json; charset=utf-8');
-        YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
-        YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, dependencyJson);
-      },
-
-      /**
        * given a site id and a path look up the available content types
        */
       setWindowState: function(userId, pageId, widgetId, stateName, stateValue) {
@@ -5419,23 +4858,6 @@ var nodeOpen = false,
           },
 
           callback: callback
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
-      },
-
-      /**
-       * retrieves a possible status of a content
-       */
-      getStatusList: function(site, callback) {
-        var serviceUri = this.getStatusListUrl + '?site=' + site;
-        var serviceCallback = {
-          success: function(response) {
-            callback.success(JSON.parse(response.responseText));
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
         };
 
         YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
@@ -5774,37 +5196,6 @@ var nodeOpen = false,
         YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
         YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, JSON.stringify(paramJson));
       }
-    },
-
-    /**
-     * given a list of items return the topdown dependencies
-     */
-    lookupContentDependencies: function(site, contentItems, callback) {
-      var serviceUri = this.lookupContentDependencies + '?site=' + site;
-
-      var dependencyXml = CStudioAuthoring.Utils.createContentItemsXml(contentItems);
-
-      var serviceCallback = {
-        success: function(oResponse) {
-          var respJson = oResponse.responseText;
-
-          try {
-            var dependencies = eval('(' + respJson + ')');
-            callback.success(dependencies);
-          } catch (err) {
-            callback.failure(err);
-          }
-        },
-
-        failure: function(response) {
-          callback.failure(response);
-        }
-      };
-
-      YConnect.setDefaultPostHeader(false);
-      YConnect.initHeader('Content-Type', 'application/xml; charset=utf-8');
-      YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
-      YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, dependencyXml);
     },
 
     /**
