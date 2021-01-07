@@ -4879,24 +4879,14 @@ var nodeOpen = false,
 
         var serviceUri = this.reorderServiceSubmitUrl + '?site=' + site + '&order=' + order + '&path=' + path;
 
-        var serviceCallback = {
-          success: function(oResponse) {
-            var contentTypeJson = oResponse.responseText;
-
-            try {
-              var contentTypes = eval('(' + contentTypeJson + ')');
-              callback.success(contentTypes);
-            } catch (err) {
-              callback.failure(err);
-            }
+        CrafterCMSNext.util.ajax.get(this.createServiceUri(serviceUri)).subscribe(
+          function(response) {
+            callback.success(response.response);
           },
-
-          failure: function(response) {
+          function(response) {
             callback.failure(response);
           }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
+        );
       },
 
       getOrderServiceRequest: function(site, path, order, callback) {
@@ -4904,24 +4894,14 @@ var nodeOpen = false,
 
         var serviceUri = this.getServiceOrderUrl + '?site=' + site + '&order=' + order + '&path=' + path;
 
-        var serviceCallback = {
-          success: function(oResponse) {
-            var contentTypeJson = oResponse.responseText;
-
-            try {
-              var contentTypes = eval('(' + contentTypeJson + ')');
-              callback.success(contentTypes);
-            } catch (err) {
-              callback.failure(err);
-            }
+        CrafterCMSNext.util.ajax.get(this.createServiceUri(serviceUri)).subscribe(
+          function(response) {
+            callback.success(response.response);
           },
-
-          failure: function(response) {
+          function(response) {
             callback.failure(response);
           }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
+        );
       },
 
       /*
@@ -4930,23 +4910,14 @@ var nodeOpen = false,
       getNextOrderSequenceRequest: function(site, path, callback) {
         var serviceUri = this.getNextOrderSequenceUrl + '?site=' + site + '&parentpath=' + path;
 
-        var serviceCallback = {
-          success: function(oResponse) {
-            var nextValueJson = oResponse.responseText;
-            var nextValue = eval('(' + nextValueJson + ')');
-            try {
-              callback.success(parseFloat(nextValue.nextValue));
-            } catch (err) {
-              callback.failure(err);
-            }
+        CrafterCMSNext.util.ajax.get(this.createServiceUri(serviceUri)).subscribe(
+          function(response) {
+            callback.success(parseFloat(response.response.nextValue));
           },
-
-          failure: function(response) {
+          function(response) {
             callback.failure(response);
           }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
+        );
       },
 
       /**
@@ -4974,32 +4945,6 @@ var nodeOpen = false,
           moduleConfig,
           createDialogOrder
         );
-      },
-
-      /**
-       * given a site id and a path , and order set the navigation
-       */
-      reorderServiceSubmit: function(site, path, order, callback) {
-        var serviceUri = this.reorderServiceSubmitUrl + '?site=' + site + '&order=' + order + '&path=' + path;
-
-        var serviceCallback = {
-          success: function(oResponse) {
-            var contentTypeJson = oResponse.responseText;
-
-            try {
-              var contentTypes = eval('(' + contentTypeJson + ')');
-              callback.success(contentTypes);
-            } catch (err) {
-              callback.failure(err);
-            }
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
       },
 
       /**
