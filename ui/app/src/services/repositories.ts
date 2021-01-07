@@ -25,7 +25,7 @@ export function fetchRepositories(siteId: string): Observable<Repository[]> {
   return get(`${repositoryUrl}/list_remotes?siteId=${siteId}`).pipe(pluck('response', 'remotes'));
 }
 
-export function createRemote(remote: Remote): Observable<true> {
+export function addRemote(remote: Remote): Observable<true> {
   return postJSON(`${repositoryUrl}/add_remote`, remote).pipe(mapTo(true));
 }
 
@@ -33,16 +33,11 @@ export function deleteRemote(siteId: string, remoteName: string): Observable<tru
   return postJSON(`${repositoryUrl}/remove_remote`, { siteId, remoteName }).pipe(mapTo(true));
 }
 
-export function pullFromRemote(remote: Partial<Remote>): Observable<true> {
+export function pull(remote: Partial<Remote>): Observable<true> {
   return postJSON(`${repositoryUrl}/pull_from_remote`, remote).pipe(mapTo(true));
 }
 
-export function pushToRemote(
-  siteId: string,
-  remoteName: string,
-  remoteBranch: string,
-  force: boolean
-): Observable<true> {
+export function push(siteId: string, remoteName: string, remoteBranch: string, force: boolean): Observable<true> {
   return postJSON(`${repositoryUrl}/push_to_remote`, { siteId, remoteName, remoteBranch, force }).pipe(mapTo(true));
 }
 

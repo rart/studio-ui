@@ -127,7 +127,7 @@
       };
 
       this.createRepository = function(data) {
-        return repositoriesApi.createRemote(data).toPromise();
+        return repositoriesApi.addRemote(data).toPromise();
       };
 
       this.deleteRepository = function(data) {
@@ -135,11 +135,11 @@
       };
 
       this.pullRepository = function(data) {
-        return repositoriesApi.pullFromRemote(data).toPromise();
+        return repositoriesApi.pull(data).toPromise();
       };
 
       this.pushRepository = function(data) {
-        return repositoriesApi.pushToRemote(data).toPromise();
+        return repositoriesApi.push(data).toPromise();
       };
 
       this.repositoryStatus = function(site) {
@@ -199,15 +199,15 @@
       let publishingApi = CrafterCMSNext.services.publishing;
 
       this.getPublishStatus = function(site) {
-        return publishingApi.fetchPublishStatus(site).toPromise();
+        return publishingApi.status(site).toPromise();
       };
 
       this.startPublishStatus = function(site) {
-        return publishingApi.startPublish(site.site_id).toPromise();
+        return publishingApi.start(site.site_id).toPromise();
       };
 
       this.stopPublishStatus = function(site) {
-        return publishingApi.stopPublish(site.site_id).toPromise();
+        return publishingApi.stop(site.site_id).toPromise();
       };
 
       this.getTimeZone = function(data) {
@@ -231,7 +231,7 @@
       // COMMITSPUBLISH
 
       this.commitsPublish = function(data) {
-        return publishingApi.commitById(data.site_id, data.commit_ids, data.environment, data.comment).toPromise();
+        return publishingApi.publishByCommits(data.site_id, data.commit_ids, data.environment, data.comment).toPromise();
       };
 
       function repositories(action, params) {
@@ -950,7 +950,7 @@
 
       publish.startPublish = function() {
         var requestAsString = { site_id: publish.site };
-        adminService.startPublishStatus(requestAsString).then(
+        adminService.start(requestAsString).then(
           function(data) {
             publish.getPublish(requestAsString);
             getTopLegacyWindow().postMessage('status-changed', '*');
@@ -968,7 +968,7 @@
 
       publish.stopPublish = function() {
         var requestAsString = { site_id: publish.site };
-        adminService.stopPublishStatus(requestAsString).then(
+        adminService.stop(requestAsString).then(
           function(data) {
             publish.getPublish(requestAsString);
             getTopLegacyWindow().postMessage('status-changed', '*');

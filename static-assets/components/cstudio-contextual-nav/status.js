@@ -59,7 +59,7 @@ CStudioAuthoring.ContextualNav.StatusNavMod = {
 
           el = YDom.get('acn-status');
 
-          CrafterCMSNext.services.publishing.fetchPublishStatus(CStudioAuthoringContext.site).subscribe(
+          CrafterCMSNext.services.publishing.status(CStudioAuthoringContext.site).subscribe(
             (response) => {
               dialogEl = YDom.getElementsByClassName('dialog-elt')[0];
               dialogText = YDom.getElementsByClassName('dialog-elt-text')[0];
@@ -112,7 +112,7 @@ CStudioAuthoring.ContextualNav.StatusNavMod = {
           function statusLoop(extDelay) {
             var delay = extDelay ? extDelay : 60000;
 
-            CrafterCMSNext.services.publishing.fetchPublishStatus(CStudioAuthoringContext.site).subscribe(
+            CrafterCMSNext.services.publishing.status(CStudioAuthoringContext.site).subscribe(
               (response) => {
                 dialogEl = YDom.getElementsByClassName('dialog-elt')[0];
                 dialogText = YDom.getElementsByClassName('dialog-elt-text')[0];
@@ -178,7 +178,7 @@ CStudioAuthoring.ContextualNav.StatusNavMod = {
           el.onclick = function() {
             var dialogOpenDelay = 3000;
 
-            CrafterCMSNext.services.publishing.fetchPublishStatus(CStudioAuthoringContext.site).subscribe(
+            CrafterCMSNext.services.publishing.status(CStudioAuthoringContext.site).subscribe(
               (response) => {
                 CStudioAuthoring.Operations.showSimpleDialog(
                   'status-dialog',

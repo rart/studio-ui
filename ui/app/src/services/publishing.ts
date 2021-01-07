@@ -85,15 +85,15 @@ export function reject(
   );
 }
 
-export function fetchPublishStatus(siteId: string): Observable<{ message: string; status: string }> {
+export function status(siteId: string): Observable<{ message: string; status: string }> {
   return get(`/studio/api/1/services/api/1/publish/status.json?site_id=${siteId}`).pipe(pluck('response'));
 }
 
-export function startPublish(siteId: string): Observable<true> {
+export function start(siteId: string): Observable<true> {
   return postJSON('/studio/api/1/services/api/1/publish/start.json', { site_id: siteId }).pipe(mapTo(true));
 }
 
-export function stopPublish(siteId: string): Observable<true> {
+export function stop(siteId: string): Observable<true> {
   return postJSON('/studio/api/1/services/api/1/publish/stop.json', { site_id: siteId }).pipe(mapTo(true));
 }
 
@@ -107,7 +107,7 @@ export function bulkGoLive(siteId: string, path: string, environment: string, co
   return post(`/studio/api/1/services/api/1/deployment/bulk-golive.json${qs}`).pipe(mapTo(true));
 }
 
-export function commitById(
+export function publishByCommits(
   siteId: string,
   commitIds: string[],
   environment: string,
