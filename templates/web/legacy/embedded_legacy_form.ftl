@@ -260,9 +260,9 @@
   if (CrafterCMSNext.system.store) {
     openDialog(type, path);
   } else {
-    setTimeout(() => {
+    CrafterCMSNext.util.store.createStore().subscribe(() => {
       openDialog(type, path);
-    }, 500)
+    });
   }
 </script>
 </body>

@@ -934,86 +934,96 @@ var CStudioForms =
           });
         }
 
-        Promise.all([
-          new Promise((resolve) => {
-            CStudioForms.Util.loadFormDefinition(formId, { success: resolve });
-          }),
-          new Promise((resolve) => {
-            CStudioForms.Util.LoadFormConfig(formId, {
-              success: (ctrlCls, formConfig) =>
-                resolve({
-                  ctrlCls,
-                  formConfig
-                })
-            });
-          }),
-          new Promise((resolve) => {
-            path.includes('.xml')
-              ? CStudioAuthoring.Service.lookupContentItem(
-                  CStudioAuthoringContext.site,
-                  path,
-                  { success: resolve },
-                  false
-                )
-              : resolve(null);
-          }),
-          new Promise((resolve) => {
-            CStudioAuthoring.Service.lookupContentType(CStudioAuthoringContext.site, formId, { success: resolve });
-          }),
-          new Promise((resolve) => {
-            if (isEdit) {
-              if (isInclude) {
-                sendAndAwait(path, (message) => {
-                  resolve(message.payload);
-                });
+        const getInitialConfiguration = () => {
+          Promise.all([
+            new Promise((resolve) => {
+              CStudioForms.Util.loadFormDefinition(formId, { success: resolve });
+            }),
+            new Promise((resolve) => {
+              CStudioForms.Util.LoadFormConfig(formId, {
+                success: (ctrlCls, formConfig) =>
+                  resolve({
+                    ctrlCls,
+                    formConfig
+                  })
+              });
+            }),
+            new Promise((resolve) => {
+              path.includes('.xml')
+                ? CStudioAuthoring.Service.lookupContentItem(
+                    CStudioAuthoringContext.site,
+                    path,
+                    { success: resolve },
+                    false
+                  )
+                : resolve(null);
+            }),
+            new Promise((resolve) => {
+              CStudioAuthoring.Service.lookupContentType(CStudioAuthoringContext.site, formId, { success: resolve });
+            }),
+            new Promise((resolve) => {
+              if (isEdit) {
+                if (isInclude) {
+                  sendAndAwait(path, (message) => {
+                    resolve(message.payload);
+                  });
+                } else {
+                  CStudioAuthoring.Service.getContent(path, false, { success: resolve });
+                }
               } else {
-                CStudioAuthoring.Service.getContent(path, false, { success: resolve });
+                resolve(null);
               }
-            } else {
-              resolve(null);
-            }
-          })
-        ])
-          .then(([formDefinition, { ctrlCls, formConfig }, model, contentType, content]) => {
-            const formDef = {
-              ...formDefinition,
-              config: formConfig,
-              contentAsFolder: contentType.contentAsFolder
-            };
+            })
+          ])
+            .then(([formDefinition, { ctrlCls, formConfig }, model, contentType, content]) => {
+              const formDef = {
+                ...formDefinition,
+                config: formConfig,
+                contentAsFolder: contentType.contentAsFolder
+              };
 
-            if (model && model.item.lockOwner !== '' && model.item.lockOwner !== CStudioAuthoringContext.user) {
-              readonly = true;
-            }
+              if (model && model.item.lockOwner !== '' && model.item.lockOwner !== CStudioAuthoringContext.user) {
+                readonly = true;
+              }
 
-            if (!readonly && !isInclude) {
-              // Lock file
-              CStudioAuthoring.Service.getContent(path, true, { success: () => void null });
-            }
+              if (!readonly && !isInclude) {
+                // Lock file
+                CStudioAuthoring.Service.getContent(path, true, { success: () => void null });
+              }
 
-            let dom = content
-              ? parseDOM(content)
-              : {
-                  children: [],
-                  responseXML: { documentElement: { children: [] } }
-                };
+              let dom = content
+                ? parseDOM(content)
+                : {
+                    children: [],
+                    responseXML: { documentElement: { children: [] } }
+                  };
 
-            if (!isInclude && content) {
-              CStudioForms.Util.createFlattenerState(dom);
-            }
+              if (!isInclude && content) {
+                CStudioForms.Util.createFlattenerState(dom);
+              }
 
-            _self._renderFormWithContent(dom, formId, formDef, style, ctrlCls, readonly);
-          })
-          .catch((reason) => {
-            CStudioAuthoring.Operations.showSimpleDialog(
-              'loadContentError-dialog',
-              CStudioAuthoring.Operations.simpleDialogTypeINFO,
-              CMgs.format(formsLangBundle, 'notification'),
-              CMgs.format(formsLangBundle, 'errFailedToLoadContent'),
-              null,
-              YAHOO.widget.SimpleDialog.ICON_BLOCK,
-              'studioDialog'
-            );
+              _self._renderFormWithContent(dom, formId, formDef, style, ctrlCls, readonly);
+            })
+            .catch((reason) => {
+              CStudioAuthoring.Operations.showSimpleDialog(
+                'loadContentError-dialog',
+                CStudioAuthoring.Operations.simpleDialogTypeINFO,
+                CMgs.format(formsLangBundle, 'notification'),
+                CMgs.format(formsLangBundle, 'errFailedToLoadContent'),
+                null,
+                YAHOO.widget.SimpleDialog.ICON_BLOCK,
+                'studioDialog'
+              );
+            });
+        };
+
+        if (CrafterCMSNext.system.store) {
+          getInitialConfiguration();
+        } else {
+          CrafterCMSNext.util.store.createStore().subscribe(() => {
+            getInitialConfiguration();
           });
+        }
       },
 
       _getPageLocation: function(path) {
@@ -2696,21 +2706,11 @@ var CStudioForms =
           failure: function() {}
         };
 
-        const getFormDefinition = () => {
-          CStudioAuthoring.Service.lookupConfigurtion(
-            CStudioAuthoringContext.site,
-            '/content-types/' + formId + '/form-definition.xml',
-            configCb
-          );
-        };
-
-        if (CrafterCMSNext.system.store) {
-          getFormDefinition();
-        } else {
-          setTimeout(() => {
-            getFormDefinition();
-          }, 500);
-        }
+        CStudioAuthoring.Service.lookupConfigurtion(
+          CStudioAuthoringContext.site,
+          '/content-types/' + formId + '/form-definition.xml',
+          configCb
+        );
       },
 
       /**

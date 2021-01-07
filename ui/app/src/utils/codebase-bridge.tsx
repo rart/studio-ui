@@ -195,7 +195,8 @@ export function createCodebaseBridge() {
       babel,
       state,
       content: contentUtil,
-      redux: { useDispatch, useSelector, useStore }
+      redux: { useDispatch, useSelector, useStore },
+      store: { createStore }
     },
 
     i18n: {
