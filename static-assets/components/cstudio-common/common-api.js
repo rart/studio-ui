@@ -1001,13 +1001,6 @@ var nodeOpen = false,
       },
 
       /**
-       * render a preview of the given content
-       */
-      renderContentAssetPreview: function(nodeRef, callback) {
-        CStudioAuthoring.Service.renderContentAssetPreview(nodeRef, callback);
-      },
-
-      /**
        * open a gallery search page
        */
       openGallerySearch: function(searchType, searchContext, select, mode, newWindow, callback, searchId) {
@@ -1816,36 +1809,6 @@ var nodeOpen = false,
       },
 
       /**
-       * open order taxonomy dialog
-       */
-      orderTaxonomy: function(site, modelName, level, orderedCb) {
-        var openDialogCb = {
-          moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
-            dialogClass.showDialog(
-              moduleConfig.site,
-              moduleConfig.modelName,
-              moduleConfig.level,
-              moduleConfig.orderedCb
-            );
-          }
-        };
-
-        var moduleConfig = {
-          site: site,
-          modelName: modelName,
-          level: level,
-          orderedCb: orderedCb
-        };
-
-        CStudioAuthoring.Module.requireModule(
-          'dialog-order-taxonomy',
-          '/static-assets/components/cstudio-dialogs/order-taxonomy.js',
-          moduleConfig,
-          openDialogCb
-        );
-      },
-
-      /**
        * create a new taxonomy item
        */
       newTaxonomy: function(site, modelName, level, newCb) {
@@ -2139,137 +2102,6 @@ var nodeOpen = false,
         window.open(url, name);
 
         animator.slideInDown();
-      },
-
-      /**
-       * Assign a new template to an existing content item
-       */
-      assignContentTemplate: function(site, author, path, assignCallback, currentContentType) {
-        var chooseTemplateCb = {
-          success: function(contentTypes) {
-            //Remove current content type from list.
-            var originalTypesCount = contentTypes.length;
-            if (currentContentType && contentTypes.length > 1) {
-              var newContentTypes = new Array();
-              for (var typeIdx = 0; typeIdx < contentTypes.length; typeIdx++) {
-                var contType = contentTypes[typeIdx];
-                if (contType.form != currentContentType) {
-                  newContentTypes.push(contType);
-                }
-              }
-              contentTypes = newContentTypes;
-            }
-
-            if (contentTypes.length == 0) {
-              var dialogEl = document.getElementById('errMissingRequirements');
-              if (!dialogEl) {
-                var dialog = new YAHOO.widget.SimpleDialog('errMissingRequirements', {
-                  width: '400px',
-                  fixedcenter: true,
-                  visible: false,
-                  draggable: false,
-                  close: false,
-                  modal: true,
-                  text: CMgs.format(formsLangBundle, 'noContentTypes') + ' ' + path,
-                  icon: YAHOO.widget.SimpleDialog.ICON_BLOCK,
-                  constraintoviewport: true,
-                  buttons: [
-                    {
-                      text: CMgs.format(formsLangBundle, 'ok'),
-                      handler: function() {
-                        this.hide();
-                      },
-                      isDefault: false
-                    }
-                  ]
-                });
-                dialog.setHeader(CMgs.format(formsLangBundle, 'cancelDialogHeader'));
-                dialog.render(document.body);
-                dialogEl = document.getElementById('errMissingRequirements');
-                dialogEl.dialog = dialog;
-              }
-              dialogEl.dialog.show();
-            } else {
-              var selectTemplateDialogCb = {
-                moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
-                  //filter only related content Types
-                  var contentTypes = [];
-                  compareContentType,
-                    (contentType =
-                      0 == currentContentType.indexOf('/') ? currentContentType.replace('/', '') : currentContentType);
-                  contentType = contentType.substring(0, contentType.indexOf('/'));
-
-                  for (var x = 0; x < moduleConfig.contentTypes.length; x++) {
-                    var compareContentType = moduleConfig.contentTypes[x].name;
-
-                    if (('/component/level-descriptor' === currentContentType) === compareContentType) {
-                      contentTypes.push(currentContentType);
-                    } else {
-                      compareContentType =
-                        0 == compareContentType.indexOf('/') ? compareContentType.replace('/', '') : compareContentType;
-                      compareContentType = compareContentType.substring(0, compareContentType.indexOf('/'));
-
-                      if (contentType === compareContentType) {
-                        contentTypes.push(moduleConfig.contentTypes[x]);
-                      }
-                    }
-                  }
-
-                  // dialogClass.showDialog(moduleConfig.contentTypes, path, false, moduleConfig.selectTemplateCb, true);
-                  dialogClass.showDialog(contentTypes, path, false, moduleConfig.selectTemplateCb, true);
-                }
-              };
-
-              var typeSelectedCb = {
-                success: function(typeSelected) {
-                  var changeTemplateServiceCb = {
-                    success: function() {
-                      const messages = CrafterCMSNext.i18n.messages.itemSuccessMessages;
-                      const formatMessage = CrafterCMSNext.i18n.intl.formatMessage;
-                      CStudioAuthoring.Utils.showNotification(
-                        formatMessage(messages.itemContentTypeChanged),
-                        null,
-                        null,
-                        'default'
-                      );
-                      this.assignCallback.success(this.typeSelected);
-                    },
-
-                    failure: function() {
-                      this.assignCallback.failure();
-                    },
-
-                    assignCallback: assignCallback,
-                    typeSelected: typeSelected
-                  };
-                  changeTemplateServiceCb.success();
-                },
-
-                failure: function() {
-                  this.assignCallback.failure();
-                },
-
-                assignCallback: assignCallback
-              };
-
-              var moduleConfig = {
-                contentTypes: contentTypes,
-                selectTemplateCb: typeSelectedCb
-              };
-
-              CStudioAuthoring.Module.requireModule(
-                'dialog-select-template',
-                '/static-assets/components/cstudio-dialogs/select-content-type.js',
-                moduleConfig,
-                selectTemplateDialogCb
-              );
-            }
-          },
-
-          failure: function() {}
-        };
-
-        CStudioAuthoring.Service.lookupAllowedContentTypesForPath(site, path, chooseTemplateCb);
       },
 
       getImageRequest: function(data) {
@@ -2636,91 +2468,6 @@ var nodeOpen = false,
           contentType,
           mode
         );
-      },
-
-      /**
-       * create taxonomy for a given site, at a given path
-       * opens a dialog if needed or goes directly to the form if no
-       * type selection is require (only one option
-       */
-      createNewTaxonomy: function(path, formSaveCb) {
-        var callback = {
-          success: function(contentTypes) {
-            if (contentTypes.types.length == 0) {
-              CStudioAuthoring.Operations.showSimpleDialog(
-                'taxonomy-dialog',
-                CStudioAuthoring.Operations.simpleDialogTypeINFO,
-                CMgs.format(formsLangBundle, 'notification'),
-                CMgs.format(formsLangBundle, 'taxonomyError') + ' [' + site + ':' + path + ']',
-                null, // use default button
-                YAHOO.widget.SimpleDialog.ICON_BLOCK,
-                'studioDialog'
-              );
-            }
-            //else if (contentTypes.types.length == 1) {
-            // fill in this case
-            //}
-            else {
-              var selectTemplateCb = {
-                success: function(selectedType) {
-                  var createTaxonomyDialogCb = {
-                    moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
-                      if (moduleName == 'dialog-create-taxonomy') {
-                        dialogClass.showDialog(
-                          moduleConfig.taxonomyType,
-                          moduleConfig.taxonomyName,
-                          path,
-                          moduleConfig.createTemplateCb
-                        );
-                      }
-                    }
-                  };
-
-                  var createModuleConfig = {
-                    taxonomyType: selectedType.type,
-                    taxonomyName: selectedType.label,
-                    createTemplateCb: selectTemplateCb
-                  };
-
-                  CStudioAuthoring.Module.requireModule(
-                    'dialog-create-taxonomy',
-                    '/static-assets/components/cstudio-dialogs/create-taxonomy-item.js',
-                    createModuleConfig,
-                    createTaxonomyDialogCb
-                  );
-                },
-
-                failure: function() {
-                  this.formSaveCb.failure();
-                },
-
-                formSaveCb: formSaveCb
-              };
-
-              var selectTemplateDialogCb = {
-                moduleLoaded: function(moduleName, dialogClass, moduleConfig) {
-                  dialogClass.showDialog(moduleConfig.contentTypes, path, false, moduleConfig.selectTemplateCb, false);
-                }
-              };
-
-              var moduleConfig = {
-                contentTypes: contentTypes,
-                selectTemplateCb: selectTemplateCb
-              };
-
-              CStudioAuthoring.Module.requireModule(
-                'dialog-select-taxonomy',
-                '/static-assets/components/cstudio-dialogs/select-taxonomy-type.js',
-                moduleConfig,
-                selectTemplateDialogCb
-              );
-            }
-          },
-
-          failure: function() {}
-        };
-
-        CStudioAuthoring.Service.lookupAllowedTaxonomyTypesForPath(path, callback);
       },
 
       /* submit content moved up, next to approveCommon */
@@ -3618,22 +3365,13 @@ var nodeOpen = false,
           unlock
         );
 
-        YConnect.setDefaultPostHeader(false);
-        YConnect.initHeader('Content-Type', 'application/xml; charset=utf-8');
-        YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
-        YConnect.asyncRequest(
-          'POST',
-          this.createServiceUri(serviceUri),
-          {
-            success: function(response) {
-              var content = response.responseText;
-              callback.success(content);
-            },
-            failure: function(response) {
-              callback.failure(response);
-            }
+        CrafterCMSNext.util.ajax.post(this.createServiceUri(serviceUri), content).subscribe(
+          function(response) {
+            callback.success(response.response);
           },
-          content
+          function(err) {
+            callback.failure(err);
+          }
         );
       },
 
@@ -3678,35 +3416,6 @@ var nodeOpen = false,
               }
             }
           );
-      },
-
-      /**
-       * login
-       */
-      login: function(user, pass, callback) {
-        var serviceUri = this.loginServiceUrl;
-        // serviceUri += "?username="+user;
-        // serviceUri += "&password="+pass;
-
-        var data = {
-          username: user,
-          password: pass
-        };
-
-        var serviceCallback = {
-          success: function(response) {
-            callback.success(response.responseText);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.setDefaultPostHeader(false);
-        YConnect.initHeader('Content-Type', 'application/xml; charset=utf-8');
-        YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
-        YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, JSON.stringify(data));
       },
 
       /**
@@ -3788,103 +3497,6 @@ var nodeOpen = false,
       },
 
       /**
-       * create taxonomy item
-       */
-      createTaxonomyItem: function(path, type, title, createCb) {
-        var serviceUrl = this.createTaxonomyItemUrl + '?type=' + type + '&name=' + title + '&path=' + path;
-
-        var serviceCallback = {
-          success: function(response) {
-            createCb.success();
-          },
-          failure: function(response) {
-            createCb.failure();
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
-      },
-
-      /**
-       * update taxonomy
-       */
-      updateTaxonomies: function(site, taxonomies, updateCb) {
-        var serviceUrl = this.updateTaxonomyUrl + '?site=' + site;
-
-        var serviceCallback = {
-          success: function(response) {
-            updateCb.success();
-          },
-          failure: function(response) {
-            updateCb.failure();
-          }
-        };
-
-        YConnect.setDefaultPostHeader(false);
-        YConnect.initHeader('Content-Type', 'application/json; charset=utf-8');
-        YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
-        YConnect.asyncRequest('POST', this.createServiceUri(serviceUrl), serviceCallback, JSON.stringify(taxonomies));
-      },
-
-      /**
-       * update taxonomy
-       */
-      updateTaxonomies: function(site, taxonomies, updateCb) {
-        var serviceUrl = this.updateTaxonomyUrl + '?site=' + site;
-
-        var serviceCallback = {
-          success: function(response) {
-            updateCb.success();
-          },
-          failure: function(response) {
-            updateCb.failure();
-          }
-        };
-
-        YConnect.setDefaultPostHeader(false);
-        YConnect.initHeader('Content-Type', 'application/json; charset=utf-8');
-        YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
-        YConnect.asyncRequest('POST', this.createServiceUri(serviceUrl), serviceCallback, JSON.stringify(taxonomies));
-      },
-
-      /**
-       * change template functionality.
-       */
-      changeContentType: function(site, contentPath, contentType, changeContentTypeCb) {
-        var serviceUrl = this.changeContentTypeUrl;
-        serviceUrl += '?site=' + site;
-        serviceUrl += '&path=' + contentPath;
-        serviceUrl += '&contentType=' + contentType;
-        var serviceCallback = {
-          success: function(response) {
-            changeContentTypeCb.success(contentType);
-            //window.location.reload();
-          },
-          failure: function(response) {
-            CStudioAuthoring.Operations.showSimpleDialog(
-              'changeContTypeError-dialog',
-              CStudioAuthoring.Operations.simpleDialogTypeINFO,
-              CMgs.format(formsLangBundle, 'notification'),
-              CMgs.format(formsLangBundle, 'changeContTypeError'),
-              [
-                {
-                  text: 'OK',
-                  handler: function() {
-                    this.hide();
-                    changeContentTypeCb.failure();
-                  },
-                  isDefault: false
-                }
-              ],
-              YAHOO.widget.SimpleDialog.ICON_BLOCK,
-              'studioDialog'
-            );
-          }
-        };
-        YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
-        YConnect.asyncRequest('POST', this.createServiceUri(serviceUrl), serviceCallback);
-      },
-      /**
        * Constructs get-content service url with the given path as a parameter
        */
       createGetContentServiceUri: function(path) {
@@ -3925,18 +3537,14 @@ var nodeOpen = false,
        * determine if content exists
        */
       contentExists: function(path, callback) {
-        var serviceCallback = {
-          success: function(response) {
-            var result = YAHOO.lang.JSON.parse(response.responseText).content;
-            callback.exists(result);
+        CrafterCMSNext.services.content.checkPathExistence(CStudioAuthoringContext.site, path).subscribe(
+          function(response) {
+            callback.exists(response);
           },
-          failure: function(response) {
+          function(response) {
             callback.failure(response);
           }
-        };
-        var serviceUri = this.contentExistsUrl + '?site=' + CStudioAuthoringContext.site + '&path=' + path;
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
+        );
       },
 
       /**
@@ -4013,23 +3621,14 @@ var nodeOpen = false,
        * crop image
        */
       cropImage: function(site, path, left, top, height, width, callback) {
-        var serviceUrl = this.cropImageServiceUri;
-        serviceUrl += '?site=' + site;
-        serviceUrl += '&path=' + path;
-        serviceUrl += '&t=' + top;
-        serviceUrl += '&l=' + left;
-        serviceUrl += '&h=' + height;
-        serviceUrl += '&w=' + width;
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            var results = eval('(' + jsonResponse.responseText + ')');
-            callback.success(results);
+        CrafterCMSNext.services.content.cropImage(site, path, left, top, height, width).subscribe(
+          function(response) {
+            callback.success(response);
           },
-          failure: function(response) {
+          function(response) {
             callback.failure(response);
           }
-        };
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+        );
       },
 
       calculateDependencies: function(data, callback) {
@@ -4206,25 +3805,6 @@ var nodeOpen = false,
       },
 
       /**
-       * get global menu
-       */
-      getGlobalMenu: function(callback) {
-        var serviceUrl = this.getGlobalMenuURL;
-
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            var results = eval('(' + jsonResponse.responseText + ')');
-            results = results.menuItems;
-            callback.success(results);
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
-      },
-
-      /**
        * get Quick Create
        */
       getQuickCreate: function(callback) {
@@ -4241,29 +3821,6 @@ var nodeOpen = false,
             callback.failure(response);
           }
         );
-      },
-
-      /**
-       * get SSO logout info
-       */
-      getSSOLogoutInfo: function(callback) {
-        var serviceUrl = this.getLogoutInfoURL;
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), {
-          success: function(jsonResponse) {
-            var results = eval('(' + jsonResponse.responseText + ')');
-            var hasResult = results.hasOwnProperty('logoutUrl') ? true : false;
-            if (hasResult) {
-              results = results.logoutUrl;
-            } else {
-              results = false;
-            }
-            callback.success(results);
-            results = results ? results.result : results;
-          },
-          failure: function(response) {
-            callback.failure(response);
-          }
-        });
       },
 
       /**
@@ -4311,23 +3868,14 @@ var nodeOpen = false,
        * get version history for given content path
        */
       getVersionHistory: function(site, contentTO, callback) {
-        var serviceUrl = this.getVersionHistoryServiceUrl;
-        serviceUrl += '?site=' + site;
-
-        serviceUrl += '&path=' + contentTO.uri;
-        serviceUrl += '&maxhistory=100';
-
-        var serviceCallback = {
-          success: function(jsonResponse) {
-            var results = eval('(' + jsonResponse.responseText + ')');
-            callback.success(results);
+        CrafterCMSNext.services.content.getHistory(site, contentTO.uri).subscribe(
+          function(response) {
+            callback.success(response);
           },
-          failure: function(response) {
+          function(response) {
             callback.failure(response);
           }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
+        );
       },
 
       /**
@@ -4341,28 +3889,6 @@ var nodeOpen = false,
             callback.success(response.versions[0].versionNumber);
           }
         });
-      },
-
-      /**
-       * given a site id and a path look up the available content types
-       */
-      deleteContentForPathService: function(site, path, callback) {
-        var serviceUrl = this.deleteContentForPathUrl;
-        serviceUrl += '?site=' + site;
-        serviceUrl += '&path=' + path;
-        var serviceCallback = {
-          success: function(oResponse) {
-            if (callback) {
-              callback.success();
-            }
-          },
-          failure: function(response) {
-            if (callback) {
-              callback.failure(response);
-            }
-          }
-        };
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
       },
 
       /**
@@ -4504,27 +4030,6 @@ var nodeOpen = false,
       },
 
       /**
-       * retrieve list of channels for a given site
-       */
-      retrievePublishingChannels: function(site, callback) {
-        var serviceUrl = this.retrievePublishingChannelsUrl + '?site=' + site;
-
-        var serviceCallback = {
-          success: function(response) {
-            var channels = eval('(' + response.responseText + ')');
-
-            callback.success(channels);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUrl), serviceCallback);
-      },
-
-      /**
        * lookup Content item
        */
       lookupContentItem: function(site, path, callback, isDraft, populateDependencies) {
@@ -4567,19 +4072,14 @@ var nodeOpen = false,
           serviceUri = serviceUri + '&populateDependencies=false';
         }
 
-        var serviceCallback = {
-          success: function(response) {
-            var contentResults = eval('(' + response.responseText + ')');
-
-            callback.success(contentResults, callback.argument);
+        CrafterCMSNext.util.ajax.get(this.createServiceUri(serviceUri)).subscribe(
+          function(response) {
+            callback.success(response.response, callback.argument);
           },
-
-          failure: function(response) {
+          function() {
             callback.failure(response, callback.argument);
           }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
+        )
       },
 
       /**
@@ -4630,29 +4130,6 @@ var nodeOpen = false,
         YConnect.initHeader('Content-Type', 'application/json; charset=utf-8');
         YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
         YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, requestAsString);
-      },
-
-      /**
-       * lookup user profile
-       */
-      getSite: function(key, mappingKey, callback) {
-        var serviceUri = this.getSiteServiceUrl + '?key=' + key;
-        if (mappingKey != undefined) {
-          serviceUri = serviceUrl + '&mappingKey=' + mappingKey;
-        }
-
-        var serviceCallback = {
-          success: function(response) {
-            var result = eval('(' + response.responseText + ')');
-            callback.success(result.site);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
       },
 
       // is this really a service and not a util, can we rename it to something descriptive?
@@ -4945,25 +4422,6 @@ var nodeOpen = false,
           moduleConfig,
           createDialogOrder
         );
-      },
-
-      /**
-       * renderContentPreview
-       */
-      renderContentAssetPreview: function(nodeRef, callback) {
-        var serviceUri = this.renderContentPreviewUrl + '?nodeRef=' + nodeRef;
-
-        var serviceCallback = {
-          success: function(response) {
-            callback.success(response.responseText);
-          },
-
-          failure: function(response) {
-            callback.failure('error retrieving content asset preview');
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
       },
 
       /**

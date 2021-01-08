@@ -236,51 +236,6 @@ CStudioAuthoring.Dialogs.UploadFlickrDialog = CStudioAuthoring.Dialogs.UploadFli
   },
 
   /**
-   *
-   */
-  overwritePopupSubmit: function(event, args) {
-    var callback = {
-      success: function(response) {
-        var serviceUri = ''; //CStudioAuthoring.Service.createServiceUri(args.self.serviceUri);
-        var uploadHandler = {
-          upload: function(o) {
-            //console.log(o.responseText);
-            YAHOO.util.Dom.setStyle('indicator', 'visibility', 'hidden');
-            var r = eval('(' + o.responseText + ')');
-            if (r.hasError) {
-              var errorString = '';
-              for (var i = 0; i < r.errors.length; i++) {
-                errorString += r.errors[i];
-              }
-              CStudioAuthoring.Operations.showSimpleDialog(
-                'error-dialog',
-                CStudioAuthoring.Operations.simpleDialogTypeINFO,
-                'Notification',
-                errorString,
-                null,
-                YAHOO.widget.SimpleDialog.ICON_BLOCK,
-                'studioDialog'
-              );
-            } else {
-              CStudioAuthoring.Dialogs.UploadDialog.closeDialog();
-              args.self.callback.success(r);
-            }
-          }
-        };
-        YAHOO.util.Dom.setStyle('indicator', 'visibility', 'visible');
-        //the second argument of setForm is crucial,
-        //which tells Connection Manager this is an file upload form
-        YAHOO.util.Connect.setForm('asset_upload_form', true);
-        YAHOO.util.Connect.asyncRequest('POST', serviceUri, uploadHandler);
-      },
-
-      failure: function() {}
-    };
-
-    CStudioAuthoring.Service.deleteContentForPathService(args.self.site, args.self.path, callback);
-  },
-
-  /**
    * event fired when the ok is pressed
    */
   uploadPopupCancel: function(event) {

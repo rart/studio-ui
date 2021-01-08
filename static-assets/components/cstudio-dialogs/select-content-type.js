@@ -314,16 +314,7 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = {
      * EMO-8604, calling closeDialog to remove pop up from DOM.
      */
     CStudioAuthoring.Dialogs.DialogSelectContentType.closeDialog();
-    if (CStudioAuthoring.Dialogs.DialogSelectContentType.changeTemplateCalled == true) {
-      CStudioAuthoring.Service.changeContentType(
-        CStudioAuthoringContext.site,
-        oCurrentTextNode.data.uri,
-        selectedType,
-        args.self.onSaveCallback
-      );
-    } else {
-      args.self.onSaveCallback.success(selectedType);
-    }
+    args.self.onSaveCallback.success(selectedType);
   },
 
   /**

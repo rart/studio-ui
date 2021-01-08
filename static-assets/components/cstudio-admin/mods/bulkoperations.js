@@ -173,24 +173,17 @@ YAHOO.extend(CStudioAdminConsole.Tool.BulkOperations, CStudioAdminConsole.Tool, 
       '</div>';
 
     var channelsSelect = document.getElementById('go-pub-channel');
-    var publishingOptionsCB = {
-      success: function(channels) {
+
+    CrafterCMSNext.services.publishing
+      .fetchPublishingTargets(CStudioAuthoringContext.site)
+      .subscribe(function(channels) {
         var publishingOptions = '';
         var channel_index = 0;
-        for (idx in channels.availablePublishChannels) {
-          publishingOptions +=
-            "<option value='" +
-            channels.availablePublishChannels[idx].name +
-            "'>" +
-            channels.availablePublishChannels[idx].name +
-            '</option>';
+        for (idx in channels) {
+          publishingOptions += "<option value='" + channels[idx].name + "'>" + channels[idx].name + '</option>';
         }
         channelsSelect.innerHTML = publishingOptions;
-      },
-      failure: function() {}
-    };
-
-    CStudioAuthoring.Service.retrievePublishingChannels(CStudioAuthoringContext.site, publishingOptionsCB);
+      });
   },
 
   renderJobsList: function() {

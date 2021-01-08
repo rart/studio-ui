@@ -301,51 +301,6 @@ CStudioAuthoring.Dialogs.UploadS3Dialog = CStudioAuthoring.Dialogs.UploadS3Dialo
   },
 
   /**
-   *
-   */
-  overwritePopupSubmit: function(event, args) {
-    var callback = {
-      success: function(response) {
-        var serviceUri = CStudioAuthoring.Service.createServiceUri(args.self.serviceUri);
-        var form = $('#asset_upload_form')[0];
-        var data = new FormData(form);
-
-        serviceUri +=
-          '&' + CStudioAuthoringContext.xsrfParameterName + '=' + CrafterCMSNext.util.auth.getRequestForgeryToken();
-
-        $.ajax({
-          enctype: 'multipart/form-data',
-          processData: false, // Important!
-          contentType: false,
-          cache: false,
-          type: 'POST',
-          url: serviceUri,
-          data: data,
-          success: function(item) {
-            CStudioAuthoring.Operations.showSimpleDialog(
-              'upload-dialog',
-              CStudioAuthoring.Operations.simpleDialogTypeINFO,
-              'Notification',
-              item.response.message,
-              null,
-              YAHOO.widget.SimpleDialog.ICON_INFO,
-              'success studioDialog'
-            );
-          },
-          error: function(err) {
-            CStudioAuthoring.Dialogs.UploadS3Dialog.closeDialog();
-            args.self.callback.success(err.item);
-          }
-        });
-      },
-
-      failure: function() {}
-    };
-
-    CStudioAuthoring.Service.deleteContentForPathService(args.self.site, args.self.path, callback);
-  },
-
-  /**
    * event fired when the ok is pressed
    */
   uploadPopupCancel: function(event) {
