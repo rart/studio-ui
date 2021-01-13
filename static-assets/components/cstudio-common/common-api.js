@@ -4483,27 +4483,6 @@ var nodeOpen = false,
           }
         };
         YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
-      },
-
-      contentCloneCMIS: function(paramJson, callback) {
-        var serviceUri = this.getCMISCloneUri;
-        var cloneJson = CStudioAuthoring.Utils.createContentItemsJson(paramJson);
-        var serviceCallback = {
-          success: function(oResponse) {
-            var respJson = oResponse.responseText;
-            try {
-              var clone = eval('(' + respJson + ')');
-              callback.success && callback.success(clone);
-            } catch (err) {
-              callback.failure && callback.failure(err);
-            }
-          },
-          failure: callback.failure
-        };
-        YConnect.setDefaultPostHeader(false);
-        YConnect.initHeader('Content-Type', 'application/json; charset=utf-8');
-        YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
-        YConnect.asyncRequest('POST', this.createServiceUri(serviceUri), serviceCallback, JSON.stringify(paramJson));
       }
     },
 

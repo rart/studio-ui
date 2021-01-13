@@ -285,28 +285,30 @@
         site = CStudioAuthoring.Utils.getQueryParameterByName('site'),
         path = contentTO.browserUri,
         paramsJson = { siteId: site, cmisRepoId: repoId, cmisPath: path, studioPath: studioPath };
-      var callbackContent = {
-        success: function(response) {
-          contentTO.clone = true;
-          $('#cloneCMISLoader, #cloneCMISLoader_mask').remove();
-          CStudioAuthoring.SelectedContent.selectContent(contentTO);
-          me.saveContent();
-        },
-        failure: function(response) {
-          $('#cloneCMISLoader, #cloneCMISLoader_mask').remove();
-          const error = JSON.parse(response.responseText);
-          CStudioAuthoring.Operations.showSimpleDialog(
-            'error-dialog',
-            CStudioAuthoring.Operations.simpleDialogTypeINFO,
-            CMgs.format(browseLangBundle, 'notification'),
-            error.response.remedialAction,
-            null,
-            YAHOO.widget.SimpleDialog.ICON_BLOCK,
-            'studioDialog'
-          );
-        }
-      };
-      CStudioAuthoring.Service.contentCloneCMIS(paramsJson, callbackContent);
+
+      CrafterCMSNext.services.cmis
+        .clone(paramsJson.siteId, paramsJson.cmisRepoId, paramsJson.cmisPath, paramsJson.studioPath)
+        .subscribe(
+          function() {
+            contentTO.clone = true;
+            $('#cloneCMISLoader, #cloneCMISLoader_mask').remove();
+            CStudioAuthoring.SelectedContent.selectContent(contentTO);
+            me.saveContent();
+          },
+          function() {
+            $('#cloneCMISLoader, #cloneCMISLoader_mask').remove();
+            const error = JSON.parse(response.responseText);
+            CStudioAuthoring.Operations.showSimpleDialog(
+              'error-dialog',
+              CStudioAuthoring.Operations.simpleDialogTypeINFO,
+              CMgs.format(browseLangBundle, 'notification'),
+              error.response.remedialAction,
+              null,
+              YAHOO.widget.SimpleDialog.ICON_BLOCK,
+              'studioDialog'
+            );
+          }
+        );
 
       const dialogContent =
         '<div class="cstudio__loading-bar animate mb5">' +

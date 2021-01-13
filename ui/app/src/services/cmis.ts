@@ -14,9 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { get } from '../utils/ajax';
+import { get, postJSON } from '../utils/ajax';
 import { toQueryString } from '../utils/object';
-import { pluck } from 'rxjs/operators';
+import { mapTo, pluck } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { CMISItem } from '../models/CMIS';
 
@@ -56,4 +56,13 @@ export function search(
   });
 
   return get(`/studio/api/2/cmis/search${qs}`).pipe(pluck('response', 'items'));
+}
+
+export function clone(siteId: string, cmisRepoId: string, cmisPath: string, studioPath: string): Observable<true> {
+  return postJSON(`/studio/api/2/cmis/clone`, {
+    siteId,
+    cmisRepoId,
+    cmisPath,
+    studioPath
+  }).pipe(mapTo(true));
 }
