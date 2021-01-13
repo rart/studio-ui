@@ -257,13 +257,9 @@
     }
   }
 
-  if (CrafterCMSNext.system.store) {
+  CrafterCMSNext.system.getStore().subscribe(() => {
     openDialog(type, path);
-  } else {
-    CrafterCMSNext.util.store.createStore().subscribe(() => {
-      openDialog(type, path);
-    });
-  }
+  });
 </script>
 </body>
 </html>

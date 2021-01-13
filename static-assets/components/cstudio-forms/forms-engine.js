@@ -1017,13 +1017,9 @@ var CStudioForms =
             });
         };
 
-        if (CrafterCMSNext.system.store) {
+        CrafterCMSNext.system.getStore().subscribe(() => {
           getInitialConfiguration();
-        } else {
-          CrafterCMSNext.system.getStore().subscribe(() => {
-            getInitialConfiguration();
-          });
-        }
+        });
       },
 
       _getPageLocation: function(path) {

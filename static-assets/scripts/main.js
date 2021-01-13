@@ -104,13 +104,9 @@
           }
         };
 
-        if (CrafterCMSNext.system.store) {
+        CrafterCMSNext.system.getStore().subscribe(() => {
           init();
-        } else {
-          CrafterCMSNext.system.getStore().subscribe(() => {
-            init();
-          });
-        }
+        });
       });
 
       sitesService.getLanguages($rootScope, true);
