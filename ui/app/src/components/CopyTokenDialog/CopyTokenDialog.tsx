@@ -74,7 +74,6 @@ function CopyTokenUI(props: CopyTokenProps) {
   const { onClosed, onClose, token, onCopy } = props;
   const classes = styles();
   const inputRef = useRef<HTMLInputElement>();
-  const tokenKey = inputRef.current;
 
   useUnmount(onClosed);
 
@@ -90,10 +89,10 @@ function CopyTokenUI(props: CopyTokenProps) {
   }, [copyToken, onCopy]);
 
   useEffect(() => {
-    if (tokenKey && token) {
+    if (inputRef.current && token) {
       copyToken();
     }
-  }, [copyToken, onCopyToken, token, tokenKey]);
+  }, [copyToken, onCopyToken, token]);
 
   return (
     <>

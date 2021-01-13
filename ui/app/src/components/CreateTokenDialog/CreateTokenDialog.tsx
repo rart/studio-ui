@@ -34,6 +34,8 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Collapse from '@material-ui/core/Collapse';
 import SecondaryButton from '../SecondaryButton';
 import PrimaryButton from '../PrimaryButton';
+import { showErrorDialog } from '../../state/reducers/dialogs/error';
+import { useDispatch } from 'react-redux';
 
 interface CreateTokenProps {
   open: boolean;
@@ -76,19 +78,25 @@ function CreateTokenUI(props: CreateTokenProps) {
   const { onClosed, onClose, onCreated } = props;
   const [inProgress, setInProgress] = useState(false);
   const [expires, setExpires] = useState(false);
-  const [expiresAt, setExpiresAt] = useState(null);
+  const [expiresAt, setExpiresAt] = useState(moment());
   const classes = styles();
   const [label, setLabel] = useState('');
   const { formatMessage } = useIntl();
+  const dispatch = useDispatch();
 
   useUnmount(onClosed);
 
   const onOk = () => {
     setInProgress(true);
-    createToken(label, expires ? expiresAt : null).subscribe((token) => {
-      setInProgress(false);
-      onCreated && onCreated(token);
-    });
+    createToken(label, expires ? expiresAt : null).subscribe(
+      (token) => {
+        setInProgress(false);
+        onCreated && onCreated(token);
+      },
+      (response) => {
+        dispatch(showErrorDialog({ error: response }));
+      }
+    );
   };
 
   return (
@@ -146,7 +154,7 @@ function CreateTokenUI(props: CreateTokenProps) {
             onChange={(time) => {
               setExpiresAt(time);
             }}
-            date={moment()}
+            date={expiresAt}
             datePickerProps={{
               disablePast: true
             }}
@@ -157,7 +165,7 @@ function CreateTokenUI(props: CreateTokenProps) {
         <SecondaryButton onClick={onClose}>
           <FormattedMessage id="words.cancel" defaultMessage="Cancel" />
         </SecondaryButton>
-        <PrimaryButton onClick={onOk} autoFocus disabled={inProgress}>
+        <PrimaryButton onClick={onOk} autoFocus disabled={inProgress || label === ''}>
           {inProgress && <CircularProgress size={15} style={{ marginRight: '5px' }} />}
           <FormattedMessage id="words.submit" defaultMessage="Submit" />
         </PrimaryButton>

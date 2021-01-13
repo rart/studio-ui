@@ -15,22 +15,8 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Checkbox,
-  Chip,
-  Divider,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Theme,
-  Typography
-} from '@material-ui/core';
 import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
-import { createStyles, darken, lighten, makeStyles, withStyles } from '@material-ui/core/styles';
+import { createStyles, darken, lighten, makeStyles, Theme, withStyles } from '@material-ui/core/styles';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/DeleteOutline';
 import { AsDayMonthDateTime } from '../../modules/Content/History/VersionList';
@@ -48,6 +34,18 @@ import CopyTokenDialog from '../CopyTokenDialog/CopyTokenDialog';
 import moment from 'moment-timezone';
 import { forkJoin } from 'rxjs';
 import SecondaryButton from '../SecondaryButton';
+import Typography from '@material-ui/core/Typography';
+import Divider from '@material-ui/core/Divider';
+import TableContainer from '@material-ui/core/TableContainer';
+import Table from '@material-ui/core/Table';
+import TableRow from '@material-ui/core/TableRow';
+import Checkbox from '@material-ui/core/Checkbox';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableBody from '@material-ui/core/TableBody';
+import Chip from '@material-ui/core/Chip';
+import Switch from '@material-ui/core/Switch';
+import { showErrorDialog } from '../../state/reducers/dialogs/error';
 
 const styles = makeStyles((theme) =>
   createStyles({
@@ -220,6 +218,7 @@ export default function TokenManagement() {
   };
 
   const onSetEnabled = (id: number, checked: boolean) => {
+    const _tokens = { ...tokens };
     setTokens(
       tokens.map((token) => {
         if (token.id === id) {
@@ -231,30 +230,47 @@ export default function TokenManagement() {
     );
     updateToken(id, {
       enabled: checked
-    }).subscribe((token) => {
-      fetchTokens();
-      dispatch(
-        showSystemNotification({
-          message: formatMessage(translations.tokenUpdated)
-        })
-      );
-    });
+    }).subscribe(
+      (token) => {
+        fetchTokens();
+        dispatch(
+          showSystemNotification({
+            message: formatMessage(translations.tokenUpdated)
+          })
+        );
+      },
+      (response) => {
+        setTokens(_tokens);
+        dispatch(showErrorDialog({ error: response }));
+      }
+    );
   };
 
   const onDeleteToken = (id: number) => {
+    const _tokens = { ...tokens };
     setTokens(tokens.filter((token) => token.id !== id));
     setCheckedLookup({
       ...checkedLookup,
       [id]: false
     });
-    deleteToken(id).subscribe((token) => {
-      fetchTokens();
-      dispatch(
-        showSystemNotification({
-          message: formatMessage(translations.tokenDeleted, { count: 1 })
-        })
-      );
-    });
+    deleteToken(id).subscribe(
+      (token) => {
+        fetchTokens();
+        dispatch(
+          showSystemNotification({
+            message: formatMessage(translations.tokenDeleted, { count: 1 })
+          })
+        );
+      },
+      (response) => {
+        setTokens(_tokens);
+        setCheckedLookup({
+          ...checkedLookup,
+          [id]: false
+        });
+        dispatch(showErrorDialog({ error: response }));
+      }
+    );
   };
 
   const onOptionClicked = (action: Action) => {
@@ -275,15 +291,19 @@ export default function TokenManagement() {
 
         setTokens(tokens.filter((token) => !checkedIds.includes(token.id)));
 
-        forkJoin(requests).subscribe((responses) => {
-          dispatch(
-            showSystemNotification({
-              message: formatMessage(translations.tokenDeleted, { count: checkedIds.length })
-            })
-          );
-        });
-
-        // TODO: API to Delete many??
+        forkJoin(requests).subscribe(
+          (responses) => {
+            dispatch(
+              showSystemNotification({
+                message: formatMessage(translations.tokenDeleted, { count: checkedIds.length })
+              })
+            );
+          },
+          (response) => {
+            fetchTokens();
+            dispatch(showErrorDialog({ error: response }));
+          }
+        );
         break;
       }
       case 'clear': {
@@ -381,7 +401,7 @@ export default function TokenManagement() {
                     <TableCell component="th" id={token.id.toString()} scope="row" padding="none">
                       <Chip
                         label={
-                          moment(token.expiresAt) < moment() ? (
+                          Date.parse(token.expiresAt) < Date.now() ? (
                             <FormattedMessage id="words.expired" defaultMessage="Expired" />
                           ) : token.enabled ? (
                             <FormattedMessage id="words.enabled" defaultMessage="Enabled" />

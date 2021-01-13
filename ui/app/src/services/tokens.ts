@@ -27,7 +27,7 @@ export function createToken(label: string, expiresAt?: string): Observable<Token
   return postJSON('/studio/api/2/security/tokens', {
     label,
     ...(expiresAt && { expiresAt })
-  }).pipe(pluck('response', 'token'));
+  }).pipe(pluck('response', 'tokens'));
 }
 
 export function updateToken(id: number, properties: Object): Observable<Token> {

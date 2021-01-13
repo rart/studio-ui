@@ -15,24 +15,18 @@
  */
 
 import { createStyles, makeStyles } from '@material-ui/core/styles';
-import palette from '../../styles/palette';
 import { MessageDescriptor, useIntl } from 'react-intl';
 import Checkbox from '@material-ui/core/Checkbox';
-import Link from '@material-ui/core/Link';
 import React from 'react';
 import { getPossibleTranslation } from '../../utils/i18n';
 import clsx from 'clsx';
+import Button from '@material-ui/core/Button';
 
 const styles = makeStyles((theme) =>
   createStyles({
     itemHeader: {
       display: 'flex',
-      alignItems: 'center',
       background: '#e8f1ff'
-    },
-    optionTypography: {
-      color: palette.blue.main,
-      marginRight: '25px'
     },
     checkbox: {
       color: theme.palette.primary.main,
@@ -70,16 +64,9 @@ export default function ActionsBar(props: ActionsBarProps) {
         onChange={toggleSelectAll}
       />
       {options.map((option: Action) => (
-        <Link
-          key={option.id}
-          color="inherit"
-          component="button"
-          variant="subtitle2"
-          TypographyClasses={{ root: classes.optionTypography }}
-          onClick={() => onOptionClicked(option)}
-        >
+        <Button color="primary" variant="text" key={option.id} onClick={() => onOptionClicked(option)}>
           {getPossibleTranslation(option.label, formatMessage)}
-        </Link>
+        </Button>
       ))}
     </header>
   );
