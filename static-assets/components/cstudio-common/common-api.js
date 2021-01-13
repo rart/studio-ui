@@ -3753,7 +3753,7 @@ var nodeOpen = false,
       getGoLiveQueueItems: function(site, includeInprogressItems, sortBy, sortAscDesc, callback, filterByNumber) {
         callback.beforeServiceCall();
 
-        CrafterCMSNext.services.workflow
+        CrafterCMSNext.services.dashboard
           .fetchGoLive(site, sortBy, sortAscDesc, includeInprogressItems, filterByNumber)
           .subscribe(
             function(response) {
@@ -3777,7 +3777,7 @@ var nodeOpen = false,
           filterBy = 'page';
         }
 
-        CrafterCMSNext.services.workflow
+        CrafterCMSNext.services.dashboard
           .fetchUserActivities(site, user, sortBy, sortAscDesc, number, filterBy, hideLive)
           .subscribe(
             function(response) {
@@ -3831,7 +3831,7 @@ var nodeOpen = false,
           filterBy = 'page';
         }
 
-        CrafterCMSNext.services.workflow.fetchScheduledItems(site, sortBy, sortAscDesc, filterBy).subscribe(
+        CrafterCMSNext.services.dashboard.fetchScheduledItems(site, sortBy, sortAscDesc, filterBy).subscribe(
           function(response) {
             callback.success(response);
           },
@@ -3850,7 +3850,7 @@ var nodeOpen = false,
           filterBy = 'page';
         }
 
-        CrafterCMSNext.services.workflow
+        CrafterCMSNext.services.dashboard
           .fetchDeploymentHistory(site, sortBy, sortAscDesc, days, number, filterBy)
           .subscribe(
             function(response) {
