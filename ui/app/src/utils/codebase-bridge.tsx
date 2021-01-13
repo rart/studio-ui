@@ -38,6 +38,9 @@ import * as repositories from '../services/repositories';
 import * as contentTypes from '../services/contentTypes';
 import * as environment from '../services/environment';
 import * as workflow from '../services/workflow';
+import * as aws from '../services/aws';
+import * as cmis from '../services/cmis';
+import * as webdav from '../services/webdav';
 import { forkJoin, fromEvent, Subject } from 'rxjs';
 import { debounceTime, filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { IntlShape } from 'react-intl/src/types';
@@ -223,7 +226,10 @@ export function createCodebaseBridge() {
       repositories,
       contentTypes,
       environment,
-      workflow
+      workflow,
+      aws,
+      cmis,
+      webdav
     },
 
     render(

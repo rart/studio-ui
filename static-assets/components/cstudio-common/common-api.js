@@ -3027,8 +3027,6 @@ var nodeOpen = false,
       stopPublishStatusServiceUrl: '/api/1/services/api/1/publish/stop.json',
 
       //CMIS
-      getCMISContentBySearchUri: '/api/2/cmis/search',
-      getCMISContentByBrowseUri: '/api/2/cmis/list',
       getCMISCloneUri: '/api/2/cmis/clone',
       writeCMISContentUri: '/api/2/cmis/upload',
 
@@ -4461,98 +4459,6 @@ var nodeOpen = false,
         YConnect.initHeader('Content-Type', 'application/json; charset=utf-8');
         YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
         YConnect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(serviceUrl), searchCb, data);
-      },
-
-      getCMISContentBySearch: function(site, repoId, path, searchTerm, callback) {
-        var serviceUri =
-          this.getCMISContentBySearchUri +
-          '?siteId=' +
-          site +
-          '&cmisRepoId=' +
-          repoId +
-          '&searchTerm=' +
-          searchTerm +
-          '&path=' +
-          path;
-        serviceUri = serviceUri + '&nocache=' + new Date();
-
-        var serviceCallback = {
-          success: function(response) {
-            var contentResults = eval('(' + response.responseText + ')');
-            callback.success(contentResults);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
-      },
-
-      getCMISContentByBrowser: function(site, repoId, path, callback) {
-        var serviceUri = this.getCMISContentByBrowseUri + '?siteId=' + site + '&cmisRepoId=' + repoId + '&path=' + path;
-        serviceUri = serviceUri + '&nocache=' + new Date();
-
-        var serviceCallback = {
-          success: function(response) {
-            var contentResults = eval('(' + response.responseText + ')');
-            callback.success(contentResults);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
-      },
-
-      getWebDAVContentByBrowser: function(site, profileId, path, callback, filter) {
-        var serviceUri =
-          this.getWebDAVContentByBrowseUri + '?siteId=' + site + '&profileId=' + profileId + '&path=' + path;
-
-        if (filter) {
-          serviceUri += '&type=' + filter;
-        }
-
-        var serviceCallback = {
-          success: function(response) {
-            var contentResults = eval('(' + response.responseText + ')');
-            callback.success(contentResults);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
-      },
-
-      getS3ContentByBrowser: function(site, profileId, path, callback, filter) {
-        var serviceUri = this.getS3ContentByBrowseUri + '?siteId=' + site + '&profileId=' + profileId;
-
-        if (path) {
-          serviceUri += '&path=' + path;
-        }
-
-        if (filter) {
-          serviceUri += '&type=' + filter;
-        }
-
-        var serviceCallback = {
-          success: function(response) {
-            var contentResults = eval('(' + response.responseText + ')');
-            callback.success(contentResults);
-          },
-
-          failure: function(response) {
-            callback.failure(response);
-          }
-        };
-
-        YConnect.asyncRequest('GET', this.createServiceUri(serviceUri), serviceCallback);
       },
 
       getBoxURL: function(site, profileId, fileId, filename, callback) {
