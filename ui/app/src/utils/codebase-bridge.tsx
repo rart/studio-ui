@@ -37,11 +37,11 @@ import * as logs from '../services/logs';
 import * as repositories from '../services/repositories';
 import * as contentTypes from '../services/contentTypes';
 import * as environment from '../services/environment';
-import * as workflow from '../services/workflow';
+import * as dashboard from '../services/dashboard';
 import * as aws from '../services/aws';
 import * as cmis from '../services/cmis';
 import * as webdav from '../services/webdav';
-import { forkJoin, fromEvent, Subject } from 'rxjs';
+import { forkJoin, fromEvent, Observable, Subject } from 'rxjs';
 import { debounceTime, filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { IntlShape } from 'react-intl/src/types';
 import * as messages from './i18n-legacy';
@@ -106,6 +106,7 @@ interface CodebaseBridge {
     palette: any;
     store: CrafterCMSStore;
     getHostToHostBus(): Subject<StandardAction>;
+    getStore(): Observable<CrafterCMSStore>;
   };
 }
 
@@ -174,7 +175,8 @@ export function createCodebaseBridge() {
       defaultThemeOptions,
       palette,
       store: null,
-      getHostToHostBus
+      getHostToHostBus,
+      getStore: createStore
     },
 
     mui: {
@@ -198,8 +200,7 @@ export function createCodebaseBridge() {
       babel,
       state,
       content: contentUtil,
-      redux: { useDispatch, useSelector, useStore },
-      store: { createStore }
+      redux: { useDispatch, useSelector, useStore }
     },
 
     i18n: {
@@ -226,7 +227,7 @@ export function createCodebaseBridge() {
       repositories,
       contentTypes,
       environment,
-      workflow,
+      dashboard,
       aws,
       cmis,
       webdav

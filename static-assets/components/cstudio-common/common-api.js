@@ -8254,7 +8254,7 @@ CStudioAuthoring.FilesDiff = {
     if (CrafterCMSNext.system.store) {
       getInitialConfiguration();
     } else {
-      CrafterCMSNext.util.store.createStore().subscribe(() => {
+      CrafterCMSNext.system.getStore().subscribe(() => {
         getInitialConfiguration();
       });
     }

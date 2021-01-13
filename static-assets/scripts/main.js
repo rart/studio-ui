@@ -107,7 +107,7 @@
         if (CrafterCMSNext.system.store) {
           init();
         } else {
-          CrafterCMSNext.util.store.createStore().subscribe(() => {
+          CrafterCMSNext.system.getStore().subscribe(() => {
             init();
           });
         }
