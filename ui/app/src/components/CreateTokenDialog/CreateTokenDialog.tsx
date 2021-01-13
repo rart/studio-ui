@@ -36,6 +36,7 @@ import SecondaryButton from '../SecondaryButton';
 import PrimaryButton from '../PrimaryButton';
 import { showErrorDialog } from '../../state/reducers/dialogs/error';
 import { useDispatch } from 'react-redux';
+import { Typography } from '@material-ui/core';
 
 interface CreateTokenProps {
   open: boolean;
@@ -106,12 +107,12 @@ function CreateTokenUI(props: CreateTokenProps) {
         onDismiss={onClose}
       />
       <DialogBody>
-        <FormHelperText>
+        <Typography variant="body2">
           <FormattedMessage
             id="createTokenDialog.helperText"
             defaultMessage="Type a name for the new token. The token will be created by the server and shown to you after. Store it securely as you won’t be able to see it’s value again."
           />
-        </FormHelperText>
+        </Typography>
         <TextField
           value={label}
           autoFocus

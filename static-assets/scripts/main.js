@@ -1454,15 +1454,27 @@
 
   app.controller('EncryptionToolCtrl', [
     '$scope',
-    function($scope) {
-      CrafterCMSNext.render(document.querySelector('#encryption-tool-view'), 'EncryptTool');
+    '$rootScope',
+    function($scope, $rootScope) {
+      CrafterCMSNext.render(document.querySelector('#encryption-tool-view'), 'EncryptTool').then((done) => {
+        const unsubscribe = $rootScope.$on('$stateChangeStart', function() {
+          unsubscribe();
+          done.unmount();
+        });
+      });
     }
   ]);
 
   app.controller('TokenManagementCtrl', [
     '$scope',
-    function($scope) {
-      CrafterCMSNext.render(document.querySelector('#token-management-view'), 'TokenManagement');
+    '$rootScope',
+    function($scope, $rootScope) {
+      CrafterCMSNext.render(document.querySelector('#token-management-view'), 'TokenManagement').then((done) => {
+        const unsubscribe = $rootScope.$on('$stateChangeStart', function() {
+          unsubscribe();
+          done.unmount();
+        });
+      });
     }
   ]);
 
