@@ -99,24 +99,14 @@ YAHOO.extend(CStudioAdminConsole.Tool.BulkOperations, CStudioAdminConsole.Tool, 
         var environment = envSelectEl[envSelectEl.selectedIndex].value;
         var path = document.getElementById('bulk-golive-path').value;
         if (path) {
-          var serviceUri =
-            '/api/1/services/api/1/deployment/bulk-golive.json?site=' +
-            CStudioAuthoringContext.site +
-            '&path=' +
-            path +
-            '&environment=' +
-            escape(environment);
           var goLiveOpMessage = document.getElementById('bulk-golive-message');
-          var cb = {
-            success: function() {},
-            failure: function(err) {}
-          };
 
-          YConnect.initHeader(
-            CStudioAuthoringContext.xsrfHeaderName,
-            CrafterCMSNext.util.auth.getRequestForgeryToken()
-          );
-          YConnect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(serviceUri), cb);
+          CrafterCMSNext.services.publishing.bulkGoLive(
+            CStudioAuthoring.site,
+            path,
+            escape(environment)
+          ).subscribe();
+
           goLiveOpMessage.innerHTML = CMgs.format(langBundle, 'publishStarted');
         }
       };

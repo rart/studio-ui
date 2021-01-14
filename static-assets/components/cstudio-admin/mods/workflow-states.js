@@ -165,16 +165,9 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
           processing;
         var callback;
 
-        if (maxList <= i) {
-          callback = {
-            success: function() {
-              CStudioAdminConsole.Tool.WorkflowStates.prototype.renderStatesTable();
-            },
-            failure: function() {}
-          };
-        }
-        YConnect.initHeader(CStudioAuthoringContext.xsrfHeaderName, CrafterCMSNext.util.auth.getRequestForgeryToken());
-        YConnect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(serviceUri), callback);
+        CrafterCMSNext.util.ajax.post(CStudioAuthoring.Service.createServiceUri(serviceUri)).subscribe(() => {
+          CStudioAdminConsole.Tool.WorkflowStates.prototype.renderStatesTable();
+        });
       }
 
       this.destroy();
