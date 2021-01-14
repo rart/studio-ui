@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { get, post } from '../utils/ajax';
+import { get } from '../utils/ajax';
 import { pluck } from 'rxjs/operators';
 import { toQueryString } from '../utils/object';
 import { Observable } from 'rxjs';
@@ -30,14 +30,3 @@ export function s3List(siteId: string, profileId: string, path?: string, type?: 
 
   return get(`/studio/api/2/aws/s3/list${qs}`).pipe(pluck('response', 'items'));
 }
-
-// TODO: check for the other s3 upload service somewhere
-// :Observable<true>
-export function s3Upload(data: FormData) {
-  return post(`/studio/api/2/aws/s3/upload.json`, data).pipe(pluck('response'));
-
-  // .pipe(mapTo(true));
-}
-
-// writeS3ContentUri: '/api/2/aws/s3/upload.json',
-//   videoTranscode: '/api/2/aws/mediaconvert/upload',
