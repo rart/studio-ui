@@ -476,7 +476,7 @@
       clearCache: function() {
         CrafterCMSNext.util.ajax
           .get(`/studio/api/1/services/api/1/site/clear-configuration-cache.json?site=${CStudioAuthoringContext.site}`)
-          .subscribe(() => {});
+          .subscribe();
       },
 
       /**
