@@ -90,7 +90,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
           state.path +
           "' /></td>" +
           "<td class='cs-statelist-detail-id'>" +
-          state.path +
+          CrafterCMSNext.util.string.escapeHTML(state.path) +
           '</td>' +
           "<td class='cs-statelist-detail'>" +
           state.state +
@@ -185,8 +185,8 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
     };
 
     var myButtons = [
-      { text: CMgs.format(formsLangBundle, 'setStatedDialogSetStates'), handler: handleSet },
-      { text: CMgs.format(formsLangBundle, 'cancel'), handler: handleCancel, isDefault: true }
+      { text: CMgs.format(formsLangBundle, 'cancel'), handler: handleCancel, isDefault: true },
+      { text: CMgs.format(formsLangBundle, 'setStatedDialogSetStates'), handler: handleSet }
     ];
 
     CStudioAuthoring.Operations.showSimpleDialog(
