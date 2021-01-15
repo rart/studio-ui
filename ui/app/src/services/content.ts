@@ -896,22 +896,3 @@ export function getLegacyItemsTree(
     })}`
   ).pipe(pluck('response', 'item'), catchError(errorSelectorApi1));
 }
-
-export function cropImage(
-  site: string,
-  path: string,
-  positionX: number,
-  positionY: number,
-  height: number,
-  width: number
-) {
-  const qs = toQueryString({
-    site,
-    path,
-    l: positionX,
-    t: positionY,
-    h: height,
-    w: width
-  });
-  return get(`/studio/api/1/services/api/1/content/crop-image.json${qs}`).pipe(pluck('response'));
-}

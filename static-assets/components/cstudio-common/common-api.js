@@ -3558,9 +3558,18 @@ var nodeOpen = false,
        * crop image
        */
       cropImage: function(site, path, left, top, height, width, callback) {
-        CrafterCMSNext.services.content.cropImage(site, path, left, top, height, width).subscribe(
+        const qs = CrafterCMSNext.util.object.toQueryString({
+          site,
+          path,
+          l: left,
+          t: top,
+          h: height,
+          w: width
+        });
+
+        CrafterCMSNext.util.ajax.get(`/studio/api/1/services/api/1/content/crop-image.json${qs}`).subscribe(
           function(response) {
-            callback.success(response);
+            callback.success(response.response);
           },
           function(response) {
             callback.failure(response);
