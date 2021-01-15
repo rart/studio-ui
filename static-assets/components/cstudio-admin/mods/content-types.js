@@ -281,42 +281,36 @@
                             }
 
                             var defPath = '/content-types' + formDef.contentType + '/form-definition.xml';
+                            var confPath = configFilesPath + '/content-types' + formDef.contentType + '/config.xml';
 
-                            CrafterCMSNext.services.configuration
-                              .writeConfiguration(CStudioAuthoringContext.site, defPath, 'studio', xmlFormDef)
+                            CrafterCMSNext.rxjs
+                              .forkJoin({
+                                formDef: CrafterCMSNext.services.configuration.writeConfiguration(
+                                  CStudioAuthoringContext.site,
+                                  defPath,
+                                  'studio',
+                                  xmlFormDef
+                                ),
+                                config: CrafterCMSNext.services.configuration.writeConfiguration(
+                                  CStudioAuthoringContext.site,
+                                  confPath,
+                                  'studio',
+                                  xmlConfig
+                                )
+                              })
                               .subscribe(
                                 () => {
-                                  var confPath =
-                                    configFilesPath + '/content-types' + formDef.contentType + '/config.xml';
-
-                                  CrafterCMSNext.services.configuration
-                                    .writeConfiguration(CStudioAuthoringContext.site, confPath, 'studio', xmlConfig)
-                                    .subscribe(
-                                      () => {
-                                        CStudioAdminConsole.isDirty = false;
-                                        CStudioAuthoring.Utils.showNotification(
-                                          CMgs.format(langBundle, 'saved'),
-                                          'top',
-                                          'left',
-                                          'success',
-                                          48,
-                                          197,
-                                          'saveContentType'
-                                        );
-                                        _self.clearCache();
-                                      },
-                                      () => {
-                                        CStudioAuthoring.Operations.showSimpleDialog(
-                                          'errorDialog-dialog',
-                                          CStudioAuthoring.Operations.simpleDialogTypeINFO,
-                                          CMgs.format(langBundle, 'notification'),
-                                          CMgs.format(langBundle, 'saveFailed'),
-                                          null, // use default button
-                                          YAHOO.widget.SimpleDialog.ICON_BLOCK,
-                                          'studioDialog'
-                                        );
-                                      }
-                                    );
+                                  CStudioAdminConsole.isDirty = false;
+                                  CStudioAuthoring.Utils.showNotification(
+                                    CMgs.format(langBundle, 'saved'),
+                                    'top',
+                                    'left',
+                                    'success',
+                                    48,
+                                    197,
+                                    'saveContentType'
+                                  );
+                                  _self.clearCache();
                                 },
                                 () => {
                                   CStudioAuthoring.Operations.showSimpleDialog(
@@ -330,7 +324,6 @@
                                   );
                                 }
                               );
-
                             document.getElementById(
                               'cstudio-admin-console-command-bar'
                             ).children[1].value = CMgs.format(langBundle, 'close');
