@@ -101,11 +101,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.BulkOperations, CStudioAdminConsole.Tool, 
         if (path) {
           var goLiveOpMessage = document.getElementById('bulk-golive-message');
 
-          CrafterCMSNext.services.publishing.bulkGoLive(
-            CStudioAuthoring.site,
-            path,
-            escape(environment)
-          ).subscribe();
+          CrafterCMSNext.services.publishing.bulkGoLive(CStudioAuthoring.site, path, escape(environment)).subscribe();
 
           goLiveOpMessage.innerHTML = CMgs.format(langBundle, 'publishStarted');
         }
@@ -170,7 +166,8 @@ YAHOO.extend(CStudioAdminConsole.Tool.BulkOperations, CStudioAdminConsole.Tool, 
         var publishingOptions = '';
         var channel_index = 0;
         for (idx in channels) {
-          publishingOptions += "<option value='" + channels[idx].name + "'>" + channels[idx].name + '</option>';
+          const name = CrafterCMSNext.util.string.escapeHTML(channels[idx].name);
+          publishingOptions += `<option value="${name}">${name}</option>`;
         }
         channelsSelect.innerHTML = publishingOptions;
       });
