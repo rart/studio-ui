@@ -77,31 +77,36 @@ YAHOO.extend(CStudioAdminConsole.Tool.WorkflowStates, CStudioAdminConsole.Tool, 
       '</tr>' +
       '</table>';
 
-    CrafterCMSNext.services.content.fetchItemStates(CStudioAuthoringContext.site, 'ALL').subscribe((items) => {
-      wfStates = items;
+    const site = CStudioAuthoringContext.site;
+    CrafterCMSNext.util.ajax
+      .get(`/studio/api/1/services/api/1/content/get-item-states.json?site=${site}&state=ALL`)
+      .subscribe((response) => {
+        const items = response.response.items;
 
-      var statesTableEl = document.getElementById('statesTable');
-      for (var i = 0; i < items.length; i++) {
-        var state = items[i];
-        var trEl = document.createElement('tr');
+        wfStates = items;
 
-        var rowHTML =
-          "<td class='cs-statelist-detail'><input class='act'  type='checkbox' value='" +
-          state.path +
-          "' /></td>" +
-          "<td class='cs-statelist-detail-id'>" +
-          CrafterCMSNext.util.string.escapeHTML(state.path) +
-          '</td>' +
-          "<td class='cs-statelist-detail'>" +
-          state.state +
-          '</td>' +
-          "<td class='cs-statelist-detail'>" +
-          CMgs.format(langBundle, (state.systemProcessing == '1').toString()) +
-          '</td>';
-        trEl.innerHTML = rowHTML;
-        statesTableEl.appendChild(trEl);
-      }
-    });
+        var statesTableEl = document.getElementById('statesTable');
+        for (var i = 0; i < items.length; i++) {
+          var state = items[i];
+          var trEl = document.createElement('tr');
+
+          var rowHTML =
+            "<td class='cs-statelist-detail'><input class='act'  type='checkbox' value='" +
+            state.path +
+            "' /></td>" +
+            "<td class='cs-statelist-detail-id'>" +
+            CrafterCMSNext.util.string.escapeHTML(state.path) +
+            '</td>' +
+            "<td class='cs-statelist-detail'>" +
+            state.state +
+            '</td>' +
+            "<td class='cs-statelist-detail'>" +
+            CMgs.format(langBundle, (state.systemProcessing == '1').toString()) +
+            '</td>';
+          trEl.innerHTML = rowHTML;
+          statesTableEl.appendChild(trEl);
+        }
+      });
   },
 
   setStates: function() {

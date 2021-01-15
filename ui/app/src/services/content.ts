@@ -29,7 +29,7 @@ import { ComponentsContentTypeParams, ContentInstancePage } from '../models/Sear
 import Core from '@uppy/core';
 import XHRUpload from '@uppy/xhr-upload';
 import { getRequestForgeryToken } from '../utils/auth';
-import { DetailedItem, ItemState, LegacyItem, SandboxItem } from '../models/Item';
+import { DetailedItem, LegacyItem, SandboxItem } from '../models/Item';
 import { VersionsResponse } from '../models/Version';
 import { GetChildrenResponse } from '../models/GetChildrenResponse';
 import { GetChildrenOptions } from '../models/GetChildrenOptions';
@@ -895,12 +895,6 @@ export function getLegacyItemsTree(
       ...options
     })}`
   ).pipe(pluck('response', 'item'), catchError(errorSelectorApi1));
-}
-
-export function fetchItemStates(site: string, state: string): Observable<ItemState[]> {
-  return get(`/studio/api/1/services/api/1/content/get-item-states.json?site=${site}&state=${state}`).pipe(
-    pluck('response', 'items')
-  );
 }
 
 export function cropImage(
