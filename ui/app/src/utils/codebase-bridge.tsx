@@ -43,6 +43,7 @@ import * as dashboard from '../services/dashboard';
 import * as aws from '../services/aws';
 import * as cmis from '../services/cmis';
 import * as webdav from '../services/webdav';
+import * as box from '../services/box';
 import { forkJoin, fromEvent, Observable, Subject } from 'rxjs';
 import { debounceTime, filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { IntlShape } from 'react-intl/src/types';
@@ -232,7 +233,8 @@ export function createCodebaseBridge() {
       dashboard,
       aws,
       cmis,
-      webdav
+      webdav,
+      box
     },
 
     render(
