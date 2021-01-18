@@ -4014,7 +4014,7 @@ var nodeOpen = false,
       createWorkflowJobs: function(jobRequests, callback) {
         var serviceUri = this.createWorkflowJobsServiceUrl;
 
-        CrafterCMSNext.util.postJSON(this.createServiceUri(serviceUri), jobRequests).subscribe(
+        CrafterCMSNext.util.ajax.postJSON(this.createServiceUri(serviceUri), jobRequests).subscribe(
           (response) => {
             callback.success(response.response);
           },
@@ -4296,7 +4296,7 @@ var nodeOpen = false,
         var serviceUrl = this.searchServiceUrl;
         serviceUrl += '?siteId=' + site;
 
-        CrafterCMSNext.util.postJSON(CStudioAuthoring.Service.createServiceUri(serviceUrl), searchQuery).subscribe(
+        CrafterCMSNext.util.ajax.postJSON(CStudioAuthoring.Service.createServiceUri(serviceUrl), searchQuery).subscribe(
           (response) => {
             callback.success(response.response);
           },

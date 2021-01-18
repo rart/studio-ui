@@ -210,16 +210,14 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = {
               ? contentTypes[k].image
               : contentTypes[k].imageThumbnail;
 
-          contentTypePreviewImg.src =
-            CStudioAuthoringContext.baseUri +
-            '/api/1/services/api/1/content/get-content-at-path.bin?site=' +
-            CStudioAuthoringContext.site +
-            '&path=' +
-            configFilesPath +
-            '/content-types' +
-            contentTypesSelect.value +
-            '/' +
-            imageName;
+          CrafterCMSNext.services.content
+            .getBinary(
+              CStudioAuthoringContext.site,
+              `${configFilesPath}/content-types${contentTypesSelect.value}/${imageName}`
+            )
+            .subscribe((response) => {
+              contentTypePreviewImg.src = URL.createObjectURL(new Blob([response], { type: 'image/png' }));
+            });
         } else {
           contentTypePreviewImg.src = defaultSrc + defaultImg;
         }
@@ -280,16 +278,14 @@ CStudioAuthoring.Dialogs.DialogSelectContentType = {
                 ? contentTypes[k].image
                 : contentTypes[k].imageThumbnail;
 
-            contentTypePreviewImg.src =
-              CStudioAuthoringContext.baseUri +
-              '/api/1/services/api/1/content/get-content-at-path.bin?site=' +
-              CStudioAuthoringContext.site +
-              '&path=' +
-              configFilesPath +
-              '/content-types' +
-              contentTypesSelect.value +
-              '/' +
-              imageName;
+            CrafterCMSNext.services.content
+              .getBinary(
+                CStudioAuthoringContext.site,
+                `${configFilesPath}/content-types${contentTypesSelect.value}/${imageName}`
+              )
+              .subscribe((response) => {
+                contentTypePreviewImg.src = URL.createObjectURL(new Blob([response], { type: 'image/png' }));
+              });
           } else {
             contentTypePreviewImg.src = defaultSrc + defaultImg;
           }

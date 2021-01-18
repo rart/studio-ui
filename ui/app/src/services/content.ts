@@ -24,7 +24,7 @@ import { LookupTable } from '../models/LookupTable';
 import $ from 'jquery/dist/jquery.slim';
 import { dataUriToBlob, isBlank, popPiece, removeLastPiece } from '../utils/string';
 import ContentInstance from '../models/ContentInstance';
-import { AjaxResponse } from 'rxjs/ajax';
+import { ajax, AjaxResponse } from 'rxjs/ajax';
 import { ComponentsContentTypeParams, ContentInstancePage } from '../models/Search';
 import Core from '@uppy/core';
 import XHRUpload from '@uppy/xhr-upload';
@@ -895,4 +895,14 @@ export function getLegacyItemsTree(
       ...options
     })}`
   ).pipe(pluck('response', 'item'), catchError(errorSelectorApi1));
+}
+
+export function getBinary(site: string, path: string): Observable<ArrayBuffer> {
+  const qs = toQueryString({ site, path });
+
+  return ajax({
+    url: `/studio/api/1/services/api/1/content/get-content-at-path.bin${qs}`,
+    responseType: 'arraybuffer',
+    headers: getGlobalHeaders()
+  }).pipe(pluck('response'));
 }
