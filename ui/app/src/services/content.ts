@@ -895,13 +895,3 @@ export function getLegacyItemsTree(
     })}`
   ).pipe(pluck('response', 'item'), catchError(errorSelectorApi1));
 }
-
-export function getBinary(site: string, path: string): Observable<ArrayBuffer> {
-  const qs = toQueryString({ site, path });
-
-  return ajax({
-    url: `/studio/api/1/services/api/1/content/get-content-at-path.bin${qs}`,
-    responseType: 'arraybuffer',
-    headers: getGlobalHeaders()
-  }).pipe(pluck('response'));
-}
