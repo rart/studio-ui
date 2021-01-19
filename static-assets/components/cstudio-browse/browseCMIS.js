@@ -582,7 +582,9 @@
     };
 
     if (type === 'browse') {
-      CrafterCMSNext.services.cmis.list(site, repoId, path).subscribe(callbackContent.success, callbackContent.failure);
+      CrafterCMSNext.services.cmis
+        .list(site, repoId, { path })
+        .subscribe(callbackContent.success, callbackContent.failure);
     } else {
       if (!searchTerm || '' === searchTerm) {
         //TODO: ask if this is correct
@@ -590,7 +592,7 @@
       }
 
       CrafterCMSNext.services.cmis
-        .search(site, repoId, searchTerm, path)
+        .search(site, repoId, searchTerm, { path })
         .subscribe(callbackContent.success, callbackContent.failure);
     }
   };

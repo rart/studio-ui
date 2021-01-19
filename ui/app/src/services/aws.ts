@@ -20,12 +20,15 @@ import { toQueryString } from '../utils/object';
 import { Observable } from 'rxjs';
 import { AwsItem } from '../models/Aws';
 
-export function list(siteId: string, profileId: string, path?: string, type?: string): Observable<AwsItem[]> {
+export function list(
+  siteId: string,
+  profileId: string,
+  options: { path?: string; type?: string } = {}
+): Observable<AwsItem[]> {
   const qs = toQueryString({
     siteId,
     profileId,
-    ...(path ? { path } : {}),
-    ...(type ? { type } : {})
+    ...options
   });
 
   return get(`/studio/api/2/aws/s3/list${qs}`).pipe(pluck('response', 'items'));

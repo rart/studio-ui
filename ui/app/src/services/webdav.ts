@@ -20,12 +20,15 @@ import { pluck } from 'rxjs/operators';
 import { WebDAVItem } from '../models/WebDAV';
 import { Observable } from 'rxjs';
 
-export function list(siteId: string, profileId: string, path?: string, type?: string): Observable<WebDAVItem[]> {
+export function list(
+  siteId: string,
+  profileId: string,
+  options: { path?: string; type?: string } = {}
+): Observable<WebDAVItem[]> {
   const qs = toQueryString({
     siteId,
     profileId,
-    ...(path ? { path } : {}),
-    ...(type ? { type } : {})
+    ...options
   });
 
   return get(`/studio/api/2/webdav/list${qs}`).pipe(pluck('response', 'items'));

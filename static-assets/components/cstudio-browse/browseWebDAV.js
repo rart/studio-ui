@@ -495,7 +495,7 @@
     };
 
     CrafterCMSNext.services.webdav
-      .list(site, profileId, path, filter)
+      .list(site, profileId, { path, filter })
       .subscribe(callbackContent.success, callbackContent.failure);
   };
 

@@ -23,16 +23,12 @@ import { CMISItem } from '../models/CMIS';
 export function list(
   siteId: string,
   cmisRepoId: string,
-  path?: string,
-  offset?: number,
-  limit?: number
+  options: { path?: string; offset?: number; limit?: number } = {}
 ): Observable<CMISItem[]> {
   const qs = toQueryString({
     siteId,
     cmisRepoId,
-    ...(path ? { path } : {}),
-    ...(offset ? { offset } : {}),
-    ...(limit ? { limit } : {})
+    ...options
   });
 
   return get(`/studio/api/2/cmis/list${qs}`).pipe(pluck('response', 'items'));
@@ -42,17 +38,13 @@ export function search(
   siteId: string,
   cmisRepoId: string,
   searchTerm: string,
-  path?: string,
-  offset?: number,
-  limit?: number
+  options: { path?: string; offset?: number; limit?: number } = {}
 ): Observable<CMISItem[]> {
   const qs = toQueryString({
     siteId,
     cmisRepoId,
     searchTerm,
-    ...(path ? { path } : {}),
-    ...(offset ? { offset } : {}),
-    ...(limit ? { limit } : {})
+    ...options
   });
 
   return get(`/studio/api/2/cmis/search${qs}`).pipe(pluck('response', 'items'));

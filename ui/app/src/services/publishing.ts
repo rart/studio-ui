@@ -101,7 +101,7 @@ export function bulkGoLive(siteId: string, path: string, environment: string, co
   const qs = toQueryString({
     site_id: siteId,
     path,
-    environment,
+    environment: encodeURIComponent(environment),
     comment
   });
   return post(`/studio/api/1/services/api/1/deployment/bulk-golive.json${qs}`).pipe(mapTo(true));
