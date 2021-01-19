@@ -18,7 +18,7 @@ import { get } from '../utils/ajax';
 import { toQueryString } from '../utils/object';
 import { pluck } from 'rxjs/operators';
 
-export function fetchGoLive(
+export function legacyGetGoLiveItems(
   site: string,
   sortBy: string,
   sortAsc: boolean,
@@ -40,7 +40,7 @@ export function fetchGoLive(
   return get(`/studio/api/1/services/api/1/workflow/get-go-live-items.json${qs}`).pipe(pluck('response'));
 }
 
-export function fetchUserActivities(
+export function legacyFetchUserActivities(
   site: string,
   user: string,
   sortBy: string,
@@ -66,7 +66,7 @@ export function fetchUserActivities(
   return get(`/studio/api/1/services/api/1/activity/get-user-activities.json${qs}`).pipe(pluck('response'));
 }
 
-export function fetchScheduledItems(site: string, sortBy: string, sortAsc: boolean, filterBy: string) {
+export function legacyFetchScheduledItems(site: string, sortBy: string, sortAsc: boolean, filterBy: string) {
   const qs = toQueryString({
     site,
     ...(sortBy
@@ -81,7 +81,7 @@ export function fetchScheduledItems(site: string, sortBy: string, sortAsc: boole
   return get(`/studio/api/1/services/api/1/deployment/get-scheduled-items.json${qs}`).pipe(pluck('response'));
 }
 
-export function fetchDeploymentHistory(
+export function legacyFetchDeploymentHistory(
   site: string,
   sortBy: string,
   sortAsc: boolean,

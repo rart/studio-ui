@@ -20,7 +20,7 @@ import { toQueryString } from '../utils/object';
 import { Observable } from 'rxjs';
 import { AwsItem } from '../models/Aws';
 
-export function s3List(siteId: string, profileId: string, path?: string, type?: string): Observable<AwsItem[]> {
+export function list(siteId: string, profileId: string, path?: string, type?: string): Observable<AwsItem[]> {
   const qs = toQueryString({
     siteId,
     profileId,

@@ -3658,7 +3658,7 @@ var nodeOpen = false,
         callback.beforeServiceCall();
 
         CrafterCMSNext.services.dashboard
-          .fetchGoLive(site, sortBy, sortAscDesc, includeInprogressItems, filterByNumber)
+          .legacyGetGoLiveItems(site, sortBy, sortAscDesc, includeInprogressItems, filterByNumber)
           .subscribe(
             function(response) {
               CStudioAuthoringWidgets.GoLiveQueueDashboard.resultMap = CStudioAuthoring.Service.createFlatMap(
@@ -3682,7 +3682,7 @@ var nodeOpen = false,
         }
 
         CrafterCMSNext.services.dashboard
-          .fetchUserActivities(site, user, sortBy, sortAscDesc, number, filterBy, hideLive)
+          .legacyFetchUserActivities(site, user, sortBy, sortAscDesc, number, filterBy, hideLive)
           .subscribe(
             function(response) {
               callback.success(response);
@@ -3735,7 +3735,7 @@ var nodeOpen = false,
           filterBy = 'page';
         }
 
-        CrafterCMSNext.services.dashboard.fetchScheduledItems(site, sortBy, sortAscDesc, filterBy).subscribe(
+        CrafterCMSNext.services.dashboard.legacyFetchScheduledItems(site, sortBy, sortAscDesc, filterBy).subscribe(
           function(response) {
             callback.success(response);
           },
@@ -3755,7 +3755,7 @@ var nodeOpen = false,
         }
 
         CrafterCMSNext.services.dashboard
-          .fetchDeploymentHistory(site, sortBy, sortAscDesc, days, number, filterBy)
+          .legacyFetchDeploymentHistory(site, sortBy, sortAscDesc, days, number, filterBy)
           .subscribe(
             function(response) {
               callback.success(response);
