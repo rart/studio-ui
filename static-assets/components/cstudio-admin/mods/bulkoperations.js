@@ -101,7 +101,7 @@ YAHOO.extend(CStudioAdminConsole.Tool.BulkOperations, CStudioAdminConsole.Tool, 
         if (path) {
           var goLiveOpMessage = document.getElementById('bulk-golive-message');
 
-          CrafterCMSNext.services.publishing.bulkGoLive(CStudioAuthoring.site, path, escape(environment)).subscribe();
+          CrafterCMSNext.services.publishing.bulkGoLive(CStudioAuthoring.site, path, environment).subscribe();
 
           goLiveOpMessage.innerHTML = CMgs.format(langBundle, 'publishStarted');
         }
