@@ -14,10 +14,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { get } from '../utils/ajax';
-import { pluck } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { LegacyItem } from './Item';
 
-export function fetchActiveEnvironment(): Observable<string> {
-  return get('/studio/api/2/ui/system/active_environment').pipe(pluck('response', 'environment'));
+interface LegacyDeploymentHistoryDocument {
+  children: [LegacyItem];
+  endpoint: string;
+  internalName: string;
+  numOfChildren: number;
+}
+
+interface LegacyDashboardItemBase {
+  ascending: boolean;
+  sortedBy: boolean;
+  total: number;
+}
+
+export interface LegacyDashboardItem extends LegacyDashboardItemBase {
+  documents: [LegacyItem];
+}
+
+export interface LegacyDeploymentHistoryItem extends LegacyDashboardItemBase {
+  documents: [LegacyDeploymentHistoryDocument];
 }

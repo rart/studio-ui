@@ -17,6 +17,8 @@
 import { get } from '../utils/ajax';
 import { toQueryString } from '../utils/object';
 import { pluck } from 'rxjs/operators';
+import { LegacyDashboardItem, LegacyDeploymentHistoryItem } from '../models/Dashboard';
+import { Observable } from 'rxjs';
 
 export function legacyGetGoLiveItems(
   site: string,
@@ -24,7 +26,7 @@ export function legacyGetGoLiveItems(
   sortAsc: boolean,
   includeInProgress: boolean,
   filterByNumber: number
-) {
+): Observable<LegacyDashboardItem> {
   const qs = toQueryString({
     site,
     ...(sortBy
@@ -48,7 +50,7 @@ export function legacyFetchUserActivities(
   numResults: number,
   filterBy: string,
   excludeLive: boolean
-) {
+): Observable<LegacyDashboardItem> {
   const qs = toQueryString({
     site,
     user,
@@ -66,7 +68,12 @@ export function legacyFetchUserActivities(
   return get(`/studio/api/1/services/api/1/activity/get-user-activities.json${qs}`).pipe(pluck('response'));
 }
 
-export function legacyFetchScheduledItems(site: string, sortBy: string, sortAsc: boolean, filterBy: string) {
+export function legacyFetchScheduledItems(
+  site: string,
+  sortBy: string,
+  sortAsc: boolean,
+  filterBy: string
+): Observable<LegacyDashboardItem> {
   const qs = toQueryString({
     site,
     ...(sortBy
@@ -88,7 +95,7 @@ export function legacyFetchDeploymentHistory(
   days: number,
   numResults: number,
   filterBy: string
-) {
+): Observable<LegacyDeploymentHistoryItem> {
   const qs = toQueryString({
     site,
     ...(sortBy

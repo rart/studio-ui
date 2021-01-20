@@ -67,8 +67,8 @@
         var actions = [];
 
         CrafterCMSNext.services.environment.fetchActiveEnvironment().subscribe(
-          (data) => {
-            self.environment = data.environment;
+          (environment) => {
+            self.environment = environment;
             CStudioAuthoring.ContextualNav.AdminConsoleNav &&
               CStudioAuthoring.ContextualNav.AdminConsoleNav.initActions(actions);
             self.renderJobsList();
