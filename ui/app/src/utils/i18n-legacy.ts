@@ -844,6 +844,10 @@ export const globalMenuMessages = defineMessages({
     id: 'GlobalMenu.EncryptionTool',
     defaultMessage: 'Encryption Tool'
   },
+  'home.globalMenu.tokenManagement': {
+    id: 'GlobalMenu.TokenManagement',
+    defaultMessage: 'Token Management'
+  },
   'home.about-us': {
     id: 'GlobalMenu.AboutUs',
     defaultMessage: 'About'
@@ -1422,6 +1426,10 @@ export const itemSuccessMessages = defineMessages({
     id: 'item.schedulePublished',
     defaultMessage:
       '{count, plural, one {The selected item have been scheduled to go {environment}} other {The selected items have been scheduled to go {environment}}}'
+  },
+  itemCreated: {
+    id: 'item.created',
+    defaultMessage: 'Item created successfully'
   },
   itemEdited: {
     id: 'item.edited',

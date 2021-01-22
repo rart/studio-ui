@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { del, errorSelectorApi1, get, getText, post, postJSON } from '../utils/ajax';
+import { del, errorSelectorApi1, get, getGlobalHeaders, getText, post, postJSON } from '../utils/ajax';
 import { catchError, map, mapTo, pluck, switchMap } from 'rxjs/operators';
 import { forkJoin, Observable, of, zip } from 'rxjs';
 import { createElements, fromString, getInnerHtml, serialize, wrapElementInAuxDocument } from '../utils/xml';
@@ -567,7 +567,7 @@ function insertCollectionItem(
   }
 }
 
-function createFileUpload(
+export function createFileUpload(
   uploadUrl: string,
   file: any,
   path: string,
@@ -577,7 +577,7 @@ function createFileUpload(
   const qs = toQueryString({ [xsrfArgumentName]: getRequestForgeryToken() });
   return new Observable((subscriber) => {
     const uppy = Core({ autoProceed: true });
-    uppy.use(XHRUpload, { endpoint: `${uploadUrl}${qs}` });
+    uppy.use(XHRUpload, { endpoint: `${uploadUrl}${qs}`, headers: getGlobalHeaders() });
     uppy.setMeta(metaData);
 
     const blob = dataUriToBlob(file.dataUrl);
@@ -780,10 +780,14 @@ export function getChildrenByPath(
 ): Observable<GetChildrenResponse> {
   const qs = toQueryString({ site, path, depth: 1, order: 'default', ...options });
   // TODO: Waiting for API. Temporarily calling API1's get-items-tree
-  // return get(`/studio/api/2/content/children_by_path?siteId=${site}&path=${path}`).pipe(
+  // return get(`/studio/api/2/content/children_by_path?siteId=${site}&path=${path}`)
+  //   .pipe(
+  //     pluck('response'),
+  //     map(({ children, parent, levelDescriptor }) => Object.assign(children, { parent, levelDescriptor })),
+  //     catchError(errorSelectorApi1)
+  //   );
   return get(`/studio/api/1/services/api/1/content/get-items-tree.json${qs}`).pipe(
     pluck('response'),
-    // map(({ items, parent }) => Object.assign(items, { parent })),
     map(({ item }) => {
       const levelDescriptor = item.children.find((item) => item.contentType === '/component/level-descriptor');
       return Object.assign(parseLegacyItemToSandBoxItem(item.children), {
@@ -854,10 +858,9 @@ export function createFile(site: string, path: string, fileName: string): Observ
 }
 
 export function renameFolder(site: string, path: string, name: string) {
-  return post(`/studio/api/1/services/api/1/content/rename-folder.json?site=${site}&path=${path}&name=${name}`).pipe(
-    pluck('response'),
-    catchError(errorSelectorApi1)
-  );
+  return post(
+    `/studio/api/1/services/api/1/content/rename-folder.json?site=${site}&path=${encodeURIComponent(path)}&name=${name}`
+  ).pipe(pluck('response'), catchError(errorSelectorApi1));
 }
 
 export function changeContentType(site: string, path: string, contentType: string): Observable<boolean> {

@@ -42,7 +42,7 @@ import Card from '@material-ui/core/Card/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import SettingsRoundedIcon from '@material-ui/icons/SettingsRounded';
 import { Site } from '../../models/Site';
-import { User } from '../../models/User';
+import { EnhancedUser } from '../../models/User';
 import EmptyState from '../SystemStatus/EmptyState';
 import { setSiteCookie } from '../../utils/auth';
 import List from '@material-ui/core/List';
@@ -162,8 +162,12 @@ const messages = defineMessages({
     defaultMessage: 'Global Config'
   },
   encryptionTool: {
-    id: 'GlobalMenu.EncryptionToolEntryLabel',
+    id: 'GlobalMenu.EncryptionTool',
     defaultMessage: 'Encryption Tool'
+  },
+  tokenManagement: {
+    id: 'GlobalMenu.TokenManagement',
+    defaultMessage: 'Token Management'
   },
   dashboard: {
     id: 'words.dashboard',
@@ -329,7 +333,7 @@ const globalNavStyles = makeStyles((theme) =>
 );
 
 interface GlobalNavProps {
-  user: User;
+  user: EnhancedUser;
   site: string;
   sites: Site[];
   anchor: Element;
@@ -344,7 +348,7 @@ export default function GlobalNav(props: GlobalNavProps) {
   const classes = globalNavStyles();
   const { previewChoice } = usePreviewState();
   const [menuItems, setMenuItems] = useState(null);
-  const sections = useSiteUIConfig().globalNav.sections;
+  const siteNav = useSiteUIConfig().siteNav;
   const [apiState, setApiState] = useState({
     error: false,
     errorResponse: null
@@ -521,19 +525,21 @@ export default function GlobalNav(props: GlobalNavProps) {
                 />
               </nav>
               {/* region Site */}
-              {sections.map((section) => (
-                <Fragment key={section.uiKey}>
-                  <Typography
-                    variant="subtitle1"
-                    component="h2"
-                    className={classes.title}
-                    style={{ margin: '0px 0 10px 0' }}
-                  >
-                    {typeof section.title === 'string' ? section.title : formatMessage(section.title)}
-                  </Typography>
-                  <nav className={classes.sitesApps}>{renderWidgets(section.widgets, section.roles)}</nav>
-                </Fragment>
-              ))}
+              {site && siteNav && (
+                <>
+                  {siteNav.title && (
+                    <Typography
+                      variant="subtitle1"
+                      component="h2"
+                      className={classes.title}
+                      style={{ margin: '0 0 10px 0' }}
+                    >
+                      {typeof siteNav.title === 'string' ? siteNav.title : formatMessage(siteNav.title)}
+                    </Typography>
+                  )}
+                  <nav className={classes.sitesApps}>{renderWidgets(siteNav.widgets, user.rolesBySite[site])}</nav>
+                </>
+              )}
               {/* endregion */}
             </div>
             <div className={classes.railBottom}>

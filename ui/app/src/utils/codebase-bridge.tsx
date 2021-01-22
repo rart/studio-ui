@@ -19,6 +19,8 @@ import ReactDOM from 'react-dom';
 
 import CrafterCMSNextBridge from '../components/CrafterCMSNextBridge';
 import * as string from './string';
+import * as object from './object';
+import { nou } from './object';
 import * as ajax from './ajax';
 import * as path from './path';
 import * as auth from './auth';
@@ -30,12 +32,23 @@ import * as marketplace from '../services/marketplace';
 import * as publishing from '../services/publishing';
 import * as content from '../services/content';
 import * as users from '../services/users';
-import { forkJoin, fromEvent, Subject } from 'rxjs';
+import * as groups from '../services/groups';
+import * as clusters from '../services/clusters';
+import * as audit from '../services/audit';
+import * as logs from '../services/logs';
+import * as repositories from '../services/repositories';
+import * as contentTypes from '../services/contentTypes';
+import * as environment from '../services/environment';
+import * as dashboard from '../services/dashboard';
+import * as aws from '../services/aws';
+import * as cmis from '../services/cmis';
+import * as webdav from '../services/webdav';
+import * as box from '../services/box';
+import { forkJoin, fromEvent, Observable, Subject } from 'rxjs';
 import { debounceTime, filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { IntlShape } from 'react-intl/src/types';
 import * as messages from './i18n-legacy';
 import { translateElements } from './i18n-legacy';
-import { nou } from './object';
 import * as babel from './babelHelpers-legacy';
 import * as security from '../services/security';
 import * as authService from '../services/auth';
@@ -95,6 +108,7 @@ interface CodebaseBridge {
     palette: any;
     store: CrafterCMSStore;
     getHostToHostBus(): Subject<StandardAction>;
+    getStore(): Observable<CrafterCMSStore>;
   };
 }
 
@@ -155,7 +169,8 @@ export function createCodebaseBridge() {
         import('../components/CharCountStatus').then((module) => ({
           default: module.CharCountStatusContainer
         }))
-      )
+      ),
+      TokenManagement: lazy(() => import('../components/TokenManagement'))
     },
 
     system: {
@@ -163,7 +178,8 @@ export function createCodebaseBridge() {
       defaultThemeOptions,
       palette,
       store: null,
-      getHostToHostBus
+      getHostToHostBus,
+      getStore: createStore
     },
 
     mui: {
@@ -183,6 +199,7 @@ export function createCodebaseBridge() {
       ajax,
       path,
       string,
+      object,
       auth,
       babel,
       state,
@@ -206,7 +223,19 @@ export function createCodebaseBridge() {
       security,
       translation,
       monitoring,
-      users
+      users,
+      groups,
+      clusters,
+      audit,
+      logs,
+      repositories,
+      contentTypes,
+      environment,
+      dashboard,
+      aws,
+      cmis,
+      webdav,
+      box
     },
 
     render(

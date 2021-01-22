@@ -15,22 +15,23 @@
  */
 
 import { ofType } from 'redux-observable';
-import { filter, ignoreElements, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { filter, ignoreElements, pluck, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { getHostToHostBus } from '../../modules/Preview/previewContext';
 import { itemSuccessMessages } from '../../utils/i18n-legacy';
 import {
   emitSystemEvent,
   showCopyItemSuccessNotification,
+  showCreateItemSuccessNotification,
   showCutItemSuccessNotification,
   showDeleteItemSuccessNotification,
   showDuplicatedItemSuccessNotification,
   showEditItemSuccessNotification,
   showPasteItemSuccessNotification,
   showPublishItemSuccessNotification,
+  showRejectItemSuccessNotification,
   showRevertItemSuccessNotification,
   showSystemNotification,
   showUnlockItemSuccessNotification,
-  showRejectItemSuccessNotification,
   storeInitialized
 } from '../actions/system';
 import { CrafterCMSEpic } from '../store';
@@ -107,6 +108,19 @@ const systemEpics: CrafterCMSEpic[] = [
         hostToHost$.next(
           showSystemNotification({
             message
+          })
+        );
+      }),
+      ignoreElements()
+    ),
+  (action$, state$, { getIntl }) =>
+    action$.pipe(
+      ofType(showCreateItemSuccessNotification.type),
+      tap(({ payload: { action } }) => {
+        const hostToHost$ = getHostToHostBus();
+        hostToHost$.next(
+          showSystemNotification({
+            message: getIntl().formatMessage(itemSuccessMessages.itemCreated)
           })
         );
       }),
@@ -222,7 +236,10 @@ const systemEpics: CrafterCMSEpic[] = [
       filter(() => Boolean(systemBroadcastChannel)),
       // ...begin listening for system events sent through the broadcast channel.
       switchMap(() =>
-        fromEvent<MessageEvent>(systemBroadcastChannel, 'message').pipe(filter((e) => e.data && e.data.type))
+        fromEvent<MessageEvent>(systemBroadcastChannel, 'message').pipe(
+          filter((e) => e.data && e.data.type),
+          pluck('data')
+        )
       )
       // This mechanism has been added to support multi-tab UX on studio with the JWT mechanics since,
       // when other tabs are opened, refreshToken API is called, invalidating the token of other tabs.

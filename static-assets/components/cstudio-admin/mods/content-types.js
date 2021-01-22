@@ -213,6 +213,45 @@
                 // render save bar
                 CStudioAdminConsole.CommandBar.render([
                   {
+                    label: CMgs.format(langBundle, 'cancel'),
+                    class: 'btn-default',
+                    fn: function() {
+                      if (CStudioAdminConsole.isDirty) {
+                        CStudioAuthoring.Operations.showSimpleDialog(
+                          'error-dialog',
+                          CStudioAuthoring.Operations.simpleDialogTypeINFO,
+                          CMgs.format(langBundle, 'notification'),
+                          CMgs.format(langBundle, 'contentTypeModifiedWarn'),
+                          [
+                            {
+                              text: CMgs.format(formsLangBundle, 'yes'),
+                              handler: function() {
+                                CStudioAdminConsole.isDirty = false;
+                                _self.renderWorkarea();
+                                this.destroy();
+                                CStudioAdminConsole.CommandBar.hide();
+                              },
+                              isDefault: false
+                            },
+                            {
+                              text: CMgs.format(formsLangBundle, 'no'),
+                              handler: function() {
+                                this.destroy();
+                              },
+                              isDefault: false
+                            }
+                          ],
+                          YAHOO.widget.SimpleDialog.ICON_WARN,
+                          'studioDialog'
+                        );
+                      } else {
+                        CStudioAdminConsole.isDirty = false;
+                        _self.renderWorkarea();
+                        CStudioAdminConsole.CommandBar.hide();
+                      }
+                    }
+                  },
+                  {
                     label: CMgs.format(langBundle, 'save'),
                     class: 'btn-primary',
                     fn: function() {
@@ -241,99 +280,50 @@
                               }
                             }
 
-                            var cb = {
-                              success: function() {
-                                var callBack = {
-                                  success: function() {
-                                    CStudioAdminConsole.isDirty = false;
-                                    CStudioAuthoring.Utils.showNotification(
-                                      CMgs.format(langBundle, 'saved'),
-                                      'top',
-                                      'left',
-                                      'success',
-                                      48,
-                                      197,
-                                      'saveContentType'
-                                    );
-                                    _self.clearCache();
-                                  },
-                                  failure: function() {
-                                    CStudioAuthoring.Operations.showSimpleDialog(
-                                      'errorDialog-dialog',
-                                      CStudioAuthoring.Operations.simpleDialogTypeINFO,
-                                      CMgs.format(langBundle, 'notification'),
-                                      CMgs.format(langBundle, 'saveFailed'),
-                                      null, // use default button
-                                      YAHOO.widget.SimpleDialog.ICON_BLOCK,
-                                      'studioDialog'
-                                    );
-                                  },
-                                  CMgs: CMgs,
-                                  langBundle: langBundle
-                                };
+                            var defPath = '/content-types' + formDef.contentType + '/form-definition.xml';
+                            var confPath = configFilesPath + '/content-types' + formDef.contentType + '/config.xml';
 
-                                var confPath = configFilesPath + '/content-types' + formDef.contentType + '/config.xml';
-
-                                var url =
-                                  '/api/1/services/api/1/site/write-configuration.json' +
-                                  '?site=' +
-                                  CStudioAuthoringContext.site +
-                                  '&path=' +
-                                  confPath;
-
-                                YAHOO.util.Connect.resetFormState();
-                                YAHOO.util.Connect.setDefaultPostHeader(false);
-                                YAHOO.util.Connect.initHeader('Content-Type', 'application/xml; charset=utf-8');
-                                YAHOO.util.Connect.initHeader(
-                                  CStudioAuthoringContext.xsrfHeaderName,
-                                  CrafterCMSNext.util.auth.getRequestForgeryToken()
-                                );
-                                YAHOO.util.Connect.asyncRequest(
-                                  'POST',
-                                  CStudioAuthoring.Service.createServiceUri(url),
-                                  callBack,
+                            CrafterCMSNext.rxjs
+                              .forkJoin({
+                                formDef: CrafterCMSNext.services.configuration.writeConfiguration(
+                                  CStudioAuthoringContext.site,
+                                  defPath,
+                                  'studio',
+                                  xmlFormDef
+                                ),
+                                config: CrafterCMSNext.services.configuration.writeConfiguration(
+                                  CStudioAuthoringContext.site,
+                                  confPath,
+                                  'studio',
                                   xmlConfig
-                                );
-                              },
-                              failure: function() {
-                                CStudioAuthoring.Operations.showSimpleDialog(
-                                  'errorDialog-dialog',
-                                  CStudioAuthoring.Operations.simpleDialogTypeINFO,
-                                  CMgs.format(langBundle, 'notification'),
-                                  CMgs.format(langBundle, 'saveFailed'),
-                                  null, // use default button
-                                  YAHOO.widget.SimpleDialog.ICON_BLOCK,
-                                  'studioDialog'
-                                );
-                              },
-                              CMgs: CMgs,
-                              langBundle: langBundle
-                            };
-
-                            var defPath =
-                              configFilesPath + '/content-types' + formDef.contentType + '/form-definition.xml';
-
-                            var url =
-                              '/api/1/services/api/1/site/write-configuration.json' +
-                              '?site=' +
-                              CStudioAuthoringContext.site +
-                              '&path=' +
-                              defPath;
-
-                            YAHOO.util.Connect.resetFormState();
-                            YAHOO.util.Connect.setDefaultPostHeader(false);
-                            YAHOO.util.Connect.initHeader('Content-Type', 'application/xml; charset=utf-8');
-                            YAHOO.util.Connect.initHeader(
-                              CStudioAuthoringContext.xsrfHeaderName,
-                              CrafterCMSNext.util.auth.getRequestForgeryToken()
-                            );
-                            YAHOO.util.Connect.asyncRequest(
-                              'POST',
-                              CStudioAuthoring.Service.createServiceUri(url),
-                              cb,
-                              xmlFormDef
-                            );
-
+                                )
+                              })
+                              .subscribe(
+                                () => {
+                                  CStudioAdminConsole.isDirty = false;
+                                  CStudioAuthoring.Utils.showNotification(
+                                    CMgs.format(langBundle, 'saved'),
+                                    'top',
+                                    'left',
+                                    'success',
+                                    48,
+                                    197,
+                                    'saveContentType'
+                                  );
+                                  _self.clearCache();
+                                },
+                                () => {
+                                  CStudioAuthoring.Operations.showSimpleDialog(
+                                    'errorDialog-dialog',
+                                    CStudioAuthoring.Operations.simpleDialogTypeINFO,
+                                    CMgs.format(langBundle, 'notification'),
+                                    CMgs.format(langBundle, 'saveFailed'),
+                                    null, // use default button
+                                    YAHOO.widget.SimpleDialog.ICON_BLOCK,
+                                    'studioDialog'
+                                  );
+                                }
+                              );
                             document.getElementById(
                               'cstudio-admin-console-command-bar'
                             ).children[1].value = CMgs.format(langBundle, 'close');
@@ -359,8 +349,8 @@
                       errorMessage +=
                         validation.idError.length > 0
                           ? `<li>${formatMessage(contentTypesMessages.idError)} ${validation.idError
-                              .toString()
-                              .replace(/,/g, ', ')}</li>`
+                              .map((s) => CrafterCMSNext.util.string.escapeHTML(s))
+                              .join(', ')}</li>`
                           : '';
 
                       errorMessage +=
@@ -428,45 +418,6 @@
                         }
                       }
                     }
-                  },
-                  {
-                    label: CMgs.format(langBundle, 'cancel'),
-                    class: 'btn-default',
-                    fn: function() {
-                      if (CStudioAdminConsole.isDirty) {
-                        CStudioAuthoring.Operations.showSimpleDialog(
-                          'error-dialog',
-                          CStudioAuthoring.Operations.simpleDialogTypeINFO,
-                          CMgs.format(langBundle, 'notification'),
-                          CMgs.format(langBundle, 'contentTypeModifiedWarn'),
-                          [
-                            {
-                              text: CMgs.format(formsLangBundle, 'yes'),
-                              handler: function() {
-                                CStudioAdminConsole.isDirty = false;
-                                _self.renderWorkarea();
-                                this.destroy();
-                                CStudioAdminConsole.CommandBar.hide();
-                              },
-                              isDefault: false
-                            },
-                            {
-                              text: CMgs.format(formsLangBundle, 'no'),
-                              handler: function() {
-                                this.destroy();
-                              },
-                              isDefault: false
-                            }
-                          ],
-                          YAHOO.widget.SimpleDialog.ICON_WARN,
-                          'studioDialog'
-                        );
-                      } else {
-                        CStudioAdminConsole.isDirty = false;
-                        _self.renderWorkarea();
-                        CStudioAdminConsole.CommandBar.hide();
-                      }
-                    }
                   }
                 ]);
 
@@ -516,14 +467,9 @@
       },
 
       clearCache: function() {
-        var serviceUri =
-          '/api/1/services/api/1/site/clear-configuration-cache.json?site=' + CStudioAuthoringContext.site;
-
-        var clearCacheCb = {
-          success: function() {}
-        };
-
-        YConnect.asyncRequest('GET', CStudioAuthoring.Service.createServiceUri(serviceUri), clearCacheCb);
+        CrafterCMSNext.util.ajax
+          .get(`/studio/api/1/services/api/1/site/clear-configuration-cache.json?site=${CStudioAuthoringContext.site}`)
+          .subscribe();
       },
 
       /**
@@ -1099,7 +1045,7 @@
 
         var formNameEl = document.createElement('div');
         YDom.addClass(formNameEl, 'content-form-name');
-        formNameEl.innerHTML = this.definition.title;
+        formNameEl.textContent = this.definition.title;
         formVisualContainerEl.appendChild(formNameEl);
 
         var divPropertiesEl = document.createElement('div');
@@ -1142,7 +1088,7 @@
 
         var datasourcesNameEl = document.createElement('span');
         YDom.addClass(datasourcesNameEl, 'content-section-name');
-        datasourcesNameEl.innerHTML = CMgs.format(langBundle, 'datasources');
+        datasourcesNameEl.textContent = CMgs.format(langBundle, 'datasources');
         datasourcesContainerEl.appendChild(datasourcesNameEl);
         var tar = new YAHOO.util.DDTarget(datasourcesContainerEl);
 
@@ -1167,7 +1113,7 @@
 
           var datasourceNameEl = document.createElement('span');
           YDom.addClass(datasourceNameEl, 'content-datasource-name');
-          datasourceNameEl.innerHTML = datasource.title;
+          datasourceNameEl.textContent = datasource.title;
           datasourceEl.appendChild(datasourceNameEl);
 
           var datasourceTypeEl = document.createElement('span');
@@ -1253,7 +1199,7 @@
 
           var sectionNameEl = document.createElement('span');
           YDom.addClass(sectionNameEl, 'content-section-name');
-          sectionNameEl.innerHTML = section.title;
+          sectionNameEl.textContent = section.title;
           sectionContainerEl.appendChild(sectionNameEl);
 
           section.sectionContainerEl = sectionContainerEl;
@@ -1356,7 +1302,7 @@
         var minValue = field.properties[0] && field.properties[0].value != '' ? field.properties[0].value : '0';
         var maxValue = field.properties[0] && field.properties[1].value != '' ? field.properties[1].value : '*';
 
-        fieldNameEl.innerHTML =
+        fieldNameEl.textContent =
           field.title + ' ' + CMgs.format(langBundle, 'repeatingGroup') + ' [' + minValue + ' ... ' + maxValue + ']';
         fieldContainerEl.appendChild(fieldNameEl);
 
@@ -1431,17 +1377,17 @@
 
         var fieldNameEl = document.createElement('span');
         YDom.addClass(fieldNameEl, 'content-field-name');
-        fieldNameEl.innerHTML = field.title;
+        fieldNameEl.textContent = field.title;
         fieldContainerEl.appendChild(fieldNameEl);
 
         var fieldTypeEl = document.createElement('span');
         YDom.addClass(fieldTypeEl, 'content-field-type');
-        fieldTypeEl.innerHTML = field.type;
+        fieldTypeEl.textContent = field.type;
         fieldContainerEl.appendChild(fieldTypeEl);
 
         var fieldNameEl = document.createElement('span');
         YDom.addClass(fieldNameEl, 'content-field-variable');
-        fieldNameEl.innerHTML = field.id;
+        fieldNameEl.textContent = field.id;
         fieldContainerEl.appendChild(fieldNameEl);
 
         var dd = new DragAndDropDecorator(fieldContainerEl);

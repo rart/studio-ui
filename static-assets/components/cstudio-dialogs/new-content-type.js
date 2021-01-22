@@ -91,23 +91,21 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
       CMgs.format(formsLangBundle, 'newContTypeDialogContentTypeNamelMsg') +
       '" id="contentTypeName" type="text"></label>' +
       '<div class="selectInput">' +
-      '<label for="contentTypeObjectType">' +
-      CMgs.format(formsLangBundle, 'newContTypeDialogType') +
-      ':</label>' +
-      '<select title="' +
-      CMgs.format(formsLangBundle, 'newContTypeDialogTypeMsg') +
-      '" id="contentTypeObjectType">' +
+      `<label for="contentTypeObjectType">${CMgs.format(formsLangBundle, 'newContTypeDialogType')}:</label>` +
+      `<select title="${CMgs.format(formsLangBundle, 'newContTypeDialogTypeMsg')}" id="contentTypeObjectType">` +
       '</select></div>' +
       '<label style="display:none;" class="checkboxInput" for="contentTypeAsFolder"><span>Model as index (content as folder)</span>' +
       '<input style="display:none;" id="contentTypeAsFolder" type="checkbox" checked="true"></label>' +
       '</div>' +
       '<div class="contentTypePopupBtn"> ' +
-      '<input type="button" class="btn btn-primary cstudio-button ok" id="createButton" value="' +
-      CMgs.format(formsLangBundle, 'create') +
-      '" disabled="disabled" />' +
-      '<input type="button" class="btn btn-default cstudio-button" id="createCancelButton" value="' +
-      CMgs.format(formsLangBundle, 'cancel') +
-      '" />' +
+      `<input type="button" class="btn btn-default cstudio-button" id="createCancelButton" value="${CMgs.format(
+        formsLangBundle,
+        'cancel'
+      )}" />` +
+      `<input type="button" class="btn btn-primary cstudio-button ok" id="createButton" value="${CMgs.format(
+        formsLangBundle,
+        'create'
+      )}" disabled="disabled" />` +
       '</div>' +
       '</div>';
 
@@ -525,13 +523,14 @@ CStudioAuthoring.Dialogs.NewContentType = CStudioAuthoring.Dialogs.NewContentTyp
   },
 
   writeConfig: function(url, content, cb) {
-    YAHOO.util.Connect.setDefaultPostHeader(false);
-    YAHOO.util.Connect.initHeader('Content-Type', 'application/xml; charset=utf-8');
-    YAHOO.util.Connect.initHeader(
-      CStudioAuthoringContext.xsrfHeaderName,
-      CrafterCMSNext.util.auth.getRequestForgeryToken()
+    CrafterCMSNext.util.ajax.post(CStudioAuthoring.Service.createServiceUri(url), content).subscribe(
+      function() {
+        cb.success();
+      },
+      function() {
+        cb.failure();
+      }
     );
-    YAHOO.util.Connect.asyncRequest('POST', CStudioAuthoring.Service.createServiceUri(url), cb, content);
   },
 
   /**
