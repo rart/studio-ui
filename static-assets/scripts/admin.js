@@ -978,7 +978,9 @@
         );
       };
 
-      publish.getPublishingChannels();
+      CrafterCMSNext.system.getStore().subscribe(() => {
+        publish.getPublishingChannels();
+      });
 
       publish.bulkPublish = function() {
         $scope.adminModal = publish.showModal('confirmationModal.html', 'md');
