@@ -171,15 +171,17 @@ export default function AuditGridUI(props: AuditGridUIProps) {
 
   const onTimestampSortChanges = (model: GridSortModel, details) => {
     // TODO: Adjust logic for the x-data-grid version specifics (e.g. instead of `{ sortModel: nextSortModel }`)
-    // if (nextSortModel !== sortModel) {
-    //   const sort = nextSortModel.find((model) => model.field === 'operationTimestamp').sort;
-    //   setSortModel(nextSortModel);
-    //   if (sort === 'asc') {
-    //     onFilterChange({ id: 'order', value: sort.toUpperCase() });
-    //   } else {
-    //     onFilterChange({ id: 'order', value: undefined });
-    //   }
-    // }
+    const newSort = model.find((m) => m.field === 'operationTimestamp').sort;
+    const sort = sortModel.find((m) => m.field === 'operationTimestamp').sort;
+
+    if (newSort !== sort) {
+      setSortModel(model);
+      if (sort === 'asc') {
+        onFilterChange({ id: 'order', value: sort.toUpperCase() });
+      } else {
+        onFilterChange({ id: 'order', value: undefined });
+      }
+    }
   };
 
   const onTimezoneSelected = (timezone: string) => {
