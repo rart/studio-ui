@@ -150,7 +150,6 @@ export default function AuditGridUI(props: AuditGridUIProps) {
   const onFilterSelected = (props: GridColumnMenuProps) => {
     if (props.open && anchorPosition === null) {
       setTimeout(() => {
-        props.hideMenu();
         setOpenedFilter(props.currentColumn.field);
         const element = document.querySelector(`#${props.labelledby}`);
         const anchorRect = element.getBoundingClientRect();
@@ -169,8 +168,7 @@ export default function AuditGridUI(props: AuditGridUIProps) {
     [onFetchParameters]
   );
 
-  const onTimestampSortChanges = (model: GridSortModel, details) => {
-    // TODO: Adjust logic for the x-data-grid version specifics (e.g. instead of `{ sortModel: nextSortModel }`)
+  const onTimestampSortChanges = (model: GridSortModel) => {
     const newSort = model.find((m) => m.field === 'operationTimestamp').sort;
     const sort = sortModel.find((m) => m.field === 'operationTimestamp').sort;
 
