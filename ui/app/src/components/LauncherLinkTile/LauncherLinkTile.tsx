@@ -51,13 +51,13 @@ const LauncherLinkTile = (props: LauncherLinkTileProps) => {
             showWidgetDialog({
               id: systemLinkId,
               title,
-              ...(systemLinkId === 'siteDashboard'
+              ...(systemLinkId === 'siteDashboardDialog'
                 ? {
                     widget: {
                       id: 'craftercms.components.Dashboard'
                     }
                   }
-                : systemLinkId === 'siteSearch'
+                : systemLinkId === 'siteToolsDialog'
                 ? {
                     widget: {
                       id: 'craftercms.components.EmbeddedSearchIframe'
@@ -74,7 +74,7 @@ const LauncherLinkTile = (props: LauncherLinkTileProps) => {
       }
     : null;
 
-  const link = ['siteDashboardDialog', 'siteToolsDialog', 'siteSearchDialog'].includes(systemLinkId)
+  const link = ['siteDashboard', 'siteTools', 'siteSearch'].includes(systemLinkId)
     ? null
     : props.link ?? getSystemLink({ systemLinkId, authoringBase, site, useLegacy });
 
