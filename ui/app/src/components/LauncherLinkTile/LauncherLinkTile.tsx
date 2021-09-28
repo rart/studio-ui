@@ -35,14 +35,14 @@ export interface LauncherLinkTileProps {
 }
 
 const LauncherLinkTile = (props: LauncherLinkTileProps) => {
-  const { icon, systemLinkId, title: propTitle, ...configuration } = props;
+  const { icon, systemLinkId, title: propTitle } = props;
   const { authoringBase } = useEnv();
   const site = useActiveSiteId();
   const useLegacy = useLegacyPreviewPreference();
   const dispatch = useDispatch();
   const title = usePossibleTranslation(propTitle);
 
-  const onClick = ['siteDashboard', 'siteTools', 'siteSearch'].includes(systemLinkId)
+  const onClick = ['siteDashboardDialog', 'siteToolsDialog', 'siteSearchDialog'].includes(systemLinkId)
     ? (e) => {
         e.preventDefault();
         dispatch(
@@ -54,24 +54,18 @@ const LauncherLinkTile = (props: LauncherLinkTileProps) => {
               ...(systemLinkId === 'siteDashboard'
                 ? {
                     widget: {
-                      id: 'craftercms.components.Dashboard',
-                      configuration
+                      id: 'craftercms.components.Dashboard'
                     }
                   }
                 : systemLinkId === 'siteSearch'
                 ? {
                     widget: {
-                      id: 'craftercms.components.LegacyIFrame',
-                      configuration: {
-                        ...configuration,
-                        path: 'search?embedded=true&mode=default'
-                      }
+                      id: 'craftercms.components.EmbeddedSearchIframe'
                     }
                   }
                 : {
                     widget: {
-                      id: 'craftercms.components.EmbeddedSiteTools',
-                      configuration
+                      id: 'craftercms.components.EmbeddedSiteTools'
                     }
                   })
             })
@@ -80,7 +74,7 @@ const LauncherLinkTile = (props: LauncherLinkTileProps) => {
       }
     : null;
 
-  const link = ['siteDashboard', 'siteTools', 'siteSearch'].includes(systemLinkId)
+  const link = ['siteDashboardDialog', 'siteToolsDialog', 'siteSearchDialog'].includes(systemLinkId)
     ? null
     : props.link ?? getSystemLink({ systemLinkId, authoringBase, site, useLegacy });
 
