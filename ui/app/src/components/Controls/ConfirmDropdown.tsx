@@ -16,7 +16,7 @@
 
 import ArrowDown from '@mui/icons-material/ArrowDropDownRounded';
 import Button, { ButtonTypeMap } from '@mui/material/Button';
-import React, { Fragment, ReactNode } from 'react';
+import React, { ReactNode, useMemo } from 'react';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import createStyles from '@mui/styles/createStyles';
@@ -84,8 +84,6 @@ export default function ConfirmDropdown(props: ConfirmDropdownProps) {
     size = 'medium'
   } = props;
 
-  const TooltipComponent = iconTooltip ? Tooltip : Fragment;
-
   const handleClick = (event: any) => {
     setAnchorEl(event.currentTarget);
   };
@@ -104,14 +102,23 @@ export default function ConfirmDropdown(props: ConfirmDropdownProps) {
     onCancel?.();
   };
 
+  const iconButton = useMemo(
+    () => (
+      <IconButton onClick={handleClick} size={size}>
+        <Icon color={disabled ? 'disabled' : iconColor} />
+      </IconButton>
+    ),
+    [Icon, disabled, iconColor, size]
+  );
+
   return (
     <>
       {Icon ? (
-        <TooltipComponent title={iconTooltip}>
-          <IconButton onClick={handleClick} size={size}>
-            <Icon color={disabled ? 'disabled' : iconColor} />
-          </IconButton>
-        </TooltipComponent>
+        iconTooltip ? (
+          <Tooltip title={iconTooltip}>{iconButton}</Tooltip>
+        ) : (
+          iconButton
+        )
       ) : (
         <Button
           className={props.classes?.button}
