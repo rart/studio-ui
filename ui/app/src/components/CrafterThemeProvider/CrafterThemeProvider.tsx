@@ -63,6 +63,9 @@ export function CrafterThemeProvider(props: CrafterThemeProviderProps) {
         action: {
           selected: palette.blue.highlight
         },
+        background: {
+          default: prefersDarkMode ? '#303030' : palette.gray.light0
+        },
         ...props.themeOptions?.palette
       },
       components: extend(
