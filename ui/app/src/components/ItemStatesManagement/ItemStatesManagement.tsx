@@ -49,7 +49,6 @@ import { useLogicResource } from '../../utils/hooks/useLogicResource';
 import { useDebouncedInput } from '../../utils/hooks/useDebouncedInput';
 import { useSpreadState } from '../../utils/hooks/useSpreadState';
 import ItemActionsSnackbar from '../ItemActionsSnackbar';
-import { UNDEFINED } from '../../utils/constants';
 
 interface ItemStatesManagementProps {
   embedded?: boolean;
@@ -251,7 +250,7 @@ export default function ItemStatesManagement(props: ItemStatesManagementProps) {
             className={embedded ? '' : classes.filterButton}
             endIcon={<FilterListRoundedIcon />}
             variant="outlined"
-            color={pathRegex || Object.values(filtersLookup).some(Boolean) ? 'primary' : UNDEFINED}
+            color={pathRegex || Object.values(filtersLookup).some(Boolean) ? 'primary' : 'inherit'}
             onClick={() => setOpenFiltersDrawer(!openFiltersDrawer)}
           >
             <FormattedMessage id="words.filters" defaultMessage="Filters" />

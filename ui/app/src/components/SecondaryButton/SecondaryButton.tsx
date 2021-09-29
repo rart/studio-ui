@@ -23,7 +23,7 @@ export interface SecondaryButtonProps extends ButtonProps {
 }
 
 const SecondaryButton = React.forwardRef<HTMLButtonElement, SecondaryButtonProps>((props, ref) => {
-  return <ButtonWithLoadingState ref={ref} {...props} variant="outlined" />;
+  return <ButtonWithLoadingState ref={ref} {...props} variant="outlined" color="inherit" />;
 });
 
 export default SecondaryButton;
