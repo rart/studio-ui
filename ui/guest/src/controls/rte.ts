@@ -25,8 +25,7 @@ import { Observable, Subject } from 'rxjs';
 import { startWith } from 'rxjs/operators';
 import $ from 'jquery';
 import { reversePluckProps } from '../utils/object';
-// TODO: this needs to be imported from studio-ui
-import { SHOW_EDIT_DIALOG } from '../constants';
+import { showEditDialog } from '@craftercms/studio-ui/build_tsc/state/actions/preview.js';
 import { RteSetup } from '../models/Rte';
 
 export function initTinyMCE(
@@ -45,7 +44,7 @@ export function initTinyMCE(
 
   const openEditForm = () => {
     post({
-      type: SHOW_EDIT_DIALOG,
+      type: showEditDialog.type,
       payload: {
         selectedFields: [field.id]
       }

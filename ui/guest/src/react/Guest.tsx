@@ -31,35 +31,37 @@ import Cookies from 'js-cookie';
 import { HighlightData } from '../models/InContextEditing';
 import AssetUploaderMask from './AssetUploaderMask';
 import {
-  ASSET_DRAG_ENDED,
-  ASSET_DRAG_STARTED,
-  CLEAR_CONTENT_TREE_FIELD_SELECTED,
-  CLEAR_HIGHLIGHTED_DROP_TARGETS,
-  CLEAR_SELECTED_ZONES,
-  COMPONENT_DRAG_ENDED,
-  COMPONENT_DRAG_STARTED,
-  COMPONENT_INSTANCE_DRAG_ENDED,
-  COMPONENT_INSTANCE_DRAG_STARTED,
-  CONTENT_TREE_FIELD_SELECTED,
   CONTENT_TREE_SWITCH_FIELD_INSTANCE,
-  CONTENT_TYPE_DROP_TARGETS_REQUEST,
   DESKTOP_ASSET_DRAG_STARTED,
-  DESKTOP_ASSET_UPLOAD_COMPLETE,
-  DESKTOP_ASSET_UPLOAD_PROGRESS,
-  EDIT_MODE_CHANGED, // ==> setPreviewEditMode
-  EDIT_MODE_TOGGLE_HOTKEY,
   EditingStatus,
-  GUEST_CHECK_IN,
-  GUEST_CHECK_OUT,
   HIGHLIGHT_MODE_CHANGED,
-  HighlightMode,
-  HOST_CHECK_IN,
-  NAVIGATION_REQUEST,
-  RELOAD_REQUEST,
-  SCROLL_TO_DROP_TARGET,
-  TRASHED,
-  UPDATE_RTE_CONFIG
+  HighlightMode
 } from '../constants';
+import {
+  assetDragEnded,
+  assetDragStarted,
+  clearContentTreeFieldSelected,
+  clearHighlightedDropTargets,
+  clearSelectedZones,
+  componentDragEnded,
+  componentDragStarted,
+  componentInstanceDragEnded,
+  componentInstanceDragStarted,
+  contentTreeFieldSelected,
+  contentTypeDropTargetsRequest,
+  desktopAssetUploadComplete,
+  desktopAssetUploadProgress,
+  editModeChanged,
+  editModeToggleHotkey,
+  guestCheckIn,
+  guestCheckOut,
+  hostCheckIn,
+  navigationRequest,
+  reloadRequest,
+  scrollToDropTarget,
+  trashed,
+  updateRteConfig
+} from '@craftercms/studio-ui/build_tsc/state/actions/preview.js';
 import { createGuestStore } from '../store/store';
 import { Provider } from 'react-redux';
 import { clearAndListen$ } from '../store/subjects';
@@ -77,6 +79,7 @@ import { deepmerge } from '@mui/utils';
 import { DeepPartial } from 'redux';
 import MoveModeZoneMenu from './MoveModeZoneMenu';
 import { contentReady } from '../store/actions';
+import { desktopAssetUploadStarted } from '@craftercms/studio-ui/state/actions/preview';
 // TinyMCE makes the build quite large. Temporarily, importing this externally via
 // the site's ftl. Need to evaluate whether to include the core as part of guest build or not
 // import tinymce from 'tinymce';
@@ -163,8 +166,8 @@ function Guest(props: GuestProps) {
   }, [sxOverrides]);
 
   // Hotkeys propagation to preview
-  useHotkeys('e', () => post(EDIT_MODE_TOGGLE_HOTKEY, { mode: HighlightMode.ALL }));
-  useHotkeys('m', () => post(EDIT_MODE_TOGGLE_HOTKEY, { mode: HighlightMode.MOVE_TARGETS }));
+  useHotkeys('e', () => post(editModeToggleHotkey.type, { mode: HighlightMode.ALL }));
+  useHotkeys('m', () => post(editModeToggleHotkey.type, { mode: HighlightMode.MOVE_TARGETS }));
 
   // Key press/hold keeper events
   useEffect(() => {
@@ -227,56 +230,56 @@ function Guest(props: GuestProps) {
       const { type, payload } = action;
       switch (type) {
         case HIGHLIGHT_MODE_CHANGED:
-        case EDIT_MODE_CHANGED:
+        case editModeChanged.type:
           dispatch(action);
           break;
-        case ASSET_DRAG_STARTED:
+        case assetDragStarted.type:
           dispatch({ type, payload: { asset: payload } });
           break;
-        case ASSET_DRAG_ENDED:
+        case assetDragEnded.type:
           dragOk(status) && dispatch(action);
           break;
-        case COMPONENT_DRAG_STARTED:
+        case componentDragStarted.type:
           dispatch({ type, payload: { contentType: payload } });
           break;
-        case COMPONENT_DRAG_ENDED:
+        case componentDragEnded.type:
           dragOk(status) && dispatch(action);
           break;
-        case COMPONENT_INSTANCE_DRAG_STARTED:
+        case componentInstanceDragStarted.type:
           dispatch({ type, payload });
           break;
-        case COMPONENT_INSTANCE_DRAG_ENDED:
+        case componentInstanceDragEnded.type:
           dragOk(status) && dispatch(action);
           break;
-        case TRASHED:
+        case trashed.type:
           dispatch({ type, payload: { iceId: payload } });
           break;
-        case CLEAR_SELECTED_ZONES:
+        case clearSelectedZones.type:
           clearAndListen$.next();
           dispatch({ type: 'start_listening' });
           break;
-        case RELOAD_REQUEST: {
-          post({ type: GUEST_CHECK_OUT });
+        case reloadRequest.type: {
+          post({ type: guestCheckOut.type });
           return window.location.reload();
         }
-        case NAVIGATION_REQUEST: {
-          post({ type: GUEST_CHECK_OUT });
+        case navigationRequest.type: {
+          post({ type: guestCheckOut.type });
           return (window.location.href = payload.url);
         }
-        case CONTENT_TYPE_DROP_TARGETS_REQUEST: {
+        case contentTypeDropTargetsRequest.type: {
           dispatch({
             type,
             payload: { contentTypeId: payload }
           });
           break;
         }
-        case SCROLL_TO_DROP_TARGET:
+        case scrollToDropTarget.type:
           scrollToDropTargets([payload], scrollElement, (id: number) => elementRegistry.fromICEId(id).element);
           break;
-        case CLEAR_HIGHLIGHTED_DROP_TARGETS:
+        case clearHighlightedDropTargets.type:
           dispatch(action);
           break;
-        case CONTENT_TREE_FIELD_SELECTED: {
+        case contentTreeFieldSelected.type: {
           dispatch({
             type,
             payload: {
@@ -291,17 +294,17 @@ function Guest(props: GuestProps) {
           });
           break;
         }
-        case CLEAR_CONTENT_TREE_FIELD_SELECTED:
+        case clearContentTreeFieldSelected.type:
           clearAndListen$.next();
           dispatch({ type });
           break;
-        case DESKTOP_ASSET_UPLOAD_PROGRESS:
+        case desktopAssetUploadProgress.type:
           dispatch(action);
           break;
-        case DESKTOP_ASSET_UPLOAD_COMPLETE:
+        case desktopAssetUploadComplete.type:
           dispatch(action);
           break;
-        case UPDATE_RTE_CONFIG:
+        case updateRteConfig.type:
           dispatch(action);
           break;
       }
@@ -317,7 +320,7 @@ function Guest(props: GuestProps) {
       // prettier-ignore
       interval(1000).pipe(
         takeUntil(
-          merge(fromTopic(HOST_CHECK_IN), fromTopic('LEGACY_CHECK_IN')).pipe(
+          merge(fromTopic(hostCheckIn.type), fromTopic('LEGACY_CHECK_IN')).pipe(
             tap(dispatch),
             take(1)
           )
@@ -354,10 +357,10 @@ function Guest(props: GuestProps) {
   useEffect(() => {
     // Notice this is not executed when the iFrame url is changed abruptly.
     // This only triggers when navigation occurs from within the guest page.
-    const handler = () => post({ type: GUEST_CHECK_OUT });
+    const handler = () => post({ type: guestCheckOut.type });
     window.addEventListener('beforeunload', handler, false);
     return () => {
-      post(GUEST_CHECK_OUT);
+      post(guestCheckOut.type);
       window.removeEventListener('beforeunload', handler);
     };
   }, []);
@@ -384,10 +387,10 @@ function Guest(props: GuestProps) {
         dispatch(contentReady());
       });
 
-    post(GUEST_CHECK_IN, { location, path, site, documentDomain });
+    post(guestCheckIn.type, { location, path, site, documentDomain });
 
     return () => {
-      post(GUEST_CHECK_OUT);
+      post(guestCheckOut.type);
       nnou(iceId) && iceRegistry.deregister(iceId);
       // eslint-disable-next-line react-hooks/exhaustive-deps
       refs.current.contentReady = false;

@@ -34,24 +34,26 @@ import { GuestState } from '../models/GuestStore';
 import { notNullOrUndefined, reversePluckProps } from '../../utils/object';
 import { updateDropZoneValidations } from '../../utils/dom';
 import {
-  ASSET_DRAG_STARTED,
-  CLEAR_CONTENT_TREE_FIELD_SELECTED,
-  CLEAR_HIGHLIGHTED_DROP_TARGETS,
-  COMPONENT_DRAG_STARTED,
-  COMPONENT_INSTANCE_DRAG_STARTED,
-  CONTENT_TREE_FIELD_SELECTED,
   CONTENT_TREE_SWITCH_FIELD_INSTANCE,
-  CONTENT_TYPE_DROP_TARGETS_REQUEST,
   DESKTOP_ASSET_DRAG_STARTED,
-  DESKTOP_ASSET_UPLOAD_PROGRESS,
-  DESKTOP_ASSET_UPLOAD_STARTED,
-  EDIT_MODE_CHANGED,
   EditingStatus,
   HIGHLIGHT_MODE_CHANGED,
-  HighlightMode,
-  HOST_CHECK_IN,
-  UPDATE_RTE_CONFIG
+  HighlightMode
 } from '../../constants';
+import {
+  assetDragStarted,
+  clearContentTreeFieldSelected,
+  clearHighlightedDropTargets,
+  componentDragStarted,
+  componentInstanceDragStarted,
+  contentTreeFieldSelected,
+  contentTypeDropTargetsRequest,
+  desktopAssetUploadProgress,
+  desktopAssetUploadStarted,
+  editModeChanged,
+  hostCheckIn,
+  updateRteConfig
+} from '@craftercms/studio-ui/build_tsc/state/actions/preview.js';
 import { contentReady } from '../actions';
 
 const initialState: GuestState = {
@@ -407,7 +409,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region set_edit_mode
-  [EDIT_MODE_CHANGED]: (state, action) => ({
+  [editModeChanged.type]: (state, action) => ({
     ...state,
     editMode: action.payload.editMode
   }),
@@ -425,7 +427,7 @@ const reducer = createReducer(initialState, {
   // endregion
   // region content_type_drop_targets_request
   // TODO: Not pure
-  [CONTENT_TYPE_DROP_TARGETS_REQUEST]: (state, action) => {
+  [contentTypeDropTargetsRequest.type]: (state, action) => {
     const { contentTypeId } = action.payload;
     const highlighted = {};
 
@@ -446,7 +448,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region clear_highlighted_drop_targets
-  [CLEAR_HIGHLIGHTED_DROP_TARGETS]: (state, action) => {
+  [clearHighlightedDropTargets.type]: (state, action) => {
     return {
       ...state,
       status: EditingStatus.LISTENING,
@@ -456,7 +458,7 @@ const reducer = createReducer(initialState, {
   // endregion
   // region desktop_asset_upload_started
   // TODO: Not pure
-  [DESKTOP_ASSET_UPLOAD_STARTED]: (state, action) => {
+  [desktopAssetUploadStarted.type]: (state, action) => {
     const { record } = action.payload;
     return {
       ...state,
@@ -478,7 +480,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region desktop_asset_upload_progress
-  [DESKTOP_ASSET_UPLOAD_PROGRESS]: (state, action) => {
+  [desktopAssetUploadProgress.type]: (state, action) => {
     const { percentage, record } = action.payload;
     return {
       ...state,
@@ -494,7 +496,7 @@ const reducer = createReducer(initialState, {
   // endregion
   // region host_component_drag_started
   // TODO: Not pure.
-  [COMPONENT_DRAG_STARTED]: (state, action) => {
+  [componentDragStarted.type]: (state, action) => {
     const { contentType } = action.payload;
     if (notNullOrUndefined(contentType)) {
       const dropTargets = iceRegistry.getContentTypeDropTargets(contentType);
@@ -528,7 +530,7 @@ const reducer = createReducer(initialState, {
   // endregion
   // region host_instance_drag_started
   // TODO: Not pure.
-  [COMPONENT_INSTANCE_DRAG_STARTED]: (state, action) => {
+  [componentInstanceDragStarted.type]: (state, action) => {
     const { instance, contentType } = action.payload;
 
     if (notNullOrUndefined(instance)) {
@@ -599,7 +601,7 @@ const reducer = createReducer(initialState, {
   // endregion
   // region asset_drag_started
   // TODO: Not pure
-  [ASSET_DRAG_STARTED]: (state, action) => {
+  [assetDragStarted.type]: (state, action) => {
     const { asset } = action.payload;
     if (notNullOrUndefined(asset)) {
       let type;
@@ -634,7 +636,7 @@ const reducer = createReducer(initialState, {
   // endregion
   // region content_tree_field_selected
   // TODO: Not pure
-  [CONTENT_TREE_FIELD_SELECTED]: (state, action) => {
+  [contentTreeFieldSelected.type]: (state, action) => {
     const { iceProps } = action.payload;
     const iceId = iceRegistry.exists(iceProps);
     if (iceId === -1) return;
@@ -679,7 +681,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region clear_content_tree_field_selected
-  [CLEAR_CONTENT_TREE_FIELD_SELECTED]: (state) => {
+  [clearContentTreeFieldSelected.type]: (state) => {
     return {
       ...state,
       status: EditingStatus.LISTENING,
@@ -690,7 +692,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region HOST_CHECK_IN
-  [HOST_CHECK_IN]: (state, action) => {
+  [hostCheckIn.type]: (state, action) => {
     const isMoveTargetsMode = action.payload.highlightMode === HighlightMode.MOVE_TARGETS;
     return {
       ...state,
@@ -705,7 +707,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region UPDATE_RTE_CONFIG
-  [UPDATE_RTE_CONFIG]: (state, action) => ({
+  [updateRteConfig.type]: (state, action) => ({
     ...state,
     rteConfig: action.payload.rteConfig
   }),
