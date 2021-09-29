@@ -26,8 +26,7 @@ import LookupTable from '../../models/LookupTable';
 import { DetailedItem } from '../../models/Item';
 import { HighlightMode } from '../../models/GlobalState';
 
-// region Accommodation Actions
-// To be moved to a common file for sharing across apps
+// region Accommodation Action Creators
 
 export const hostCheckIn = /*#__PURE__*/ createAction('HOST_CHECK_IN');
 export const guestCheckIn = /*#__PURE__*/ createAction('GUEST_CHECK_IN');
