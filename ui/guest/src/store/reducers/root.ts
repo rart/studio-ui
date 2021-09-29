@@ -217,7 +217,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region edit_component_inline
-  edit_component_inline: (state, action) => {
+  edit_component_inline: (state) => {
     return {
       ...state,
       status: EditingStatus.EDITING_COMPONENT_INLINE,
@@ -448,7 +448,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region clear_highlighted_drop_targets
-  [clearHighlightedDropTargets.type]: (state, action) => {
+  [clearHighlightedDropTargets.type]: (state) => {
     return {
       ...state,
       status: EditingStatus.LISTENING,

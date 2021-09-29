@@ -51,23 +51,28 @@ export const assetDragStarted = /*#__PURE__*/ createAction('ASSET_DRAG_STARTED')
 export const assetDragEnded = /*#__PURE__*/ createAction('ASSET_DRAG_ENDED');
 export const componentDragStarted = /*#__PURE__*/ createAction('COMPONENT_DRAG_STARTED');
 export const componentDragEnded = /*#__PURE__*/ createAction('COMPONENT_DRAG_ENDED');
-export const trashed = /*#__PURE__*/ createAction('TRASHED');
+export const trashed = /*#__PURE__*/ createAction<{ iceId: number }>('TRASHED');
 export const contentTypesResponse = /*#__PURE__*/ createAction('CONTENT_TYPES_RESPONSE');
 export const instanceDragBegun = /*#__PURE__*/ createAction('INSTANCE_DRAG_BEGUN');
 export const instanceDragEnded = /*#__PURE__*/ createAction('INSTANCE_DRAG_ENDED');
 export const navigationRequest = /*#__PURE__*/ createAction('NAVIGATION_REQUEST');
 export const reloadRequest = /*#__PURE__*/ createAction('RELOAD_REQUEST');
 export const desktopAssetDrop = /*#__PURE__*/ createAction('DESKTOP_ASSET_DROP');
-export const desktopAssetUploadComplete = /*#__PURE__*/ createAction('DESKTOP_ASSET_UPLOAD_COMPLETE');
+export const desktopAssetUploadComplete = /*#__PURE__*/ createAction<{ record; path: string }>(
+  'DESKTOP_ASSET_UPLOAD_COMPLETE'
+);
 export const desktopAssetUploadProgress = /*#__PURE__*/ createAction('DESKTOP_ASSET_UPLOAD_PROGRESS');
 export const desktopAssetUploadStarted = /*#__PURE__*/ createAction('DESKTOP_ASSET_UPLOAD_STARTED');
 export const componentInstanceDragStarted = /*#__PURE__*/ createAction('COMPONENT_INSTANCE_DRAG_STARTED');
 export const componentInstanceDragEnded = /*#__PURE__*/ createAction('COMPONENT_INSTANCE_DRAG_ENDED');
-export const contentTypeDropTargetsRequest = /*#__PURE__*/ createAction('CONTENT_TYPE_DROP_TARGETS_REQUEST');
+export const contentTypeDropTargetsRequest = /*#__PURE__*/ createAction<{ contentTypeId: string }>(
+  'CONTENT_TYPE_DROP_TARGETS_REQUEST'
+);
 export const contentTypeDropTargetsResponse = /*#__PURE__*/ createAction('CONTENT_TYPE_DROP_TARGETS_RESPONSE');
 export const scrollToDropTarget = /*#__PURE__*/ createAction('SCROLL_TO_DROP_TARGET');
 export const clearHighlightedDropTargets = /*#__PURE__*/ createAction('CLEAR_HIGHLIGHTED_DROP_TARGETS');
-export const contentTreeFieldSelected = /*#__PURE__*/ createAction('CONTENT_TREE_FIELD_SELECTED');
+export const contentTreeFieldSelected =
+  /*#__PURE__*/ createAction<{ iceProps; scrollElement: string; name: string }>('CONTENT_TREE_FIELD_SELECTED');
 export const clearContentTreeFieldSelected = /*#__PURE__*/ createAction('CLEAR_CONTENT_TREE_FIELD_SELECTED');
 export const validationMessage = /*#__PURE__*/ createAction('VALIDATION_MESSAGE');
 export const editModeToggleHotkey = /*#__PURE__*/ createAction('EDIT_MODE_TOGGLE_HOTKEY');
