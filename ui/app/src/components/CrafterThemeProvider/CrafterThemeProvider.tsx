@@ -76,14 +76,18 @@ export function CrafterThemeProvider(props: CrafterThemeProviderProps) {
               underline: 'hover'
             }
           },
-          MuiTextField: {
-            root: {
-              backgroundColor: auxTheme.palette.background.paper
+          MuiOutlinedInput: {
+            styleOverrides: {
+              root: {
+                backgroundColor: auxTheme.palette.background.paper
+              }
             }
           },
           MuiInputBase: {
-            root: {
-              backgroundColor: auxTheme.palette.background.paper
+            styleOverrides: {
+              root: {
+                backgroundColor: auxTheme.palette.background.paper
+              }
             }
           }
         },
