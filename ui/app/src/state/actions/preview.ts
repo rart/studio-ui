@@ -83,7 +83,9 @@ export const guestModelsReceived = /*#__PURE__*/ createAction('GUEST_MODELS_RECE
 export const desktopAssetDragStarted = /*#__PURE__*/ createAction('DESKTOP_ASSET_DRAG_STARTED');
 export const desktopAssetDragEnded = /*#__PURE__*/ createAction('DESKTOP_ASSET_DRAG_ENDED');
 export const childrenMapUpdate = /*#__PURE__*/ createAction('CHILDREN_MAP_UPDATE');
-export const contentTreeSwitchFieldInstance = /*#__PURE__*/ createAction('CONTENT_TREE_SWITCH_FIELD_INSTANCE');
+export const contentTreeSwitchFieldInstance = /*#__PURE__*/ createAction<{ type: string; scrollElement: string }>(
+  'CONTENT_TREE_SWITCH_FIELD_INSTANCE'
+);
 
 // endregion
 
