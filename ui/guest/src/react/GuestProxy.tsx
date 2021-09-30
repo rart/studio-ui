@@ -40,7 +40,7 @@ import {
   moveItemOperation,
   sortItemOperation,
   updateFieldValueOperation
-} from '@craftercms/studio-ui/build_tsc/state/actions/preview.js';
+} from '@craftercms/studio-ui/build_tsc/state/actions/preview';
 import { GuestState } from '../store/models/GuestStore';
 import { notNullOrUndefined } from '../utils/object';
 import { forEach } from '../utils/array';

@@ -30,13 +30,7 @@ import { fromTopic, message$, post } from '../utils/communicator';
 import Cookies from 'js-cookie';
 import { HighlightData } from '../models/InContextEditing';
 import AssetUploaderMask from './AssetUploaderMask';
-import {
-  CONTENT_TREE_SWITCH_FIELD_INSTANCE,
-  DESKTOP_ASSET_DRAG_STARTED,
-  EditingStatus,
-  HIGHLIGHT_MODE_CHANGED,
-  HighlightMode
-} from '../constants';
+import { EditingStatus, HighlightMode } from '../constants';
 import {
   assetDragEnded,
   assetDragStarted,
@@ -60,8 +54,11 @@ import {
   reloadRequest,
   scrollToDropTarget,
   trashed,
-  updateRteConfig
-} from '@craftercms/studio-ui/build_tsc/state/actions/preview.js';
+  updateRteConfig,
+  contentTreeSwitchFieldInstance,
+  desktopAssetDragStarted,
+  highlightModeChanged
+} from '@craftercms/studio-ui/build_tsc/state/actions/preview';
 import { createGuestStore } from '../store/store';
 import { Provider } from 'react-redux';
 import { clearAndListen$ } from '../store/subjects';
@@ -229,7 +226,7 @@ function Guest(props: GuestProps) {
     const sub = message$.subscribe(function (action) {
       const { type, payload } = action;
       switch (type) {
-        case HIGHLIGHT_MODE_CHANGED:
+        case highlightModeChanged.type:
         case editModeChanged.type:
           dispatch(action);
           break;
@@ -409,7 +406,7 @@ function Guest(props: GuestProps) {
           e.preventDefault();
           e.stopPropagation();
           dispatch({
-            type: DESKTOP_ASSET_DRAG_STARTED,
+            type: desktopAssetDragStarted.type,
             payload: { asset: e.dataTransfer.items[0] }
           });
         });
@@ -489,13 +486,13 @@ function Guest(props: GuestProps) {
               <FieldInstanceSwitcher
                 onNext={() =>
                   dispatch({
-                    type: CONTENT_TREE_SWITCH_FIELD_INSTANCE,
+                    type: contentTreeSwitchFieldInstance.type,
                     payload: { type: 'next', scrollElement }
                   })
                 }
                 onPrev={() =>
                   dispatch({
-                    type: CONTENT_TREE_SWITCH_FIELD_INSTANCE,
+                    type: contentTreeSwitchFieldInstance.type,
                     payload: { type: 'prev', scrollElement }
                   })
                 }

@@ -14,18 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// region Accommodation Actions
-
-export const HIGHLIGHT_MODE_CHANGED = 'HIGHLIGHT_MODE_CHANGED';
-export const CONTENT_TYPES_REQUEST = 'CONTENT_TYPES_REQUEST';
-export const GUEST_MODELS_RECEIVED = 'GUEST_MODELS_RECEIVED';
-export const DESKTOP_ASSET_DRAG_STARTED = 'DESKTOP_ASSET_DRAG_STARTED';
-export const DESKTOP_ASSET_DRAG_ENDED = 'DESKTOP_ASSET_DRAG_ENDED';
-export const CHILDREN_MAP_UPDATE = 'CHILDREN_MAP_UPDATE';
-export const CONTENT_TREE_SWITCH_FIELD_INSTANCE = 'CONTENT_TREE_SWITCH_FIELD_INSTANCE';
-
-// endregion
-
 export enum EditingStatus {
   LISTENING = 'LISTENING',
   SORTING_COMPONENT = 'SORTING_COMPONENT',

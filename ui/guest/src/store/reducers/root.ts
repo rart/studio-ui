@@ -33,13 +33,7 @@ import { ElementRecord } from '../../models/InContextEditing';
 import { GuestState } from '../models/GuestStore';
 import { notNullOrUndefined, reversePluckProps } from '../../utils/object';
 import { updateDropZoneValidations } from '../../utils/dom';
-import {
-  CONTENT_TREE_SWITCH_FIELD_INSTANCE,
-  DESKTOP_ASSET_DRAG_STARTED,
-  EditingStatus,
-  HIGHLIGHT_MODE_CHANGED,
-  HighlightMode
-} from '../../constants';
+import { EditingStatus, HighlightMode } from '../../constants';
 import {
   assetDragStarted,
   clearContentTreeFieldSelected,
@@ -52,8 +46,11 @@ import {
   desktopAssetUploadStarted,
   editModeChanged,
   hostCheckIn,
-  updateRteConfig
-} from '@craftercms/studio-ui/build_tsc/state/actions/preview.js';
+  updateRteConfig,
+  contentTreeSwitchFieldInstance,
+  desktopAssetDragStarted,
+  highlightModeChanged
+} from '@craftercms/studio-ui/build_tsc/state/actions/preview';
 import { contentReady } from '../actions';
 
 const initialState: GuestState = {
@@ -415,7 +412,7 @@ const reducer = createReducer(initialState, {
   }),
   // endregion
   // region set_edit_mode
-  [HIGHLIGHT_MODE_CHANGED]: (state, { payload }) => {
+  [highlightModeChanged.type]: (state, { payload }) => {
     const isMoveTargetsMode = payload.highlightMode === HighlightMode.MOVE_TARGETS;
     return {
       ...state,
@@ -566,7 +563,7 @@ const reducer = createReducer(initialState, {
   // endregion
   // region desktop_asset_drag_started
   // TODO: Not pure
-  [DESKTOP_ASSET_DRAG_STARTED]: (state, action) => {
+  [desktopAssetDragStarted.type]: (state, action) => {
     const { asset } = action.payload;
     if (notNullOrUndefined(asset)) {
       let type;
@@ -664,7 +661,7 @@ const reducer = createReducer(initialState, {
   // endregion
   // region content_tree_switch_field
   // TODO: Not pure
-  [CONTENT_TREE_SWITCH_FIELD_INSTANCE]: (state, action) => {
+  [contentTreeSwitchFieldInstance.type]: (state, action) => {
     const { type } = action.payload;
     let nextElem = type === 'next' ? state.fieldSwitcher.currentElement + 1 : state.fieldSwitcher.currentElement - 1;
     let id = state.fieldSwitcher.registryEntryIds[nextElem];

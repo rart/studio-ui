@@ -25,13 +25,7 @@ import * as contentController from '../../classes/ContentController';
 import { interval, merge, NEVER, Observable, of, Subject } from 'rxjs';
 import { clearAndListen$, destroyDragSubjects, dragover$, escape$, initializeDragSubjects } from '../subjects';
 import { initTinyMCE } from '../../controls/rte';
-import {
-  CONTENT_TREE_SWITCH_FIELD_INSTANCE,
-  DESKTOP_ASSET_DRAG_ENDED,
-  DESKTOP_ASSET_DRAG_STARTED,
-  EditingStatus,
-  HighlightMode
-} from '../../constants';
+import { EditingStatus, HighlightMode } from '../../constants';
 import {
   assetDragEnded,
   assetDragStarted,
@@ -50,8 +44,11 @@ import {
   iceZoneSelected as iceZoneSelectedAction,
   instanceDragBegun,
   instanceDragEnded,
-  trashed
-} from '@craftercms/studio-ui/build_tsc/state/actions/preview.js';
+  trashed,
+  contentTreeSwitchFieldInstance,
+  desktopAssetDragEnded,
+  desktopAssetDragStarted
+} from '@craftercms/studio-ui/build_tsc/state/actions/preview';
 import { GuestActionTypes, MouseEventActionObservable } from '../models/Actions';
 import { GuestState } from '../models/GuestStore';
 import { isNullOrUndefined, notNullOrUndefined, reversePluckProps } from '../../utils/object';
@@ -145,7 +142,7 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
       filter(([, state]) => state.status === EditingStatus.UPLOAD_ASSET_FROM_DESKTOP),
       switchMap(() =>
         interval(100).pipe(
-          mapTo({ type: DESKTOP_ASSET_DRAG_ENDED as GuestActionTypes }),
+          mapTo({ type: desktopAssetDragEnded.type as GuestActionTypes }),
           takeUntil(action$.pipe(ofType('document:dragover', 'dragover')))
         )
       )
@@ -231,7 +228,7 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
                 // calculations are working with the updated paint.
                 setTimeout(() => {
                   stream$.next({ type: desktopAssetUploadStarted.type, payload: { record } });
-                  stream$.next({ type: DESKTOP_ASSET_DRAG_ENDED });
+                  stream$.next({ type: desktopAssetDragEnded.type });
                   stream$.complete();
                   stream$.unsubscribe();
                 });
@@ -239,7 +236,7 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
               reader.readAsDataURL(file);
               return stream$;
             } else {
-              return of({ type: DESKTOP_ASSET_DRAG_ENDED });
+              return of({ type: desktopAssetDragEnded.type });
             }
           }
         }
@@ -260,7 +257,7 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
         event.stopPropagation();
         switch (status) {
           case EditingStatus.UPLOAD_ASSET_FROM_DESKTOP:
-            return of({ type: DESKTOP_ASSET_DRAG_ENDED as GuestActionTypes });
+            return of({ type: desktopAssetDragEnded.type as GuestActionTypes });
         }
         return NEVER;
       })
@@ -293,7 +290,7 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
   // region dragend_listener
   (action$: MouseEventActionObservable) => {
     return action$.pipe(
-      ofType(assetDragEnded.type, componentDragEnded.type, componentInstanceDragEnded.type, DESKTOP_ASSET_DRAG_ENDED),
+      ofType(assetDragEnded.type, componentDragEnded.type, componentInstanceDragEnded.type, desktopAssetDragEnded.type),
       map(() => ({ type: 'computed_dragend' }))
     );
   },
@@ -579,7 +576,7 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
   // region desktop_asset_drag_started
   (action$: MouseEventActionObservable, state$) => {
     return action$.pipe(
-      ofType(DESKTOP_ASSET_DRAG_STARTED),
+      ofType(desktopAssetDragStarted.type),
       withLatestFrom(state$),
       switchMap(([, state]) => {
         if (isNullOrUndefined(state.dragContext.dragged)) {
@@ -619,7 +616,7 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
 
   (action$: Observable<GuestStandardAction<{ type: string; scrollElement: string }>>, state$) => {
     return action$.pipe(
-      ofType(CONTENT_TREE_SWITCH_FIELD_INSTANCE),
+      ofType(contentTreeSwitchFieldInstance.type),
       withLatestFrom(state$),
       tap(([action, state]) => {
         const { scrollElement } = action.payload;

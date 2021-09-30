@@ -77,6 +77,14 @@ export const validationMessage = /*#__PURE__*/ createAction('VALIDATION_MESSAGE'
 export const editModeToggleHotkey = /*#__PURE__*/ createAction('EDIT_MODE_TOGGLE_HOTKEY');
 export const showEditDialog = /*#__PURE__*/ createAction('SHOW_EDIT_DIALOG');
 export const updateRteConfig = /*#__PURE__*/ createAction('UPDATE_RTE_CONFIG');
+export const highlightModeChanged = /*#__PURE__*/ createAction('HIGHLIGHT_MODE_CHANGED');
+export const contentTypesRequest = /*#__PURE__*/ createAction('CONTENT_TYPES_REQUEST');
+export const guestModelsReceived = /*#__PURE__*/ createAction('GUEST_MODELS_RECEIVED');
+export const desktopAssetDragStarted = /*#__PURE__*/ createAction('DESKTOP_ASSET_DRAG_STARTED');
+export const desktopAssetDragEnded = /*#__PURE__*/ createAction('DESKTOP_ASSET_DRAG_ENDED');
+export const childrenMapUpdate = /*#__PURE__*/ createAction('CHILDREN_MAP_UPDATE');
+export const contentTreeSwitchFieldInstance = /*#__PURE__*/ createAction('CONTENT_TREE_SWITCH_FIELD_INSTANCE');
+
 // endregion
 
 // region Actions

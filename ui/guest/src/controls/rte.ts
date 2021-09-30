@@ -25,7 +25,7 @@ import { Observable, Subject } from 'rxjs';
 import { startWith } from 'rxjs/operators';
 import $ from 'jquery';
 import { reversePluckProps } from '../utils/object';
-import { showEditDialog } from '@craftercms/studio-ui/build_tsc/state/actions/preview.js';
+import { showEditDialog } from '@craftercms/studio-ui/build_tsc/state/actions/preview';
 import { RteSetup } from '../models/Rte';
 
 export function initTinyMCE(

@@ -19,12 +19,6 @@ import { SyntheticEvent } from 'react';
 import { ElementRecord } from '../../models/InContextEditing';
 import GuestReducer from './GuestReducer';
 import {
-  CONTENT_TREE_SWITCH_FIELD_INSTANCE,
-  DESKTOP_ASSET_DRAG_ENDED,
-  DESKTOP_ASSET_DRAG_STARTED,
-  HIGHLIGHT_MODE_CHANGED
-} from '../../constants';
-import {
   assetDragEnded,
   assetDragStarted,
   clearContentTreeFieldSelected,
@@ -41,8 +35,12 @@ import {
   editModeChanged,
   hostCheckIn,
   trashed,
-  updateRteConfig
-} from '@craftercms/studio-ui/build_tsc/state/actions/preview.js';
+  updateRteConfig,
+  contentTreeSwitchFieldInstance,
+  desktopAssetDragEnded,
+  desktopAssetDragStarted,
+  highlightModeChanged
+} from '@craftercms/studio-ui/build_tsc/state/actions/preview';
 import { Observable } from 'rxjs';
 import { contentReady } from '../actions';
 
@@ -78,22 +76,22 @@ export type GuestActionTypes =
   | typeof componentDragEnded.type
   | typeof componentInstanceDragStarted.type
   | typeof componentInstanceDragEnded.type
-  | typeof DESKTOP_ASSET_DRAG_STARTED
+  | typeof desktopAssetDragStarted.type
   | typeof desktopAssetUploadStarted.type
   | typeof desktopAssetUploadProgress.type
   | typeof desktopAssetUploadComplete.type
-  | typeof DESKTOP_ASSET_DRAG_ENDED
+  | typeof desktopAssetDragEnded.type
   | typeof assetDragStarted.type
   | typeof assetDragEnded.type
   | typeof trashed.type
   | typeof editModeChanged.type
-  | typeof HIGHLIGHT_MODE_CHANGED
+  | typeof highlightModeChanged.type
   | typeof clearHighlightedDropTargets.type
   | typeof contentTypeDropTargetsRequest.type
   | typeof hostCheckIn.type
   | typeof contentTreeFieldSelected.type
   | typeof clearContentTreeFieldSelected.type
-  | typeof CONTENT_TREE_SWITCH_FIELD_INSTANCE
+  | typeof contentTreeSwitchFieldInstance.type
   | typeof updateRteConfig.type
   | 'document:dragover'
   | 'document:dragleave'

@@ -20,7 +20,7 @@ import {
   guestCheckIn,
   guestCheckOut,
   navigationRequest
-} from '@craftercms/studio-ui/build_tsc/state/actions/preview.js';
+} from '@craftercms/studio-ui/build_tsc/state/actions/preview';
 import { createLocationArgument } from './utils/util';
 
 message$.subscribe(function ({ type, payload }) {
