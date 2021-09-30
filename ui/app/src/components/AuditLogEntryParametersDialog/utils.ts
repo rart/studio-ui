@@ -14,17 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-import AuditLogEntryParametersDialogUI from './AuditLogEntryParametersDialogUI';
-import { AuditLogEntryParametersDialogProps } from './utils';
-import EnhancedDialog from '../EnhancedDialog';
-import { FormattedMessage } from 'react-intl';
+import { AuditLogEntryParameter } from '../../models/Audit';
+import { EnhancedDialogProps } from '../EnhancedDialog';
 
-export default function AuditLogEntryParametersDialog(props: AuditLogEntryParametersDialogProps) {
-  const { parameters, ...rest } = props;
-  return (
-    <EnhancedDialog title={<FormattedMessage id="words.parameters" defaultMessage="Parameters" />} {...rest}>
-      <AuditLogEntryParametersDialogUI parameters={parameters} />
-    </EnhancedDialog>
-  );
+export interface AuditLogEntryParametersBase {
+  parameters: AuditLogEntryParameter[];
 }
+
+export interface AuditLogEntryParametersDialogProps extends AuditLogEntryParametersBase, EnhancedDialogProps {}
+
+export interface AuditLogEntryParametersDialogUIProps extends AuditLogEntryParametersBase {}
