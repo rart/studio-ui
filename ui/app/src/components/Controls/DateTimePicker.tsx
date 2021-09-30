@@ -38,6 +38,7 @@ import {
 import FormControl from '@mui/material/FormControl';
 import { nnou } from '../../utils/object';
 import { useSpreadState } from '../../utils/hooks/useSpreadState';
+import { UNDEFINED } from '../../utils/constants';
 
 export interface DateChangeData {
   date: Date;
@@ -194,7 +195,7 @@ function DateTimePicker(props: DateTimePickerProps) {
                 <TextField
                   size="small"
                   margin="normal"
-                  disabled={true}
+                  disabled
                   placeholder={formatMessage(translations.datePlaceholder)}
                   error={!pickerState.dateValid}
                   helperText={pickerState.dateValid ? '' : formatMessage(translations.dateInvalidMessage)}
@@ -206,10 +207,10 @@ function DateTimePicker(props: DateTimePickerProps) {
                         }
                   }
                   {...props}
+                  inputProps={{ ...props.inputProps, value: asLocalizedDateTime(internalDate, localeCode) }}
                 />
               )}
               value={internalDate}
-              inputFormat={internalDate ? asLocalizedDateTime(internalDate, localeCode) : null}
               onChange={createOnDateChange('date')}
               disabled={disabled}
               disablePast={disablePast}
@@ -229,7 +230,6 @@ function DateTimePicker(props: DateTimePickerProps) {
             onChange={createOnDateChange('time')}
             disabled={disabled}
             ampm={hour12}
-            inputFormat={'HH:mm'}
             mask="__:__"
             renderInput={(props) => (
               <TextField
@@ -238,6 +238,18 @@ function DateTimePicker(props: DateTimePickerProps) {
                 helperText={pickerState.timeValid ? '' : formatMessage(translations.timeInvalidMessage)}
                 placeholder={formatMessage(translations.timePlaceholder)}
                 {...props}
+                inputProps={{
+                  ...props.inputProps,
+                  value: asLocalizedDateTime(internalDate, localeCode, {
+                    hour12,
+                    hour: dateTimeFormatOptions?.hour || '2-digit',
+                    minute: dateTimeFormatOptions?.minute || '2-digit',
+                    // If the timezone control isn't displayed, the time displayed may
+                    // be misleading/unexpected to the user, so if timezone isn't displayed,
+                    // display timezone here.
+                    timeZoneName: controls.includes('timeZone') ? UNDEFINED : 'short'
+                  })
+                }}
               />
             )}
           />

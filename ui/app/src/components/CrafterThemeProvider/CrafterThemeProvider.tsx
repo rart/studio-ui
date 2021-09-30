@@ -64,8 +64,7 @@ export function CrafterThemeProvider(props: CrafterThemeProviderProps) {
           selected: palette.blue.highlight
         },
         background: {
-          default: prefersDarkMode ? '#303030' : palette.gray.light0,
-          paper: prefersDarkMode ? '#424242' : palette.white
+          default: prefersDarkMode ? palette.gray.dark7 : palette.gray.light0
         },
         ...props.themeOptions?.palette
       },
@@ -75,6 +74,11 @@ export function CrafterThemeProvider(props: CrafterThemeProviderProps) {
           MuiLink: {
             defaultProps: {
               underline: 'hover'
+            }
+          },
+          MuiTextField: {
+            root: {
+              backgroundColor: auxTheme.palette.background.paper
             }
           },
           MuiInputBase: {
