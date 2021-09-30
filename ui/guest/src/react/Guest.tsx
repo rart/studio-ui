@@ -75,8 +75,7 @@ import { ThemeOptions, ThemeProvider } from '@mui/material';
 import { deepmerge } from '@mui/utils';
 import { DeepPartial } from 'redux';
 import MoveModeZoneMenu from './MoveModeZoneMenu';
-import { contentReady } from '../store/actions';
-import { desktopAssetUploadStarted } from '@craftercms/studio-ui/state/actions/preview';
+import { contentReady, dropzoneEnter, dropzoneLeave, setDropPosition, startListening } from '../store/actions';
 // TinyMCE makes the build quite large. Temporarily, importing this externally via
 // the site's ftl. Need to evaluate whether to include the core as part of guest build or not
 // import tinymce from 'tinymce';
@@ -253,7 +252,7 @@ function Guest(props: GuestProps) {
           break;
         case clearSelectedZones.type:
           clearAndListen$.next();
-          dispatch({ type: 'start_listening' });
+          dispatch({ type: startListening.type });
           break;
         case reloadRequest.type: {
           post({ type: guestCheckOut.type });
@@ -452,12 +451,12 @@ function Guest(props: GuestProps) {
   useEffect(() => {
     if (nnou(dragContextDropZoneIceId)) {
       dispatch({
-        type: 'drop_zone_enter',
+        type: dropzoneEnter.type,
         payload: { elementRecordId: dragContextDropZoneElementRecordId }
       });
       return () => {
         dispatch({
-          type: 'drop_zone_leave',
+          type: dropzoneLeave.type,
           payload: { elementRecordId: dragContextDropZoneElementRecordId }
         });
       };
@@ -540,7 +539,7 @@ function Guest(props: GuestProps) {
               state.dragContext.inZone &&
               !state.dragContext.invalidDrop && (
                 <DropMarker
-                  onDropPosition={(payload) => dispatch({ type: 'set_drop_position', payload })}
+                  onDropPosition={(payload) => dispatch({ type: [setDropPosition.type], payload })}
                   dropZone={state.dragContext.dropZone}
                   over={state.dragContext.over}
                   prev={state.dragContext.prev}

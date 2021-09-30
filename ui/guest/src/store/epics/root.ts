@@ -56,6 +56,12 @@ import { ElementRecord, ICEProps } from '../../models/InContextEditing';
 import * as ElementRegistry from '../../classes/ElementRegistry';
 import { get } from '../../classes/ElementRegistry';
 import { scrollToElement, scrollToIceProps } from '../../utils/dom';
+import {
+  dropzoneEnter,
+  dropzoneLeave,
+  iceZoneSelected as iceZoneSelectedActionGuest,
+  startListening
+} from '../actions';
 
 const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
   // region Multi-event propagation stopper epic
@@ -320,10 +326,10 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
             escape$.pipe(
               takeUntil(clearAndListen$),
               tap(() => post(clearSelectedZones.type)),
-              map(() => ({ type: 'start_listening' as GuestActionTypes })),
+              map(() => ({ type: startListening.type as GuestActionTypes })),
               take(1)
             ),
-            of({ type: 'ice_zone_selected' as GuestActionTypes, payload: action.payload })
+            of({ type: iceZoneSelectedActionGuest.type as GuestActionTypes, payload: action.payload })
           );
         };
         if (state.highlightMode === HighlightMode.ALL) {
@@ -423,7 +429,7 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
   // region Start listening
   (action$: MouseEventActionObservable) => {
     return action$.pipe(
-      ofType('start_listening'),
+      ofType(startListening.type),
       tap(() => post(clearSelectedZones.type)),
       ignoreElements()
     );
@@ -456,7 +462,7 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
     // onDrop doesn't execute when trashing on host side
     // Consider behaviour when running Host Guest-side
     return action$.pipe(
-      ofType('drop_zone_enter'),
+      ofType(dropzoneEnter.type),
       withLatestFrom(state$),
       tap(([action, state]) => {
         const { elementRecordId } = action.payload;
@@ -475,7 +481,7 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
   // region drop_zone_leave
   (action$: Observable<GuestStandardAction<{ elementRecordId: number }>>, state$) => {
     return action$.pipe(
-      ofType('drop_zone_leave'),
+      ofType(dropzoneLeave.type),
       withLatestFrom(state$),
       tap(([action, state]) => {
         if (!state.dragContext) {

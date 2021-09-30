@@ -27,6 +27,7 @@ import $ from 'jquery';
 import { reversePluckProps } from '../utils/object';
 import { showEditDialog } from '@craftercms/studio-ui/build_tsc/state/actions/preview';
 import { RteSetup } from '../models/Rte';
+import { editComponentInline, exitComponentInlineEdit } from '../store/actions';
 
 export function initTinyMCE(
   record: ElementRecord,
@@ -172,7 +173,7 @@ export function initTinyMCE(
             $(record.element).css('display', '');
           }
 
-          dispatch$.next({ type: 'exit_component_inline_edit' });
+          dispatch$.next({ type: exitComponentInlineEdit.type });
           dispatch$.complete();
           dispatch$.unsubscribe();
         }
@@ -214,5 +215,5 @@ export function initTinyMCE(
     openEditForm
   });
 
-  return dispatch$.pipe(startWith({ type: 'edit_component_inline' }));
+  return dispatch$.pipe(startWith({ type: editComponentInline.type }));
 }

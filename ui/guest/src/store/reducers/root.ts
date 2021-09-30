@@ -51,7 +51,20 @@ import {
   desktopAssetDragStarted,
   highlightModeChanged
 } from '@craftercms/studio-ui/build_tsc/state/actions/preview';
-import { contentReady } from '../actions';
+import {
+  computedDragOver,
+  contentReady,
+  dropzoneEnter,
+  dropzoneLeave,
+  editComponentInline,
+  exitComponentInlineEdit,
+  iceZoneSelected,
+  scrolling,
+  scrollingStopped,
+  setDropPosition,
+  setEditMode,
+  startListening
+} from '../actions';
 
 const initialState: GuestState = {
   dragContext: null,
@@ -104,7 +117,7 @@ const reducer = createReducer(initialState, {
   // endregion
   // region computed_dragover
   // TODO: Not pure.
-  computed_dragover: (state, action) => {
+  [computedDragOver.type]: (state, action) => {
     if (state.dragContext.scrolling) {
       return state;
     } else {
@@ -202,7 +215,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region set_drop_position
-  set_drop_position: (state, action) => {
+  [setDropPosition.type]: (state, action) => {
     const { targetIndex } = action.payload;
     return {
       ...state,
@@ -214,7 +227,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region edit_component_inline
-  edit_component_inline: (state) => {
+  [editComponentInline.type]: (state) => {
     return {
       ...state,
       status: EditingStatus.EDITING_COMPONENT_INLINE,
@@ -224,7 +237,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region exit_component_inline_edit
-  exit_component_inline_edit: (state) => {
+  [exitComponentInlineEdit.type]: (state) => {
     return {
       ...state,
       status: EditingStatus.LISTENING,
@@ -234,7 +247,7 @@ const reducer = createReducer(initialState, {
   // endregion
   // region ice_zone_selected
   // TODO: Not pure
-  ice_zone_selected: (state, action) => {
+  [iceZoneSelected.type]: (state, action) => {
     const { record } = action.payload;
     const highlight = getHoverData(record.id);
     return {
@@ -282,7 +295,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region set_edit_mode
-  set_edit_mode: (state, { payload }) => {
+  [setEditMode.type]: (state, { payload }) => {
     const isMoveTargetsMode = payload.highlightMode === HighlightMode.MOVE_TARGETS;
     return {
       ...state,
@@ -293,7 +306,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region start_listening
-  start_listening: (state) => {
+  [startListening.type]: (state) => {
     return {
       ...state,
       status: EditingStatus.LISTENING,
@@ -302,7 +315,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region scrolling
-  scrolling: (state) => {
+  [scrolling.type]: (state) => {
     return {
       ...state,
       dragContext: {
@@ -314,7 +327,7 @@ const reducer = createReducer(initialState, {
   // endregion
   // region scrolling_end
   // TODO: Not pure
-  scrolling_stopped: (state) => {
+  [scrollingStopped.type]: (state) => {
     return {
       ...state,
       dragContext: {
@@ -331,7 +344,7 @@ const reducer = createReducer(initialState, {
   // endregion
   // region drop_zone_enter
   // TODO: Not pure
-  drop_zone_enter: (state, action) => {
+  [dropzoneEnter.type]: (state, action) => {
     const { elementRecordId } = action.payload;
     const { dropZones: currentDropZones } = state.dragContext;
     const currentDropZone = currentDropZones.find((dropZone) => dropZone.elementRecordId === elementRecordId);
@@ -369,7 +382,7 @@ const reducer = createReducer(initialState, {
   // endregion
   // region drop_zone_leave
   // TODO: Not pure
-  drop_zone_leave: (state, action) => {
+  [dropzoneLeave.type]: (state, action) => {
     const { elementRecordId } = action.payload;
     if (!state.dragContext) {
       return;

@@ -42,7 +42,25 @@ import {
   highlightModeChanged
 } from '@craftercms/studio-ui/build_tsc/state/actions/preview';
 import { Observable } from 'rxjs';
-import { contentReady } from '../actions';
+import {
+  addAssetTypes,
+  computedDragEnd,
+  computedDragOver,
+  contentReady,
+  dropzoneEnter,
+  dropzoneLeave,
+  editComponentInline,
+  exitComponentInlineEdit,
+  iceZoneSelected,
+  insertComponent,
+  insertInstance,
+  moveComponent,
+  scrolling,
+  scrollingStopped,
+  setDropPosition,
+  setEditMode,
+  startListening
+} from '../actions';
 
 export type GuestActionTypes =
   // dom events
@@ -56,22 +74,22 @@ export type GuestActionTypes =
   | 'click'
   | 'dblclick'
   // other
-  | 'set_drop_position'
-  | 'add_asset_types'
-  | 'move_component'
-  | 'insert_component'
-  | 'insert_instance'
-  | 'computed_dragend'
-  | 'computed_dragover'
-  | 'ice_zone_selected'
-  | 'edit_component_inline'
-  | 'exit_component_inline_edit'
-  | 'set_edit_mode'
-  | 'start_listening'
-  | 'scrolling'
-  | 'scrolling_stopped'
-  | 'drop_zone_enter'
-  | 'drop_zone_leave'
+  | typeof setDropPosition.type
+  | typeof addAssetTypes.type
+  | typeof moveComponent.type
+  | typeof insertComponent.type
+  | typeof insertInstance.type
+  | typeof computedDragEnd.type
+  | typeof computedDragOver.type
+  | typeof iceZoneSelected.type
+  | typeof editComponentInline.type
+  | typeof exitComponentInlineEdit.type
+  | typeof setEditMode.type
+  | typeof startListening.type
+  | typeof scrolling.type
+  | typeof scrollingStopped.type
+  | typeof dropzoneEnter.type
+  | typeof dropzoneLeave.type
   | typeof componentDragStarted.type
   | typeof componentDragEnded.type
   | typeof componentInstanceDragStarted.type
