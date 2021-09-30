@@ -84,10 +84,6 @@ export default function ConfirmDropdown(props: ConfirmDropdownProps) {
     size = 'medium'
   } = props;
 
-  const handleClick = (event: any) => {
-    setAnchorEl(event.currentTarget);
-  };
-
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -104,7 +100,7 @@ export default function ConfirmDropdown(props: ConfirmDropdownProps) {
 
   const iconButton = useMemo(
     () => (
-      <IconButton onClick={handleClick} size={size}>
+      <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} size={size}>
         <Icon color={disabled ? 'disabled' : iconColor} />
       </IconButton>
     ),
@@ -123,7 +119,7 @@ export default function ConfirmDropdown(props: ConfirmDropdownProps) {
         <Button
           className={props.classes?.button}
           variant={buttonVariant}
-          onClick={handleClick}
+          onClick={(e) => setAnchorEl(e.currentTarget)}
           disabled={disabled}
           endIcon={<ArrowDown />}
         >

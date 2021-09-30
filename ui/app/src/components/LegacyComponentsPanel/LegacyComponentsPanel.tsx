@@ -556,7 +556,8 @@ export default function LegacyComponentsPanel(props: LegacyComponentsPanelProps)
     onComponentDrop,
     open,
     siteId,
-    user.username
+    user.username,
+    browseFilesDialogState
   ]);
   // endregion
 
