@@ -24,7 +24,7 @@ import TableBody from '@mui/material/TableBody';
 import React from 'react';
 import { AuditLogEntryParametersDialogUIProps } from './utils';
 
-export default function AuditLogEntryParametersDialogUI(props: AuditLogEntryParametersDialogUIProps) {
+export function AuditLogEntryParametersDialogUI(props: AuditLogEntryParametersDialogUIProps) {
   const { parameters = [] } = props;
 
   return (
@@ -58,3 +58,5 @@ export default function AuditLogEntryParametersDialogUI(props: AuditLogEntryPara
     </DialogBody>
   );
 }
+
+export default AuditLogEntryParametersDialogUI;

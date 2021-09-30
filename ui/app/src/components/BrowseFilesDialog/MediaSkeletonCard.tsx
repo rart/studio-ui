@@ -20,7 +20,7 @@ import CardHeader from '@mui/material/CardHeader';
 import { useCardStyles } from './styles';
 import Skeleton from '@mui/material/Skeleton';
 
-export default function MediaSkeletonCard() {
+export function MediaSkeletonCard() {
   const classes = useCardStyles();
   return (
     <Card className={classes.root}>
@@ -33,3 +33,5 @@ export default function MediaSkeletonCard() {
     </Card>
   );
 }
+
+export default MediaSkeletonCard;

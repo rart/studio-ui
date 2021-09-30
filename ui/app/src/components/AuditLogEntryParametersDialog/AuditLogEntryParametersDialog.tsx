@@ -20,7 +20,7 @@ import { AuditLogEntryParametersDialogProps } from './utils';
 import EnhancedDialog from '../EnhancedDialog';
 import { FormattedMessage } from 'react-intl';
 
-export default function AuditLogEntryParametersDialog(props: AuditLogEntryParametersDialogProps) {
+export function AuditLogEntryParametersDialog(props: AuditLogEntryParametersDialogProps) {
   const { parameters, ...rest } = props;
   return (
     <EnhancedDialog title={<FormattedMessage id="words.parameters" defaultMessage="Parameters" />} {...rest}>
@@ -28,3 +28,5 @@ export default function AuditLogEntryParametersDialog(props: AuditLogEntryParame
     </EnhancedDialog>
   );
 }
+
+export default AuditLogEntryParametersDialog;
