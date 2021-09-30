@@ -45,7 +45,7 @@ import {
   contentTypeDropTargetsRequest,
   desktopAssetUploadComplete,
   desktopAssetUploadProgress,
-  editModeChanged,
+  setPreviewEditMode,
   editModeToggleHotkey,
   guestCheckIn,
   guestCheckOut,
@@ -226,7 +226,7 @@ function Guest(props: GuestProps) {
       const { type, payload } = action;
       switch (type) {
         case highlightModeChanged.type:
-        case editModeChanged.type:
+        case setPreviewEditMode.type:
           dispatch(action);
           break;
         case assetDragStarted.type:

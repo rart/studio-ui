@@ -45,7 +45,6 @@ export const deleteItemOperationComplete = /*#__PURE__*/ createAction('DELETE_IT
 export const updateFieldValueOperation = /*#__PURE__*/ createAction('UPDATE_FIELD_VALUE_OPERATION');
 export const iceZoneSelected = /*#__PURE__*/ createAction('ICE_ZONE_SELECTED');
 export const clearSelectedZones = /*#__PURE__*/ createAction('CLEAR_SELECTED_ZONES');
-export const editModeChanged = /*#__PURE__*/ createAction('EDIT_MODE_CHANGED');
 export const assetDragStarted = /*#__PURE__*/ createAction('ASSET_DRAG_STARTED');
 export const assetDragEnded = /*#__PURE__*/ createAction('ASSET_DRAG_ENDED');
 export const componentDragStarted = /*#__PURE__*/ createAction('COMPONENT_DRAG_STARTED');
@@ -281,9 +280,8 @@ export const setContentTypeFilter = /*#__PURE__*/ createAction<string>(SET_CONTE
 
 export const updateToolsPanelWidth = /*#__PURE__*/ createAction<{ width: number }>('UPDATE_TOOLS_PANEL_WIDTH');
 
-export const setPreviewEditMode = /*#__PURE__*/ createAction<{ editMode: boolean; highlightMode?: HighlightMode }>(
-  editModeChanged.type
-);
+export const setPreviewEditMode =
+  /*#__PURE__*/ createAction<{ editMode: boolean; highlightMode?: HighlightMode }>('EDIT_MODE_CHANGED');
 
 export const previewItem = /*#__PURE__*/ createAction<{ item: DetailedItem; newTab?: boolean }>('PREVIEW_ITEM');
 

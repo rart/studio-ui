@@ -44,7 +44,7 @@ import {
   contentTypeDropTargetsRequest,
   desktopAssetUploadProgress,
   desktopAssetUploadStarted,
-  editModeChanged,
+  setPreviewEditMode,
   hostCheckIn,
   updateRteConfig,
   contentTreeSwitchFieldInstance,
@@ -419,7 +419,7 @@ const reducer = createReducer(initialState, {
   },
   // endregion
   // region set_edit_mode
-  [editModeChanged.type]: (state, action) => ({
+  [setPreviewEditMode.type]: (state, action) => ({
     ...state,
     editMode: action.payload.editMode
   }),

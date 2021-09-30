@@ -32,7 +32,7 @@ import {
   desktopAssetUploadComplete,
   desktopAssetUploadProgress,
   desktopAssetUploadStarted,
-  editModeChanged,
+  setPreviewEditMode,
   hostCheckIn,
   trashed,
   updateRteConfig,
@@ -102,7 +102,7 @@ export type GuestActionTypes =
   | typeof assetDragStarted.type
   | typeof assetDragEnded.type
   | typeof trashed.type
-  | typeof editModeChanged.type
+  | typeof setPreviewEditMode.type
   | typeof highlightModeChanged.type
   | typeof clearHighlightedDropTargets.type
   | typeof contentTypeDropTargetsRequest.type
