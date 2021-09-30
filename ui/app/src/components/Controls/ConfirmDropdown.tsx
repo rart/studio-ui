@@ -98,6 +98,7 @@ export default function ConfirmDropdown(props: ConfirmDropdownProps) {
     onCancel?.();
   };
 
+  // Not memoizing causes the menu to get misplaced upon opening.
   const iconButton = useMemo(
     () => (
       <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} size={size}>

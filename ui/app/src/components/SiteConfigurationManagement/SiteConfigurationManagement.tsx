@@ -585,7 +585,7 @@ export default function SiteConfigurationManagement(props: SiteConfigurationMana
                     <SecondaryButton disabled={encrypting} onClick={onEncryptClick} loading={encrypting}>
                       {formatMessage(translations.encryptMarked)}
                     </SecondaryButton>
-                    <Button size="small" color="inherit" onClick={onEncryptHelpClick}>
+                    <Button size="small" onClick={onEncryptHelpClick}>
                       <HelpOutlineRoundedIcon />
                     </Button>
                   </ButtonGroup>

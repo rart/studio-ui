@@ -47,15 +47,19 @@ export function RenderTreeNode(props: RenderTreeNodeProps) {
     <TreeItem
       key={node.id}
       nodeId={node.id}
-      label={<div onClick={(e) => onLabelClick?.(e, node)}>{node.name}</div>}
+      label={
+        <div role="button" onClick={(e) => onLabelClick?.(e, node)}>
+          {node.name}
+        </div>
+      }
       classes={{
         root: classes.treeItemRoot,
         content: classes.treeItemContent,
         selected: classes.treeItemSelected,
         label: clsx(classes.treeItemLabel, props.classes?.treeItemLabel)
       }}
-      expandIcon={<ExpandMoreIcon onClick={(e) => onIconClick?.(e, node)} />}
-      collapseIcon={<ChevronRightIcon onClick={(e) => onIconClick?.(e, node)} />}
+      expandIcon={<ExpandMoreIcon role="button" onClick={(e) => onIconClick?.(e, node)} />}
+      collapseIcon={<ChevronRightIcon role="button" onClick={(e) => onIconClick?.(e, node)} />}
     >
       {Array.isArray(node.children)
         ? node.children.map((childNode) => (

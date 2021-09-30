@@ -90,7 +90,6 @@ const useStyles = makeStyles((theme) =>
       width: '100%',
       display: 'flex',
       alignItems: 'center',
-      // height: '26px',
       minHeight: '23.5px',
       '&:hover': {
         backgroundColor: `${theme.palette.action.hover} !important`

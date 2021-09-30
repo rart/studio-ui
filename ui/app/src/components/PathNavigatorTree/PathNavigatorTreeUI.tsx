@@ -128,7 +128,7 @@ export default function PathNavigatorTreeUI(props: PathNavigatorTreeUIProps) {
         }}
       />
       <AccordionDetails className={clsx(classes.accordionDetails, props.classes?.body)}>
-        <TreeView className={classes.root} expanded={expandedNodes} disableSelection={true}>
+        <TreeView className={classes.root} expanded={expandedNodes} disableSelection>
           <PathNavigatorTreeItem
             node={rootNode}
             itemsByPath={itemsByPath}
