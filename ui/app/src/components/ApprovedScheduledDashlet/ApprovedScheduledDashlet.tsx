@@ -101,8 +101,8 @@ export default function ApprovedScheduledDashlet() {
 
   const refresh = useCallback(() => {
     setIsFetching(true);
-    fetchLegacyScheduledItems(siteId, 'eventDate', false, preferences.filterBy).subscribe(
-      (response) => {
+    fetchLegacyScheduledItems(siteId, 'eventDate', false, preferences.filterBy).subscribe({
+      next(response) {
         const parentItems: DashboardItem[] = [];
         const itemsLookup: LookupTable<DetailedItem> = {};
         const targetLookup: LookupTable<{ target: string; packageId: string }> = {};
@@ -138,10 +138,10 @@ export default function ApprovedScheduledDashlet() {
         });
         setIsFetching(false);
       },
-      ({ response }) => {
+      error({ response }) {
         setError(response);
       }
-    );
+    });
   }, [siteId, preferences.filterBy, setExpandedLookup, locale.localeCode, locale.dateTimeFormatOptions]);
 
   useEffect(() => {
