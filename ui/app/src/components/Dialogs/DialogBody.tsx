@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
 import MuiDialogContent, { DialogContentProps } from '@mui/material/DialogContent';
 import { styled } from '@mui/material/styles';
 import { UNDEFINED } from '../../utils/constants';
