@@ -41,40 +41,33 @@ const LauncherLinkTile = (props: LauncherLinkTileProps) => {
   const useLegacy = useLegacyPreviewPreference();
   const dispatch = useDispatch();
   const title = usePossibleTranslation(propTitle);
+  const isDialog = ['siteDashboardDialog', 'siteToolsDialog', 'siteSearchDialog'].includes(systemLinkId);
 
-  const onClick = ['siteDashboardDialog', 'siteToolsDialog', 'siteSearchDialog'].includes(systemLinkId)
+  const onClick = isDialog
     ? (e) => {
         e.preventDefault();
+        // prettier-ignore
+        const id =
+          (systemLinkId === 'siteDashboardDialog')
+            ? 'craftercms.components.Dashboard'
+            : (systemLinkId === 'siteToolsDialog'
+              ? 'craftercms.components.EmbeddedSiteTools'
+              : 'craftercms.components.EmbeddedSearchIframe'
+            );
         dispatch(
           batchActions([
             closeLauncher(),
             showWidgetDialog({
               id: systemLinkId,
               title,
-              ...(systemLinkId === 'siteDashboardDialog'
-                ? {
-                    widget: {
-                      id: 'craftercms.components.Dashboard'
-                    }
-                  }
-                : systemLinkId === 'siteToolsDialog'
-                ? {
-                    widget: {
-                      id: 'craftercms.components.EmbeddedSearchIframe'
-                    }
-                  }
-                : {
-                    widget: {
-                      id: 'craftercms.components.EmbeddedSiteTools'
-                    }
-                  })
+              { widget: { id } }
             })
           ])
         );
       }
     : null;
 
-  const link = ['siteDashboard', 'siteTools', 'siteSearch'].includes(systemLinkId)
+  const link = isDialog
     ? null
     : props.link ?? getSystemLink({ systemLinkId, authoringBase, site, useLegacy });
 
