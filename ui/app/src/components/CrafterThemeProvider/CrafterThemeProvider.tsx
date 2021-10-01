@@ -20,8 +20,8 @@ import StylesProvider from '@mui/styles/StylesProvider';
 import { defaultThemeOptions, generateClassName } from '../../styles/theme';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import palette from '../../styles/palette';
-import { extend } from '../../utils/object';
 import { GenerateId } from 'jss';
+import { deepmerge } from '@mui/utils';
 
 declare module '@mui/styles/defaultTheme' {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -69,31 +69,27 @@ export function CrafterThemeProvider(props: CrafterThemeProviderProps) {
         },
         ...props.themeOptions?.palette
       },
-      components: extend(
-        (props.themeOptions ?? defaultThemeOptions).components ?? {},
-        {
-          MuiLink: {
-            defaultProps: {
-              underline: 'hover'
-            }
-          },
-          MuiOutlinedInput: {
-            styleOverrides: {
-              root: {
-                backgroundColor: auxTheme.palette.background.paper
-              }
-            }
-          },
-          MuiInputBase: {
-            styleOverrides: {
-              root: {
-                backgroundColor: auxTheme.palette.background.paper
-              }
+      components: deepmerge((props.themeOptions ?? defaultThemeOptions).components ?? {}, {
+        MuiLink: {
+          defaultProps: {
+            underline: 'hover'
+          }
+        },
+        MuiOutlinedInput: {
+          styleOverrides: {
+            root: {
+              backgroundColor: auxTheme.palette.background.paper
             }
           }
         },
-        { deep: true }
-      )
+        MuiInputBase: {
+          styleOverrides: {
+            root: {
+              backgroundColor: auxTheme.palette.background.paper
+            }
+          }
+        }
+      })
     });
   }, [prefersDarkMode, props.themeOptions]);
   return (
