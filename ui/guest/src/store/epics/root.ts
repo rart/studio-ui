@@ -288,7 +288,6 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
         event.preventDefault();
         event.stopPropagation();
         post({ type: instanceDragEnded.type });
-        // return of({ type: 'computed_dragend' as GuestActionTypes });
         return of(computedDragEnd());
       })
     );
