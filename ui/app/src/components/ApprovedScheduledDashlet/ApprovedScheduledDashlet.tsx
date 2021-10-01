@@ -142,7 +142,7 @@ export default function ApprovedScheduledDashlet() {
         setError(response);
       }
     );
-  }, [setExpandedLookup, siteId, preferences.filterBy]);
+  }, [siteId, preferences.filterBy, setExpandedLookup, locale.localeCode, locale.dateTimeFormatOptions]);
 
   useEffect(() => {
     refresh();

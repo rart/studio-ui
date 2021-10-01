@@ -149,7 +149,15 @@ export default function RecentlyPublishedDashlet() {
         setFetchingHistory(false);
       }
     );
-  }, [siteId, preferences.numItems, preferences.filterBy, toggleCollapseAllItems, setItemsLookup]);
+  }, [
+    siteId,
+    preferences.numItems,
+    preferences.filterBy,
+    toggleCollapseAllItems,
+    setItemsLookup,
+    localeBranch.localeCode,
+    localeBranch.dateTimeFormatOptions
+  ]);
 
   useEffect(() => {
     fetchHistory();
