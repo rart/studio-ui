@@ -14,16 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-export { default } from './PublishDialog';
+export { default } from './EmbeddedSearchIframe';
 
-export * from './PublishDialog';
-
-export * from './PublishDialogContentUI';
-
-export * from './PublishDialogUI';
-
-export * from './PublishDialogContainer';
-
-export * from './PublishDialogForm';
-
-export * from './utils';
+export * from './EmbeddedSearchIframe';
