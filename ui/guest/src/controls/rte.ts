@@ -28,7 +28,7 @@ import { reversePluckProps } from '../utils/object';
 import { showEditDialog } from '@craftercms/studio-ui/build_tsc/state/actions/preview';
 import { RteSetup } from '../models/Rte';
 import { editComponentInline, exitComponentInlineEdit } from '../store/actions';
-import { validationMessage } from '@craftercms/studio-ui/state/actions/preview';
+import { validationMessage } from '@craftercms/studio-ui/build_tsc/state/actions/preview';
 
 export function initTinyMCE(
   record: ElementRecord,
