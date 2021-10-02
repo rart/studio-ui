@@ -67,7 +67,7 @@ import {
   desktopAssetDragEnded,
   desktopAssetDragStarted
 } from '../actions';
-import { validationMessage } from '@craftercms/studio-ui/state/actions/preview';
+import { validationMessage } from '@craftercms/studio-ui/build_tsc/state/actions/preview';
 
 const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
   // region Multi-event propagation stopper epic
