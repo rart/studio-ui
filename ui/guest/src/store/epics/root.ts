@@ -107,7 +107,6 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
           console.warn("Element is draggable but wasn't set draggable by craftercms");
         } else {
           event.stopPropagation();
-          // post({ type: instanceDragBegun.type, payload: iceId });
           post(instanceDragBegun(iceId));
           const e = unwrapEvent<DragEvent>(event);
           e.dataTransfer.setData('text/plain', `${record.id}`);
