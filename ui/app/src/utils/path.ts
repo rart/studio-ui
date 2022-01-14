@@ -19,6 +19,7 @@ import { DetailedItem, PasteItem } from '../models/Item';
 import { toQueryString } from './object';
 import LookupTable from '../models/LookupTable';
 import ContentType from '../models/ContentType';
+import { SystemType } from '../models';
 
 // Originally from ComponentPanel.getPreviewPagePath
 export function getPathFromPreviewURL(previewURL: string): string {
@@ -232,6 +233,6 @@ export function getItemTemplatePath(item: DetailedItem, contentTypes: LookupTabl
   return contentTypes[item.contentTypeId].displayTemplate;
 }
 
-export function getControllerPath(type: string): string {
+export function getControllerPath(type: SystemType): string {
   return `/scripts/${type === 'page' ? 'pages' : 'components'}`;
 }
