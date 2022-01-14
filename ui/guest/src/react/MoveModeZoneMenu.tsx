@@ -25,6 +25,8 @@ import GroovyIcon from '@craftercms/studio-ui/icons/Groovy';
 import FreemarkerIcon from '@craftercms/studio-ui/icons/Freemarker';
 import UltraStyledIconButton from './UltraStyledIconButton';
 import HighlightOffRoundedIcon from '@mui/icons-material/HighlightOffRounded';
+import AddCircleOutlineRoundedIcon from '@mui/icons-material/AddCircleOutlineRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 import { Tooltip } from '@mui/material';
 import {
   deleteItem,
@@ -41,6 +43,7 @@ import { extractCollection } from '@craftercms/studio-ui/utils/model';
 import { popPiece } from '@craftercms/studio-ui/utils/string';
 import { AnyAction } from '@reduxjs/toolkit';
 import useRef from '@craftercms/studio-ui/hooks/useUpdateRefs';
+import * as iceRegistry from '../iceRegistry';
 import { findContainerRecord, getById, runValidation } from '../iceRegistry';
 import { post } from '../utils/communicator';
 import { requestEdit, validationMessage } from '@craftercms/studio-ui/state/actions/preview';
@@ -64,9 +67,6 @@ export function MoveModeZoneMenu(props: MoveModeZoneMenuProps) {
 
   const trashButtonRef = React.useRef();
   const [showTrashConfirmation, setShowTrashConfirmation] = useState<boolean>(false);
-
-  console.clear();
-
   const iceRecord = getById(record.iceIds[0]);
   const recordType = iceRecord.recordType;
   const collection = useMemo(() => {
@@ -95,6 +95,7 @@ export function MoveModeZoneMenu(props: MoveModeZoneMenuProps) {
       : recordType === 'node-selector-item'
       ? collection[elementIndex]
       : null;
+  const { field } = iceRegistry.getReferentialEntries(record.iceIds[0]);
   const isMovable = ['node-selector-item', 'repeat-item', 'component'].includes(recordType);
   const numOfItemsInContainerCollection = collection?.length;
   const isFirstItem = isMovable ? elementIndex === 0 : null;
@@ -103,8 +104,10 @@ export function MoveModeZoneMenu(props: MoveModeZoneMenuProps) {
   const isEmbedded = useMemo(() => !Boolean(getCachedModel(modelId)?.craftercms.path), [modelId]);
   const showCodeEditOptions = ['component', 'page', 'node-selector-item'].includes(recordType);
   const isTrashable = recordType !== 'field' && recordType !== 'page';
-  const showAddItem = false; // for repeat group item
-  const showDuplicate = false; // could apply to repeat items or components
+  const showAddItem = recordType === 'field' && field.type === 'repeat'; // for repeat group item
+  const showDuplicate = recordType === 'repeat-item'; // could apply to repeat items or components
+
+  console.log(field);
 
   console.log(
     `
@@ -120,6 +123,8 @@ export function MoveModeZoneMenu(props: MoveModeZoneMenuProps) {
     showCodeEditOptions: ${showCodeEditOptions}
     isMovable: ${isMovable}
     isTrashable: ${isTrashable}
+    showAddItem: ${showAddItem}
+    showDuplicate: ${showDuplicate}
   `,
     component
   );
@@ -150,6 +155,10 @@ export function MoveModeZoneMenu(props: MoveModeZoneMenuProps) {
   const onEditTemplate = (e) => {
     commonEdit(e, 'template');
   };
+
+  const onAddRepeatItem = (e) => {};
+
+  const onDuplicateItem = (e) => {};
 
   const onMoveUp = (e) => {
     e.preventDefault();
@@ -255,6 +264,20 @@ export function MoveModeZoneMenu(props: MoveModeZoneMenuProps) {
             </UltraStyledIconButton>
           </Tooltip>
         </>
+      )}
+      {showAddItem && (
+        <Tooltip title="Add new item">
+          <UltraStyledIconButton size="small" onClick={onAddRepeatItem}>
+            <AddCircleOutlineRoundedIcon />
+          </UltraStyledIconButton>
+        </Tooltip>
+      )}
+      {showDuplicate && (
+        <Tooltip title="Duplicate item">
+          <UltraStyledIconButton size="small" onClick={onDuplicateItem}>
+            <ContentCopyRoundedIcon />
+          </UltraStyledIconButton>
+        </Tooltip>
       )}
       {isMovable &&
         !isOnlyItem && [

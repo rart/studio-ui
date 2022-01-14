@@ -115,7 +115,7 @@ import { useActiveUser } from '../../hooks/useActiveUser';
 import { useMount } from '../../hooks/useMount';
 import { usePreviewNavigation } from '../../hooks/usePreviewNavigation';
 import { useActiveSite } from '../../hooks/useActiveSite';
-import { getPathFromPreviewURL } from '../../utils/path';
+import { getControllerPath, getPathFromPreviewURL } from '../../utils/path';
 import { showEditDialog } from '../../state/actions/dialogs';
 import { UNDEFINED } from '../../utils/constants';
 import { useCurrentPreviewItem } from '../../hooks/useCurrentPreviewItem';
@@ -854,7 +854,7 @@ export function PreviewConcierge(props: PropsWithChildren<{}>) {
           } else {
             dispatch(
               editController({
-                path: `/scripts/${contentType.type === 'page' ? 'pages' : 'components'}`,
+                path: getControllerPath(contentType.type),
                 fileName: `${popPiece(contentType.id, '/')}.groovy`,
                 mode: 'groovy',
                 contentType: contentType.id
