@@ -560,9 +560,9 @@ export function PreviewConcierge(props: PropsWithChildren<{}>) {
         case guestSiteLoad.type:
         case guestCheckIn.type:
           const { version: guestVersion } = payload;
-          const studioVersion = env.packageVersion;
+          const studioVersion = env.version;
 
-          if (type === guestCheckIn.type && guestVersion && guestVersion !== studioVersion) {
+          if (type === guestCheckIn.type && guestVersion && guestVersion.substr(0, 5) !== studioVersion) {
             enqueueSnackbar(formatMessage(guestMessages.invalidExpBuilderVersion));
           }
 
@@ -575,7 +575,7 @@ export function PreviewConcierge(props: PropsWithChildren<{}>) {
         case guestSiteLoad.type: {
           const { url, location } = payload;
           const path = getPathFromPreviewURL(url);
-          dispatch(guestCheckIn({ location, site: siteId, path }));
+          dispatch(guestCheckIn({ location, site: siteId, path, version: '' }));
           issueDescriptorRequest({
             site: siteId,
             path,
