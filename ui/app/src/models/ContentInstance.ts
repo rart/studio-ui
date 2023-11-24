@@ -14,19 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-export type Primitives = string | number | boolean | null | undefined;
-
-// prettier-ignore
-export type PrimRecord = Record<
-  string,
-  | Primitives
-  | Record<string, Primitives>
-  | Record<string, Primitives>[]
->;
-
-export type PropValue = Primitives | Primitives[] | PrimRecord | PrimRecord[];
-
-export type PropValueMap = Record<string, PropValue>;
+export type Primitives = string | number | boolean | null | undefined | Primitives[] | { [key: string]: Primitives };
 
 export interface ContentInstanceSystemProps {
   id: string;
@@ -47,11 +35,12 @@ export interface ContentInstanceBase {
  * via `ContentInstanceSystemProps` and `ContentInstanceBase` which remain interfaces. Also, this would
  * enable typing your own instances with the known properties or continue to use the loose typed as today.
  */
-type ContentInstance<T extends Record<string, any> = PropValueMap> = T & ContentInstanceBase;
+type ContentInstance<T extends Record<string, any> = Record<string, Primitives>> = T & ContentInstanceBase;
 
 /* Examples: */
 
-// Should not compile as i & j are not serializable props that one would ever get from Crafter
+// Should not compile as `i` & `j` are not serializable props that one would ever get from Crafter.
+// Could allow by doing `ContentInstance<Record<string, any>>` if desired for some bizarre reason.
 const ci1: ContentInstance = {
   craftercms: {
     id: 'id',
@@ -73,7 +62,8 @@ const ci1: ContentInstance = {
   g: null,
   h: undefined,
   i: Symbol('i'),
-  j: () => {}
+  j: () => {},
+  0: 'zero'
 };
 
 // Should compile
@@ -91,12 +81,12 @@ const ci2: ContentInstance = {
   }
 };
 
-// Should not compile as the `craftercms` prop is missing
+// Should NOT compile as the `craftercms` prop is missing
 const ci3: ContentInstance = {
   hello: 'world'
 };
 
-// Should compile as the `c` prop is missing
+// Should NOT compile as the `c` prop is missing
 const ci4: ContentInstance<Record<'b' | 'c', string>> = {
   b: 'world',
   craftercms: {
@@ -112,7 +102,7 @@ const ci4: ContentInstance<Record<'b' | 'c', string>> = {
   }
 };
 
-// Should not compile as the `b` prop is not a string
+// Should NOT compile as the `b` prop is not a string
 const ci5: ContentInstance<{ a: string; b: number }> = {
   a: 'hello',
   b: '2',
@@ -127,6 +117,30 @@ const ci5: ContentInstance<{ a: string; b: number }> = {
       fieldId: 'path'
     }
   }
+};
+
+// Should compile
+const ci11: ContentInstance = {
+  craftercms: {
+    id: 'id',
+    path: 'path',
+    label: 'label',
+    dateCreated: 'dateCreated',
+    dateModified: 'dateModified',
+    contentTypeId: 'contentTypeId',
+    sourceMap: {
+      fieldId: 'path'
+    }
+  },
+  myfieldId: 'value',
+  b: 1,
+  c: true,
+  d: ['a', 'b', 'c'],
+  e: [{ a: 1 }, { b: 2 }, { c: 3 }],
+  f: { a: { b: true, c: { d: [2], e: null, craftercms: 's' } } },
+  g: null,
+  h: undefined,
+  0: 'zero'
 };
 
 /* End of Examples */
