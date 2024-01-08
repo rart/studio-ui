@@ -16,7 +16,7 @@
 
 import { FormattedMessage } from 'react-intl';
 import { isBlank } from '../../utils/string';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, MouseEvent } from 'react';
 import { Theme } from '@mui/material/styles';
 import { makeStyles } from 'tss-react/mui';
 import { useDispatch } from 'react-redux';
@@ -38,6 +38,13 @@ import { getHostToGuestBus } from '../../utils/subjects';
 import PreviewBackButton from '../PreviewBackButton';
 import PreviewForwardButton from '../PreviewForwardButton';
 import { usePreviewNavigation } from '../../hooks/usePreviewNavigation';
+import CircularProgress from '@mui/material/CircularProgress';
+import usePreviewState from '../../hooks/usePreviewState';
+import Popover from '@mui/material/Popover';
+import Box from '@mui/material/Box';
+import Alert, { alertClasses } from '@mui/material/Alert';
+import Button from '@mui/material/Button';
+import ErrorOutlineOutlined from '@mui/icons-material/ErrorOutlineOutlined';
 
 export interface AddressBarProps {
   site: string;
@@ -98,6 +105,7 @@ export function PreviewAddressBar(props: AddressBarProps) {
   const { site = '', item } = props;
   const noSiteSet = isBlank(site);
   const { currentUrlPath = '' } = usePreviewNavigation();
+  const { xbDetectionTimeoutMs } = usePreviewState();
   const [internalUrl, setInternalUrl] = useState(currentUrlPath);
   const [openSelector, setOpenSelector] = useState(false);
   const [focus, setFocus] = useState(false);
@@ -133,6 +141,38 @@ export function PreviewAddressBar(props: AddressBarProps) {
   useEffect(() => {
     currentUrlPath && setInternalUrl(currentUrlPath);
   }, [currentUrlPath]);
+
+  const timeoutRef = useRef<any>();
+  const [waitTime, setWaitTime] = useState(0);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const handlePopoverHover = (event: MouseEvent<HTMLElement>) => {
+    clearTimeout(timeoutRef.current);
+  };
+  const handlePopoverOpen = (event: MouseEvent<HTMLElement>) => {
+    clearTimeout(timeoutRef.current);
+    setAnchorEl(event.currentTarget);
+  };
+  const handlePopoverClose = () => {
+    timeoutRef.current = setTimeout(() => {
+      setAnchorEl(null);
+    }, 800);
+  };
+  const open = Boolean(anchorEl);
+
+  useEffect(() => {
+    if (!item && xbDetectionTimeoutMs > 0) {
+      let timeout = setTimeout(() => {
+        setWaitTime(1);
+        timeout = setTimeout(() => {
+          setWaitTime(2);
+        }, xbDetectionTimeoutMs);
+      }, xbDetectionTimeoutMs);
+      return () => {
+        clearTimeout(timeout);
+        setWaitTime(0);
+      };
+    }
+  }, [item, xbDetectionTimeoutMs]);
 
   return (
     <>
@@ -196,9 +236,70 @@ export function PreviewAddressBar(props: AddressBarProps) {
       </Paper>
       <Tooltip title={Boolean(item) ? <FormattedMessage defaultMessage="Options (a)" /> : ''}>
         <IconButton onClick={onOptions} disabled={!item} size="large" id="previewAddressBarActionsMenuButton">
-          <MoreRounded />
+          <MoreRounded sx={waitTime === 2 ? { visibility: 'hidden' } : undefined} />
+          {!item && (
+            <Box
+              sx={{
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: 'flex',
+                position: 'absolute',
+                alignItems: 'center',
+                placeContent: 'center',
+                pointerEvents: 'all'
+              }}
+              onMouseEnter={handlePopoverOpen}
+              onMouseLeave={handlePopoverClose}
+            >
+              {waitTime === 2 ? (
+                <ErrorOutlineOutlined color="error" />
+              ) : (
+                <CircularProgress
+                  sx={{ position: 'absolute', pointerEvents: 'all' }}
+                  color={waitTime ? (waitTime === 1 ? 'warning' : 'error') : 'primary'}
+                />
+              )}
+            </Box>
+          )}
         </IconButton>
       </Tooltip>
+      <Popover
+        // Avoid backdrop from blocking the interaction with other elements
+        sx={{ pointerEvents: 'none' }}
+        open={open}
+        anchorEl={anchorEl}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left'
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center'
+        }}
+        slotProps={{
+          paper: {
+            sx: { pointerEvents: 'all' },
+            onMouseEnter: handlePopoverHover,
+            onMouseLeave: handlePopoverClose
+          }
+        }}
+        onClose={handlePopoverClose}
+        disableRestoreFocus
+      >
+        <Alert
+          severity={waitTime ? (waitTime === 1 ? 'warning' : 'error') : 'info'}
+          action={
+            <Button href="http://localhost:8080/studio/i/preview-missing-app-connection" target="_blank">
+              Learn More
+            </Button>
+          }
+          sx={{ [`.${alertClasses.icon},.${alertClasses.message}`]: { display: 'flex', alignItems: 'center' } }}
+        >
+          Awaiting connection from the Preview application.
+        </Alert>
+      </Popover>
     </>
   );
 }

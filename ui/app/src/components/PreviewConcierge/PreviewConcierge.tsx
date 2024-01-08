@@ -520,11 +520,11 @@ export function PreviewConcierge(props: PropsWithChildren<{}>) {
     }
   }, [rteConfig]);
 
-  useEffect(() => {
-    if (xbDetectionTimeoutMs) {
-      startCommunicationDetectionTimeout(guestDetectionTimeoutRef, setGuestDetectionSnackbarOpen, xbDetectionTimeoutMs);
-    }
-  }, [xbDetectionTimeoutMs]);
+  // useEffect(() => {
+  //   if (xbDetectionTimeoutMs) {
+  //     startCommunicationDetectionTimeout(guestDetectionTimeoutRef, setGuestDetectionSnackbarOpen, xbDetectionTimeoutMs);
+  //   }
+  // }, [xbDetectionTimeoutMs]);
 
   // Document domain restoring.
   useMount(() => {
@@ -736,11 +736,11 @@ export function PreviewConcierge(props: PropsWithChildren<{}>) {
         case guestCheckOut.type: {
           requestedSourceMapPaths.current = {};
           dispatch(action);
-          startCommunicationDetectionTimeout(
-            guestDetectionTimeoutRef,
-            setGuestDetectionSnackbarOpen,
-            upToDateRefs.current.xbDetectionTimeoutMs
-          );
+          // startCommunicationDetectionTimeout(
+          //   guestDetectionTimeoutRef,
+          //   setGuestDetectionSnackbarOpen,
+          //   upToDateRefs.current.xbDetectionTimeoutMs
+          // );
           break;
         }
         case sortItemOperation.type: {
@@ -1356,13 +1356,13 @@ export function PreviewConcierge(props: PropsWithChildren<{}>) {
   useEffect(() => {
     if (priorState.current.site !== siteId) {
       priorState.current.site = siteId;
-      if (xbDetectionTimeoutMs) {
-        startCommunicationDetectionTimeout(
-          guestDetectionTimeoutRef,
-          setGuestDetectionSnackbarOpen,
-          xbDetectionTimeoutMs
-        );
-      }
+      // if (xbDetectionTimeoutMs) {
+      //   startCommunicationDetectionTimeout(
+      //     guestDetectionTimeoutRef,
+      //     setGuestDetectionSnackbarOpen,
+      //     xbDetectionTimeoutMs
+      //   );
+      // }
       if (guest) {
         // Changing the site will force-reload the iFrame and 'beforeunload'
         // event won't trigger withing; guest won't be submitting it's own checkout
