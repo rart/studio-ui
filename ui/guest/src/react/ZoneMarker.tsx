@@ -164,7 +164,7 @@ export function ZoneMarker(props: ZoneMarkerProps) {
               ) : (
                 <FieldIcon sx={sx.icon} />
               )}
-              <Typography title={label} noWrap>
+              <Typography title={label} noWrap sx={{ fontSize: 14, color: 'black' }}>
                 {label}
               </Typography>
               {allowedTypesMeta && (
@@ -186,6 +186,7 @@ export function ZoneMarker(props: ZoneMarkerProps) {
                         title={`Drop target compatible with "${type?.name}" as ${Object.keys(modes)
                           .map((mode) => (mode === 'sharedExisting' ? 'existing shared' : mode))
                           .join(', ')}`}
+                        slotProps={{ tooltip: { sx: { fontSize: 10 } } }}
                       >
                         <AllowedTypeCircle
                           sx={{
@@ -214,7 +215,7 @@ export function ZoneMarker(props: ZoneMarkerProps) {
                 Item was modified. Refresh to enable editing.
               </Typography>
             )}
-            <div>{menuItems && <Box sx={sx.menuItemsContainer}>{menuItems}</Box>}</div>
+            <Box>{menuItems && <Box sx={sx.menuItemsContainer}>{menuItems}</Box>}</Box>
           </Paper>
         </Popper>
       )}

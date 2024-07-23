@@ -14,17 +14,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IconButton, styled } from '@mui/material';
+import { IconButton, styled, svgIconClasses } from '@mui/material';
 
 // Since this button runs guest-side, there may be all sorts of styles that affect button styles.
 // The idea of this component is to be as specific as possible to avoid guest site styles to break ours.
 
-export const UltraStyledIconButton = styled(IconButton)({
+export const UltraStyledIconButton = styled(IconButton)(({ theme }) => ({
   boxShadow: 'none !important',
   border: 'none !important',
   color: 'inherit !important',
   height: 'inherit !important',
-  width: 'inherit !important'
-});
+  width: 'inherit !important',
+  [`& .${svgIconClasses.root}`]: {
+    fontSize: `21px`
+  }
+}));
 
 export default UltraStyledIconButton;
