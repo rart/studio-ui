@@ -179,15 +179,15 @@ function getFieldValidations(
                   const allowedContentTypesMeta = validations.allowedContentTypes.value;
                   value.forEach((typeId) => {
                     allowedContentTypesMeta[typeId] = allowedContentTypesMeta[typeId] ?? {};
-                    if (datasource.allowEmbedded) {
+                    if (datasource.properties.allowEmbedded) {
                       allowedContentTypesMeta[typeId].embedded = true;
                       validations.allowedEmbeddedContentTypes.value.push(typeId);
                     }
-                    if (datasource.allowShared) {
+                    if (datasource.properties.allowShared) {
                       allowedContentTypesMeta[typeId].shared = true;
                       validations.allowedSharedContentTypes.value.push(typeId);
                     }
-                    if (datasource.enableBrowse || datasource.enableSearch) {
+                    if (datasource.properties.enableBrowse || datasource.properties.enableSearch) {
                       allowedContentTypesMeta[typeId].sharedExisting = true;
                       validations.allowedSharedExistingContentTypes.value.push(typeId);
                     }
@@ -263,6 +263,8 @@ function parseLegacyFormDefinitionFields(
     const field: ContentTypeField = {
       id: fieldId,
       name: legacyField.title,
+      description: legacyField.description,
+      helpText: legacyField.help,
       type: typeMap[legacyField.type] || legacyField.type,
       sortable: legacyField.type === 'node-selector' || legacyField.type === 'repeat',
       validations: {},
@@ -382,8 +384,8 @@ function parseLegacyFormDefinition(definition: LegacyFormDefinition): ContentTyp
   // get receptacles dataSources
   asArray(definition.datasources?.datasource).forEach((datasource: LegacyDataSource) => {
     // TODO: Delete datasource.properties after props have been added to the root object? Must update code usages of datasource.properties.
-    const properties = asArray(datasource.properties?.property);
-    properties.forEach((property) => {
+    datasource.properties = datasource.properties ?? { property: [] };
+    asArray(datasource.properties.property).forEach((property) => {
       let value: any = property.value;
       switch (property.type) {
         case 'boolean':
@@ -397,9 +399,11 @@ function parseLegacyFormDefinition(definition: LegacyFormDefinition): ContentTyp
         //   value =
         //   break;
       }
-      datasource[property.name] = value;
+      datasource.properties[property.name] = value;
     });
-    if (datasource.type === 'components') dropTargetsLookup[datasource.id] = datasource;
+    if (datasource.type === 'components') {
+      dropTargetsLookup[datasource.id] = datasource;
+    }
     dataSources[datasource.id] = datasource;
   });
 

@@ -16,28 +16,42 @@
 
 import React from 'react';
 import { makeStyles } from 'tss-react/mui';
+import Box, { BoxProps } from '@mui/material/Box';
+import { CSSObject as CSSProperties } from 'tss-react';
 
-const useStyles = makeStyles()(() => ({
-  iframe: {
-    width: '100%',
-    maxWidth: '100%',
-    border: 'none',
-    height: '100%',
-    transition: 'width .25s ease, height .25s ease'
-  },
-  iframeWithBorder: {
-    borderRadius: 20,
-    borderColor: '#555'
-  },
-  iframeWithBorderLandscape: {
-    borderWidth: '10px 50px'
-  },
-  iframeWithBorderPortrait: {
-    borderWidth: '50px 10px'
-  }
-}));
+export type IFrameClassKey = 'iframe' | 'iframeWithBorder' | 'iframeWithBorderLandscape' | 'iframeWithBorderPortrait';
+
+export type IFrameStyles = Partial<Record<IFrameClassKey, CSSProperties>>;
+
+const useStyles = makeStyles<IFrameStyles, IFrameClassKey>()(
+  (theme, { iframe, iframeWithBorder, iframeWithBorderPortrait, iframeWithBorderLandscape }) => ({
+    iframe: {
+      width: '100%',
+      maxWidth: '100%',
+      border: 'none',
+      height: '100%',
+      transition: 'width .25s ease, height .25s ease',
+      ...iframe
+    },
+    iframeWithBorder: {
+      borderRadius: 20,
+      borderColor: '#555',
+      ...iframeWithBorder
+    },
+    iframeWithBorderLandscape: {
+      borderWidth: '10px 50px',
+      ...iframeWithBorderLandscape
+    },
+    iframeWithBorderPortrait: {
+      borderWidth: '50px 10px',
+      ...iframeWithBorderPortrait
+    }
+  })
+);
 
 interface IFrameProps {
+  sx?: BoxProps['sx'];
+  styles?: Partial<Record<IFrameClassKey, CSSProperties>>;
   url: string;
   title: string;
   width?: string | number;
@@ -48,8 +62,8 @@ interface IFrameProps {
 }
 
 export function IFrame(props: IFrameProps) {
-  const { classes, cx } = useStyles();
-  const { url, title, width, height, border, className, onLoadComplete } = props;
+  const { url, title, width, height, border, className, onLoadComplete, sx, styles } = props;
+  const { classes, cx } = useStyles(styles);
 
   const cls = cx(classes.iframe, {
     [className || '']: !!className,
@@ -59,12 +73,14 @@ export function IFrame(props: IFrameProps) {
   });
 
   return (
-    <iframe
+    <Box
+      component="iframe"
       style={{ width, height }}
       title={title}
       onLoad={onLoadComplete}
       src={url || 'about:blank'}
       className={cls}
+      sx={sx}
     />
   );
 }

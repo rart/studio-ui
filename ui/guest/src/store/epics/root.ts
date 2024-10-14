@@ -288,7 +288,8 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
                       if (!createAsEmbedded) {
                         newComponentPath =
                           entries.contentType.dataSources?.find(
-                            (ds) => ds.type === 'components' && ds.contentTypes.split(',').includes(contentType.id)
+                            (ds) =>
+                              ds.type === 'components' && ds.properties.contentTypes.split(',').includes(contentType.id)
                           )?.baseRepoPath ?? null;
                         newComponentPath = newComponentPath
                           ? processPathMacros({

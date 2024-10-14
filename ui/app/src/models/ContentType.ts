@@ -92,9 +92,10 @@ export interface ContentTypeRepeatField extends ContentTypeField {
 
 export interface DataSource {
   id: string;
-  name: string;
-
-  [prop: string]: any;
+  type: string;
+  title: string;
+  interface: string;
+  properties: LookupTable;
 }
 
 export type LegacyComponentType = 'component' | 'page' | 'file';
@@ -201,14 +202,16 @@ export interface LegacyContentType {
 }
 
 export interface ComponentsDatasource extends LegacyDataSource {
-  allowEmbedded: boolean;
-  allowShared: boolean;
-  baseBrowsePath: string;
-  baseRepositoryPath: string;
-  contentTypes: string;
-  enableBrowse: boolean;
-  enableSearch: boolean;
-  tags: string;
+  properties: LegacyDataSource['properties'] & {
+    allowEmbedded: boolean;
+    allowShared: boolean;
+    baseBrowsePath: string;
+    baseRepositoryPath: string;
+    contentTypes: string;
+    enableBrowse: boolean;
+    enableSearch: boolean;
+    tags: string;
+  };
 }
 
 export default ContentType;

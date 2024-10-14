@@ -147,12 +147,14 @@ function MediaCard(props: MediaCardProps) {
       onDragEnd={onDragEnd}
       onClick={onClick}
       sx={
-        viewMode === 'row' && {
-          display: 'flex',
-          width: '100%',
-          [`& .${cardHeaderClasses.root}`]: { flexGrow: 1 },
-          [`& .${cardMediaClasses.root}`]: { paddingTop: '0 !important', height: '80px !important', width: '80px' }
-        }
+        viewMode === 'row'
+          ? {
+              display: 'flex',
+              width: '100%',
+              [`& .${cardHeaderClasses.root}`]: { flexGrow: 1 },
+              [`& .${cardMediaClasses.root}`]: { paddingTop: '0 !important', height: '80px !important', width: '80px' }
+            }
+          : undefined
       }
     >
       <CardHeader
@@ -199,7 +201,7 @@ function MediaCard(props: MediaCardProps) {
           ) : (
             <Box
               className={cx(classes.mediaIcon, props.classes?.mediaIcon)}
-              sx={viewMode === 'row' && { paddingTop: '0 !important', height: '80px', width: '80px' }}
+              sx={viewMode === 'row' ? { paddingTop: '0 !important', height: '80px', width: '80px' } : undefined}
             >
               {type === 'Video' ? (
                 <video className={classes.videoThumbnail}>
