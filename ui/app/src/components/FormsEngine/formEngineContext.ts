@@ -19,7 +19,7 @@ import { ContentTypeField, SandboxItem } from '../../models';
 import PluginDescriptor from '../../models/PluginDescriptor';
 import ContentType from '../../models/ContentType';
 import ApiResponse from '../../models/ApiResponse';
-import { FormsEngineProps } from './FormEngine';
+import { FormsEngineProps } from './FormsEngine';
 import LookupTable from '../../models/LookupTable';
 
 export interface FormsEngineContextProps {
