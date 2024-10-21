@@ -17,7 +17,9 @@
 import { useFormEngineContext } from '../formEngineContext';
 import Box from '@mui/material/Box';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
-import { AddRounded, DeleteOutlined, EditOutlined } from '@mui/icons-material';
+import AddRounded from '@mui/icons-material/AddRounded';
+import DeleteOutlined from '@mui/icons-material/DeleteOutlined';
+import EditOutlined from '@mui/icons-material/EditOutlined';
 import { FormEngineField } from '../common/FormEngineField';
 import { ControlProps } from '../types';
 import List from '@mui/material/List';
@@ -26,11 +28,9 @@ import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
 import ListItemButton from '@mui/material/ListItemButton';
 import { FormattedMessage } from 'react-intl';
 import Tooltip from '@mui/material/Tooltip';
-import useContentTypes from '../../../hooks/useContentTypes';
 import { MouseEvent as ReactMouseEvent } from 'react';
 import Avatar from '@mui/material/Avatar';
 import { StackedButton } from '../common/StackedButton';
-import { asArray } from '../../../utils/array';
 
 export type RepeatItem = Record<string, unknown>;
 
@@ -39,11 +39,9 @@ export interface RepeatProps extends ControlProps {
 }
 
 export function Repeat(props: RepeatProps) {
-  const { field, contentType, value, setValue } = props;
-  const [context, apiRef] = useFormEngineContext();
-  const { item: contextItem } = context;
+  const { field, value, setValue } = props;
+  const [, apiRef] = useFormEngineContext();
   const hasContent = value.length;
-  const contentTypes = useContentTypes();
 
   const handleRemoveItem = (event: ReactMouseEvent, index: number) => {
     event.stopPropagation();

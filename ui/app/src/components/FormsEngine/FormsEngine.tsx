@@ -45,21 +45,13 @@ import { fetchContentXML, fetchSandboxItem, lock } from '../../services/content'
 import { catchError, map, tap } from 'rxjs/operators';
 import { fetchSandboxItemComplete } from '../../state/actions/content';
 import { forkJoin, of, switchMap } from 'rxjs';
-import {
-  beautify,
-  cdataWrap,
-  createElements,
-  deserialize,
-  fromString,
-  getInnerHtml,
-  newXMLDocument,
-  serialize
-} from '../../utils/xml';
+import { createElements, deserialize, fromString, getInnerHtml, newXMLDocument, serialize } from '../../utils/xml';
 import LoadingState from '../LoadingState';
 import Paper, { paperClasses } from '@mui/material/Paper';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-import { drawerClasses, DrawerProps, Tooltip } from '@mui/material';
+import Drawer, { drawerClasses, DrawerProps } from '@mui/material/Drawer';
+import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import MinimizeIconRounded from '@mui/icons-material/RemoveRounded';
 import MaximiseIcon from '@mui/icons-material/OpenInFullRounded';
@@ -93,25 +85,23 @@ import { StickyBox } from './common/StickyBox';
 import ContentCopyRounded from '@mui/icons-material/ContentCopyRounded';
 import { copyToClipboard } from '../../utils/system';
 import { BuiltInControlType, controlMap } from './controlMap';
-import Drawer from '@mui/material/Drawer';
 import MenuRounded from '@mui/icons-material/MenuRounded';
 import { EnhancedDialogProps } from '../EnhancedDialog';
 import useEnhancedDialogContext from '../EnhancedDialog/useEnhancedDialogContext';
 import useLocale from '../../hooks/useLocale';
 import { v4 as uuid } from 'uuid';
-import { pluckProps, prettyPrintPerson, reversePluckProps } from '../../utils/object';
+import { prettyPrintPerson } from '../../utils/object';
 import { EditOutlined } from '@mui/icons-material';
 import ContentType from '../../models/ContentType';
 import { SearchBar } from '../SearchBar';
 import validateFieldValue, {
-  XmlKeys,
   createCleanValuesObject,
   isFieldRequired,
-  retrieveFieldValue
+  retrieveFieldValue,
+  XmlKeys
 } from './validateFieldValue';
 import { UnknownControl } from './common/UnknownControl';
 import LookupTable from '../../models/LookupTable';
-import useUpdateRefs from '../../hooks/useUpdateRefs';
 import { XMLBuilder } from 'fast-xml-parser';
 import { ControlProps } from './types';
 import { toColor } from '../../utils/string';

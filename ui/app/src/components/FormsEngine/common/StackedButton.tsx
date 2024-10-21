@@ -14,10 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { styled } from '@mui/material/styles';
+import { styled, alpha } from '@mui/material/styles';
 import Button from '@mui/material/Button';
 import { avatarClasses } from '@mui/material/Avatar';
-import { alpha } from '@mui/material';
 
 export const StackedButton = styled(Button)(({ theme }) => ({
   display: 'flex',

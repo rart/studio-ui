@@ -15,7 +15,7 @@
  */
 
 import Person from '../models/Person';
-import { alpha } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
 /**
  * Converts a string separated by dashes into a

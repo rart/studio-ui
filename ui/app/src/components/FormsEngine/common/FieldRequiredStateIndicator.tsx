@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Tooltip } from '@mui/material';
+import Tooltip from '@mui/material/Tooltip';
 import { FormattedMessage } from 'react-intl';
 import Asterisk from '../../../icons/Asterisk';
 import React from 'react';

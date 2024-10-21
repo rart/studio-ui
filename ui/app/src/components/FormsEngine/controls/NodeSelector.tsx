@@ -39,7 +39,7 @@ import AllowedContentTypesData from '../../../models/AllowedContentTypesData';
 import { asArray } from '../../../utils/array';
 import ListItemIcon, { listItemIconClasses } from '@mui/material/ListItemIcon';
 import TravelExploreOutlined from '@mui/icons-material/TravelExploreOutlined';
-import { svgIconClasses } from '@mui/material';
+import { svgIconClasses } from '@mui/material/SvgIcon';
 
 export interface NodeSelectorProps extends ControlProps {
   value: NodeSelectorItem[];

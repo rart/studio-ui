@@ -21,7 +21,7 @@ import InputBase, { InputBaseProps } from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/SearchRounded';
 import CloseIcon from '@mui/icons-material/Close';
 import { defineMessages, useIntl } from 'react-intl';
-import { Paper, PaperProps } from '@mui/material';
+import Paper, { PaperProps } from '@mui/material/Paper';
 
 export type SearchBarClassKey = 'root' | 'searchIcon' | 'icon' | 'closeIcon' | 'inputRoot' | 'inputInput';
 

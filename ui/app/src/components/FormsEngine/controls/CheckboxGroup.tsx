@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { ChangeEvent, useEffect, useMemo, useState } from 'react';
+import React, { ChangeEvent, useMemo, useState } from 'react';
 import { FormEngineField } from '../common/FormEngineField';
 import { ControlProps } from '../types';
 import Checkbox, { CheckboxProps } from '@mui/material/Checkbox';
@@ -24,7 +24,7 @@ import LookupTable from '../../../models/LookupTable';
 import { KVPLoaderItem, useKVPLoader } from '../data-sources/hooks';
 import useActiveSiteId from '../../../hooks/useActiveSiteId';
 import { useTheme } from '@mui/material/styles';
-import { typographyClasses } from '@mui/material';
+import { typographyClasses } from '@mui/material/Typography';
 import { SearchBar } from '../../SearchBar';
 import useDebouncedInput from '../../../hooks/useDebouncedInput';
 import { FixedSizeList, ListChildComponentProps } from 'react-window';

@@ -34,20 +34,25 @@ export default defineConfig(({ mode }) => ({
     proxy: {
       '/studio/api': proxyConfig,
       '/studio/static-assets': proxyConfig,
-      '/studio/refresh.json': proxyConfig
+      '/studio/refresh.json': proxyConfig,
+      '/studio/1/plugin/file': proxyConfig
     }
+  },
+  optimizeDeps: {
+    include: ['@mui/material/*']
   },
   build: {
     minify: false,
     outDir: '../../static-assets/app',
     emptyOutDir: true,
+    sourceMap: true,
     rollupOptions: {
       input: {
         main: 'index.html',
         login: 'pages/login.html',
         preview: 'pages/preview.html',
         legacy: 'pages/legacy.html',
-        'project-tools': 'pages/project-tools.html',
+        'project-tools': 'pages/project-tools.html'
       }
     }
   }
