@@ -38,14 +38,12 @@ import { ItemMenuStateProps } from '../components/ItemActionsMenu';
 import { ItemMegaMenuStateProps } from '../components/ItemMegaMenu';
 import { LauncherStateProps } from '../components/Launcher';
 import { PublishingStatusDialogStateProps } from '../components/PublishingStatusDialog';
-import TranslationOrText from './TranslationOrText';
 import { SystemIconDescriptor } from '../components/SystemIcon';
 import { AjaxError } from 'rxjs/ajax';
 import { PathNavigatorTreeStateProps } from '../components/PathNavigatorTree';
 import { UnlockPublisherDialogStateProps } from '../components/UnlockPublisherDialog';
 import { WidgetDialogStateProps } from '../components/WidgetDialog/utils';
 import { CodeEditorDialogStateProps } from '../components/CodeEditorDialog/utils';
-import { SystemLinkId } from '../utils/system';
 import { PublishDialogStateProps } from '../components/PublishDialog/utils';
 import { DeleteDialogStateProps } from '../components/DeleteDialog/utils';
 import { CreateFolderStateProps } from '../components/CreateFolderDialog/utils';
@@ -69,6 +67,7 @@ import { RenameAssetStateProps } from '../components/RenameAssetDialog';
 import Person from './Person';
 import { BrokenReferencesDialogStateProps } from '../components/BrokenReferencesDialog/types';
 import AllowedContentTypesData from './AllowedContentTypesData';
+import { Editor } from '@tinymce/tinymce-react';
 
 export type HighlightMode = 'all' | 'move';
 
@@ -200,7 +199,7 @@ export interface GlobalState {
     icePanel: {
       widgets: WidgetDescriptor[];
     };
-    richTextEditor: LookupTable;
+    richTextEditor: LookupTable<{ id: string; tinymceOptions: Editor['props']['init'] }>;
     editModePadding: boolean;
     windowSize: number;
     xbDetectionTimeoutMs: number;

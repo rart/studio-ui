@@ -43,12 +43,13 @@ import { asArray } from '../utils/array';
 import { fromPromise } from 'rxjs/internal/observable/innerFrom';
 import AllowedContentTypesData from '../models/AllowedContentTypesData';
 
-const typeMap = {
-  input: 'text',
-  rte: 'html',
-  checkbox: 'boolean',
-  'image-picker': 'image'
-};
+// FE2 TODO: Assess removal
+// const typeMap = {
+//   input: 'text',
+//   rte: 'html',
+//   checkbox: 'boolean',
+//   'image-picker': 'image'
+// };
 
 const systemValidationsNames = [
   'itemManager',
@@ -256,7 +257,9 @@ function parseLegacyFormDefinitionFields(
   dataSources?: LegacyDataSource[]
 ) {
   asArray<LegacyFormDefinitionField>(legacyFieldsToBeParsed).forEach((legacyField) => {
-    const fieldId = ['file-name', 'internal-name'].includes(legacyField.id) ? camelize(legacyField.id) : legacyField.id;
+    // FE2 TODO: Changed the camelizing of file-name and internal-name
+    // const fieldId = ['file-name', 'internal-name'].includes(legacyField.id) ? camelize(legacyField.id) : legacyField.id;
+    const fieldId = legacyField.id;
 
     sectionFieldIds?.push(fieldId);
 
@@ -265,7 +268,7 @@ function parseLegacyFormDefinitionFields(
       name: legacyField.title,
       description: legacyField.description,
       helpText: legacyField.help,
-      type: typeMap[legacyField.type] || legacyField.type,
+      type: legacyField.type, // FE2 TODO: Changed from `type: typeMap[legacyField.type] || legacyField.type,`
       sortable: legacyField.type === 'node-selector' || legacyField.type === 'repeat',
       validations: {},
       properties: {},
@@ -345,7 +348,7 @@ function parseLegacyFormDefinitionFields(
         };
         field.validations.required = {
           id: 'required',
-          value: Boolean(field.validations.minCount),
+          value: Boolean(field.validations.minCount?.value),
           level: 'required'
         };
         break;
@@ -366,7 +369,6 @@ function parseLegacyFormDefinitionFields(
           ...getFieldDataSourceValidations(legacyField.properties.property, dataSources)
         };
     }
-
     currentFieldLookup[fieldId] = field;
   });
 }

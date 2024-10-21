@@ -19,17 +19,10 @@ import Box from '@mui/material/Box';
 import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 
 export const StickyBox = styled(Box)(({ theme }) => ({
-  position: 'sticky',
   top: theme.spacing(1),
-  overflowY: 'auto',
-  // paddingBottom: '223px',
-  // height: `100vh`,
-  height: `calc(100vh - ${theme.spacing(2)})`
-  // height: `calc(100vh - 223px)`
-  // height: `calc(100vh - 210px)`,
-  // '&.sticky': {
-  //   paddingBottom: 0
-  // }
+  height: `var(--container-height)`,
+  position: 'sticky',
+  overflowY: 'auto'
 }));
 
 function Sticky(props: PropsWithChildren) {

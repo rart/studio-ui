@@ -15,23 +15,54 @@
  */
 
 import { ElementType, lazy } from 'react';
-import { UnknownControl } from './common/UnknownControl';
 
-export const controlMap: Record<string, ElementType> = {
-  'auto-filename': null,
+// FE2 TODO: See `typeMap` at services/contentTypes.ts
+// | 'image'
+// | 'text'
+export type BuiltInControlType =
+  | 'repeat'
+  | 'auto-filename'
+  | 'aws-file-upload'
+  | 'box-file-upload'
+  | 'checkbox-group'
+  | 'checkbox'
+  | 'date-time'
+  | 'disabled'
+  | 'dropdown'
+  | 'file-name'
+  | 'forcehttps'
+  | 'image-picker'
+  | 'input'
+  | 'internal-name'
+  | 'label'
+  | 'link-input'
+  | 'link-textarea'
+  | 'linked-dropdown'
+  | 'locale-selector'
+  | 'node-selector'
+  | 'numeric-input'
+  | 'page-nav-order'
+  | 'rte'
+  | 'textarea'
+  | 'time'
+  | 'transcoded-video-picker'
+  | 'uuid'
+  | 'video-picker';
+
+export const controlMap: Record<BuiltInControlType, ElementType> = {
+  repeat: lazy(() => import('./controls/Repeat')),
+  'auto-filename': lazy(() => import('./controls/AutoFileName')),
   'aws-file-upload': null,
   'box-file-upload': null,
-  'checkbox-group': null,
-  checkbox: null,
+  'checkbox-group': lazy(() => import('./controls/CheckboxGroup')),
+  checkbox: lazy(() => import('./controls/Checkbox')),
   'date-time': null,
   disabled: null,
-  dropdown: null,
+  dropdown: lazy(() => import('./controls/Dropdown')),
   'file-name': lazy(() => import('./controls/Slug')),
   forcehttps: null, // TODO: probably not needed, getname returns `disabled`
-  'image-picker': null, // Mapped to `image`
-  image: lazy(() => import('./controls/ImagePicker')),
-  input: null, // Mapped to `text`
-  text: lazy(() => import('./controls/Text')),
+  'image-picker': lazy(() => import('./controls/ImagePicker')),
+  input: lazy(() => import('./controls/Text')),
   'internal-name': null,
   label: null,
   'link-input': null,
@@ -41,11 +72,10 @@ export const controlMap: Record<string, ElementType> = {
   'node-selector': lazy(() => import('./controls/NodeSelector')),
   'numeric-input': null,
   'page-nav-order': null,
-  rte: null,
+  rte: lazy(() => import('./controls/RichTextEditor')),
   textarea: lazy(() => import('./controls/Textarea')),
   time: null,
   'transcoded-video-picker': null,
   uuid: null,
-  'video-picker': null,
-  __UNKNOWN__: UnknownControl
+  'video-picker': null
 };

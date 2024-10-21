@@ -14,14 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useFormEngineContext } from '../formEngineContext';
-import { ContentTypeField } from '../../../models/ContentType';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Avatar, { avatarClasses } from '@mui/material/Avatar';
+import Avatar from '@mui/material/Avatar';
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
-import { styled, useTheme } from '@mui/material/styles';
-import { alpha } from '@mui/material';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
@@ -31,24 +26,16 @@ import { DeleteOutlined, DownloadOutlined, EditOutlined } from '@mui/icons-mater
 import { FormEngineField } from '../common/FormEngineField';
 import useEnv from '../../../hooks/useEnv';
 import { ControlProps } from '../types';
+import { StackedButton } from '../common/StackedButton';
+import { FormattedMessage } from 'react-intl';
 
-export interface ImagePickerProps extends ControlProps {}
-
-const StackedButton = styled(Button)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  textDecoration: 'underline',
-  [`& .${avatarClasses.root}`]: {
-    backgroundColor: theme.palette.action.selected,
-    color: alpha(theme.palette.action.selected, 1)
-  }
-}));
+export interface ImagePickerProps extends ControlProps {
+  value: string;
+}
 
 export function ImagePicker(props: ImagePickerProps) {
-  const { field } = props;
+  const { field, value } = props;
   const { guestBase } = useEnv();
-  const [{ values }] = useFormEngineContext();
-  const value = values[field.id] as string;
   const hasValue = Boolean(value);
   return (
     <FormEngineField field={field}>
@@ -105,19 +92,19 @@ export function ImagePicker(props: ImagePickerProps) {
             <Avatar variant="circular">
               <UploadFileOutlinedIcon />
             </Avatar>
-            Upload
+            <FormattedMessage defaultMessage="Upload" />
           </StackedButton>
           <StackedButton>
             <Avatar variant="circular">
               <UploadFileOutlinedIcon />
             </Avatar>
-            Browse
+            <FormattedMessage defaultMessage="Browse" />
           </StackedButton>
           <StackedButton>
             <Avatar variant="circular">
               <UploadFileOutlinedIcon />
             </Avatar>
-            Search
+            <FormattedMessage defaultMessage="Search" />
           </StackedButton>
         </Box>
       )}

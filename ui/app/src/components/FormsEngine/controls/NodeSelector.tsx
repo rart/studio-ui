@@ -33,15 +33,17 @@ import { ElementType, MouseEvent as ReactMouseEvent, ReactNode, useMemo, useRef,
 import BrowseFilesDialog, { BrowseFilesDialogProps } from '../../BrowseFilesDialog';
 import Menu from '@mui/material/Menu';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
-import ListSubheader from '@mui/material/ListSubheader';
+import ListSubheader, { listSubheaderClasses } from '@mui/material/ListSubheader';
 import LookupTable from '../../../models/LookupTable';
 import AllowedContentTypesData from '../../../models/AllowedContentTypesData';
 import { asArray } from '../../../utils/array';
-import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemIcon, { listItemIconClasses } from '@mui/material/ListItemIcon';
 import TravelExploreOutlined from '@mui/icons-material/TravelExploreOutlined';
 import { svgIconClasses } from '@mui/material';
 
-export interface NodeSelectorProps extends ControlProps {}
+export interface NodeSelectorProps extends ControlProps {
+  value: NodeSelectorItem[];
+}
 
 export interface NodeSelectorItem {
   key: string;
@@ -71,9 +73,8 @@ const iconByKey: Record<DataSourceOptions['sections'][0]['options'][0]['key'], E
 };
 
 export function NodeSelector(props: NodeSelectorProps) {
-  const { field, contentType } = props;
-  const [{ values, item: contextItem }, apiRef] = useFormEngineContext();
-  const value = (values[field.id] as { item: NodeSelectorItem[] })?.item ?? [];
+  const { field, contentType, value, setValue } = props;
+  const [{ item: contextItem }, apiRef] = useFormEngineContext();
   const hasContent = value.length;
   const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [browseDialogState, setBrowseDialogState] = useState<BrowseFilesDialogProps>({
@@ -96,13 +97,14 @@ export function NodeSelector(props: NodeSelectorProps) {
           disableFlattening: Boolean(field.properties?.disableFlattening?.value)
         });
     });
-    apiRef.current.updateValue(field.id, { item: nextValue });
+    setValue(nextValue);
     handleBrowseDialogClose();
   };
   const addMenuButtonRef = useRef<HTMLButtonElement>();
   const contentTypes = useContentTypes();
   const dataSourceOptions = useMemo<DataSourceOptions>(() => {
     const dataSourceOptions = { sections: [] };
+    // In dropdown, the `itemManager` "property" is called datasource
     const dataSourceIds = field.properties.itemManager.value.split(',');
     contentTypes[contentType.id].dataSources.forEach((ds) => {
       if (dataSourceIds.includes(ds.id)) {
@@ -110,7 +112,7 @@ export function NodeSelector(props: NodeSelectorProps) {
         switch (ds.type) {
           case 'components': {
             const allowedContentTypesData: LookupTable<AllowedContentTypesData> =
-              field.validations.allowedContentTypes.value;
+              field.validations.allowedContentTypes?.value ?? [];
             const allowedContentTypes: string[] = Object.keys(allowedContentTypesData);
             const allowedSharedTypes: string[] = [];
             allowedContentTypes.forEach((contentTypeId) => {
@@ -235,9 +237,10 @@ export function NodeSelector(props: NodeSelectorProps) {
     }
   };
   const handleRemoveItem = (event: ReactMouseEvent, index: number) => {
+    event.stopPropagation();
     const nextValue = value.concat();
     nextValue.splice(index, 1);
-    apiRef.current.updateValue(field.id, { item: nextValue });
+    setValue(nextValue);
   };
   const menuOptions = dataSourceOptions.sections.flatMap((section, index) => {
     return [
@@ -263,15 +266,14 @@ export function NodeSelector(props: NodeSelectorProps) {
     ];
   });
   const handleEditItem = (event: ReactMouseEvent, item: NodeSelectorItem) => {
-    console.log('Edit item', item);
+    // console.log('Edit item', item);
     if (item.component) {
       apiRef.current.pushForm({
-        path: contextItem.path,
-        modelId: item.component.objectId as string
+        update: { path: contextItem.path, modelId: item.component.objectId as string }
       });
     } else if (item.include) {
       apiRef.current.pushForm({
-        path: item.include
+        update: { path: item.include }
       });
     } else {
       console.log('Is file', item);
@@ -372,14 +374,29 @@ export function NodeSelector(props: NodeSelectorProps) {
           ) : (
             <Box
               sx={{
+                [`.${listSubheaderClasses.root}`]: {
+                  textAlign: 'center',
+                  bgcolor: 'background.default',
+                  lineHeight: 2.5
+                },
                 '.datasource-menu-options': {
                   gap: 1,
+                  py: 0.5,
                   display: 'flex',
                   flexDirection: 'row',
                   flexWrap: 'wrap',
                   color: 'primary.main',
+                  justifyContent: 'center',
                   [`.${svgIconClasses.root}`]: {
                     color: 'primary.main'
+                  },
+                  [`.${menuItemClasses.root}`]: {
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    borderRadius: 1
+                  },
+                  [`.${listItemIconClasses.root}`]: {
+                    justifyContent: 'center'
                   }
                 }
               }}

@@ -1,0 +1,78 @@
+/*
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+import React, { useEffect, useState } from 'react';
+import { useFormEngineContext } from '../formEngineContext';
+import { FormEngineField } from '../common/FormEngineField';
+import { ControlProps } from '../types';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import { retrieveFieldValue } from '../validateFieldValue';
+import useContentTypes from '../../../hooks/useContentTypes';
+import { fetchContentDOM } from '../../../services/content';
+import useActiveSiteId from '../../../hooks/useActiveSiteId';
+import { forkJoin } from 'rxjs';
+import { deserialize, getInnerHtml } from '../../../utils/xml';
+import { asArray } from '../../../utils/array';
+import useUpdateRefs from '../../../hooks/useUpdateRefs';
+import ListSubheader from '@mui/material/ListSubheader';
+import Skeleton from '@mui/material/Skeleton';
+import { DataSource, LegacyDataSource } from '../../../models';
+import { useKVPLoader } from '../data-sources/hooks';
+
+export interface DropdownProps extends ControlProps {
+  value: string;
+}
+
+export function Dropdown(props: DropdownProps) {
+  const { field, contentType, value, setValue } = props;
+  const contentTypes = useContentTypes();
+  const effectRefs = useUpdateRefs({ contentTypes });
+  const maxLength = field.validations.maxLength?.value;
+  const handleChange = (event: SelectChangeEvent) => setValue(event.target.value);
+  const optionGroups = useKVPLoader(
+    useActiveSiteId(),
+    field.properties.datasource.value.split(','),
+    effectRefs.current.contentTypes[contentType.id].dataSources
+  );
+  const renderGroup = (group) =>
+    group.items.map((option, index) => (
+      <MenuItem key={`${group.id}_${index}`} value={option.key}>
+        {option.value}
+      </MenuItem>
+    ));
+  if (!optionGroups) {
+    return (
+      <FormEngineField field={field} max={maxLength} length={value.length}>
+        <Skeleton variant="rounded" height={56} />
+      </FormEngineField>
+    );
+  }
+  return (
+    <FormEngineField field={field} max={maxLength} length={value.length}>
+      <Select value={value} label="" onChange={handleChange}>
+        {optionGroups.length > 1
+          ? optionGroups.map((group) => [
+              <ListSubheader key={group.id}>{group.label}</ListSubheader>,
+              renderGroup(group)
+            ])
+          : renderGroup(optionGroups[0])}
+      </Select>
+    </FormEngineField>
+  );
+}
+
+export default Dropdown;

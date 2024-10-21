@@ -15,44 +15,31 @@
  */
 
 import OutlinedInput from '@mui/material/OutlinedInput';
-import React from 'react';
+import React, { useId } from 'react';
 import { useFormEngineContext } from '../formEngineContext';
-import { ContentTypeField } from '../../../models/ContentType';
 import { FormEngineField } from '../common/FormEngineField';
-import { getInnerHtml } from '../../../utils/xml';
 import { ControlProps } from '../types';
-import ContentInstance from '../../../models/ContentInstance';
 
-export interface TextareaProps extends ControlProps {}
+export interface TextareaProps extends ControlProps {
+  value: string;
+}
 
 export function Textarea(props: TextareaProps) {
-  const { field } = props;
-  const fieldId = field.id;
-  const [context, api] = useFormEngineContext();
-  const { values } = context;
-  const value: string = (values[fieldId] as string) ?? '';
-  const { updateValue } = api.current;
+  const { field, value, setValue } = props;
+  const htmlId = useId();
   const maxLength = field.validations.maxLength?.value;
   return (
-    <FormEngineField field={field} max={maxLength} length={value.length}>
+    <FormEngineField htmlFor={htmlId} field={field} max={maxLength} length={value.length}>
       <OutlinedInput
         fullWidth
         multiline
         inputProps={{ maxLength }}
-        id={fieldId}
+        id={htmlId}
         value={value}
-        onChange={(e) => updateValue(fieldId, e.currentTarget.value)}
+        onChange={(e) => setValue(e.currentTarget.value)}
       />
     </FormEngineField>
   );
-}
-
-export function serialize(): string {
-  return null;
-}
-
-export function deserialize(field: ContentTypeField, contentDom: XMLDocument): unknown {
-  return null;
 }
 
 export default Textarea;

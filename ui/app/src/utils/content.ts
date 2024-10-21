@@ -570,7 +570,7 @@ function parseElementByContentType(
     case 'numeric-input':
       return getInnerHtmlNumber(element, parseFloat);
     default:
-      !['transcoded-video', 'transcoded-video-picker', 'taxonomy-selector'].includes(type) &&
+      !['transcoded-video', 'transcoded-video-picker', 'taxonomy-selector', 'video-picker'].includes(type) &&
         console.log(
           `%c[parseElementByContentType] Missing type "${type}" on switch statement for field "${field.id}".`,
           'color: blue',

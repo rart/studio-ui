@@ -14,25 +14,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import OutlinedInput, { OutlinedInputProps } from '@mui/material/OutlinedInput';
-import React, { useId } from 'react';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import React, { useId, useMemo } from 'react';
 import { FormEngineField } from '../common/FormEngineField';
 import { ControlProps } from '../types';
+import { adjectives, animals, colors, uniqueNamesGenerator } from 'unique-names-generator';
 
-export interface TextProps extends ControlProps {
+export interface AutoFileNameProps extends ControlProps {
   value: string;
 }
 
-export function Text(props: TextProps) {
-  const { field, value, setValue } = props;
+export function AutoFileName(props: AutoFileNameProps) {
+  const { field, value } = props;
   const htmlId = useId();
-  const maxLength = field.validations.maxLength?.value;
-  const handleChange: OutlinedInputProps['onChange'] = (e) => setValue(e.currentTarget.value);
+  const name = useMemo(
+    () =>
+      value.replace(/\.xml$/, '') ||
+      uniqueNamesGenerator({ dictionaries: [adjectives, colors, animals], separator: '-' }),
+    [value]
+  );
   return (
-    <FormEngineField htmlFor={htmlId} field={field} max={maxLength} length={value.length}>
-      <OutlinedInput id={htmlId} fullWidth inputProps={{ maxLength }} value={value} onChange={handleChange} />
+    <FormEngineField htmlFor={htmlId} field={field} length={name.length}>
+      <OutlinedInput readOnly fullWidth id={htmlId} value={name} />
     </FormEngineField>
   );
 }
 
-export default Text;
+export default AutoFileName;

@@ -20,38 +20,44 @@ import PluginDescriptor from '../../models/PluginDescriptor';
 import ContentType from '../../models/ContentType';
 import ApiResponse from '../../models/ApiResponse';
 import { FormsEngineProps } from './FormEngine';
+import LookupTable from '../../models/LookupTable';
 
-export interface FormEngineContextProps {
+export interface FormsEngineContextProps {
   activeTab: number;
-  values: Record<string, unknown>;
+  values: LookupTable<unknown>;
   contentDom: XMLDocument | Element;
   contentXml: string;
   contentType: ContentType;
   contentTypeXml: string;
-  fieldExpandedState: Record<string, boolean>;
+  fieldHelpExpandedState: LookupTable<boolean>;
+  fieldValidityState: LookupTable<{ isValid: boolean; messages: string[] }>;
   formsEngineExtensions: PluginDescriptor;
   formsStack: FormsEngineProps[];
+  formsStackState: FormsEngineContextProps[];
   item: SandboxItem;
   locked: boolean;
   lockError: ApiResponse;
-  sectionExpandedState: Record<string, boolean>;
+  pathInProject: string;
+  previousScrollTopPosition: number;
+  requirementsFetched: boolean;
+  sectionExpandedState: LookupTable<boolean>;
 }
 
-export interface FormEngineContextApi {
+export interface FormsEngineContextApi {
   update: {
-    (newState: Partial<FormEngineContextProps>): void;
-    <K extends keyof FormEngineContextProps>(key: K, value: FormEngineContextProps[K]): void;
+    (newState: Partial<FormsEngineContextProps>): void;
+    <K extends keyof FormsEngineContextProps>(key: K, value: FormsEngineContextProps[K]): void;
   };
   updateValue: (fieldId: string, value: unknown) => void;
   handleTabChange(event: SyntheticEvent, newValue: number): void;
   setAccordionExpandedState(sectionId: string, expanded: boolean): void;
   handleToggleSectionAccordion(event: SyntheticEvent, expanded: boolean): void;
   handleViewFieldHelpText(event: SyntheticEvent, field: ContentTypeField): void;
-  pushForm(formProps: FormsEngineProps): void;
+  pushForm(formProps: FormsEngineProps, openerFormState?: FormsEngineContextProps): void;
   popForm(): void;
 }
 
-export type FormEngineContextType = [FormEngineContextProps, MutableRefObject<FormEngineContextApi>];
+export type FormEngineContextType = [FormsEngineContextProps, MutableRefObject<FormsEngineContextApi>];
 
 export const FormEngineContext = createContext<FormEngineContextType>(null);
 

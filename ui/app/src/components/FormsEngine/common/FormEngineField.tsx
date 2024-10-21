@@ -16,9 +16,8 @@
 
 import { ContentTypeField } from '../../../models';
 import { useFormEngineContext } from '../formEngineContext';
-import FormControl from '@mui/material/FormControl';
+import FormControl, { FormControlProps } from '@mui/material/FormControl';
 import Box from '@mui/material/Box';
-import InputLabel from '@mui/material/InputLabel';
 import { FieldRequiredStateIndicator } from './FieldRequiredStateIndicator';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -28,62 +27,67 @@ import Alert from '@mui/material/Alert';
 import FormHelperText from '@mui/material/FormHelperText';
 import React, { PropsWithChildren, ReactNode } from 'react';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { isFieldRequired } from '../validateFieldValue';
+import FormLabel from '@mui/material/FormLabel';
 
 function createLengthBlock({ length, max, min }: { length: number; max: number; min: number }) {
   const pieces = [];
   if (length != null) {
     pieces.push(`${length}`);
   }
-  if (pieces.length && (min != null || max != null)) pieces.push('/');
   if (min != null && max != null) {
-    pieces.push(`${min}-${max}`);
+    pieces.push(` (${min}-${max})`);
   } else if (max != null) {
-    pieces.push(`${max}`);
+    // pieces.push(`≤${max}`);
+    pieces.push(`/${max}`);
+  } else if (min != null) {
+    // pieces.push(`≥${min}`);
+    // pieces.push(` (${min} - ∞)`);
+    pieces.push(`/${min}+`);
   }
   return pieces.length ? (
     <Typography variant="body2" color="textSecondary" children={pieces.join('')} sx={{ mr: 1 }} />
   ) : null;
 }
 
-export function FormEngineField(
-  props: PropsWithChildren<{
+export interface FormEngineFieldProps
+  extends PropsWithChildren<{
     field: ContentTypeField;
+    htmlFor?: string;
+    value?: unknown;
     min?: number;
     max?: number;
     length?: number;
     actions?: ReactNode;
-  }>
-) {
-  const { children, field, max, min, length, actions } = props;
-  const [{ fieldExpandedState }, { current }] = useFormEngineContext();
+    isValid?: boolean;
+    sx?: FormControlProps['sx'];
+  }> {}
+
+export function FormEngineField(props: FormEngineFieldProps) {
+  const { children, field, max, min, length, actions, htmlFor } = props;
+  const [{ fieldHelpExpandedState, fieldValidityState }, { current }] = useFormEngineContext();
   const fieldId = field.id;
   const hasHelpText = Boolean(field.helpText);
   const hasDescription = Boolean(field.description);
   const lengthBlock = createLengthBlock({ length, max, min });
+  const isRequired = isFieldRequired(field);
+  const validityData = fieldValidityState[field.id];
+  const isValid = props.isValid ?? validityData?.isValid;
   return (
     <FormControl
       fullWidth
+      error={!isValid}
       variant="standard"
       data-field-id={fieldId}
-      required={field.validations.required?.value}
-      sx={{ '.MuiFormLabel-asterisk': { display: 'none' } }}
+      required={isRequired}
+      sx={{ '.MuiFormLabel-asterisk': { display: 'none' }, ...props.sx }}
     >
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Box display="flex" alignItems="center">
-          <InputLabel
-            shrink
-            component="label"
-            htmlFor={fieldId}
-            sx={{
-              transform: 'none',
-              transition: 'none',
-              lineHeight: 'inherit',
-              position: 'relative'
-            }}
-          >
+          <FormLabel htmlFor={htmlFor} component="label">
             {field.name}
-          </InputLabel>
-          {field.validations.required?.value && <FieldRequiredStateIndicator isValid={false} />}
+          </FormLabel>
+          {isRequired && <FieldRequiredStateIndicator isValid={isValid} />}
           {hasHelpText && (
             <IconButton size="small" onClick={(e) => current.handleViewFieldHelpText(e, field)}>
               <InfoOutlinedIcon fontSize="small" />
@@ -99,7 +103,7 @@ export function FormEngineField(
         </Box>
       </Box>
       {hasHelpText && (
-        <Collapse in={fieldExpandedState[fieldId]}>
+        <Collapse in={fieldHelpExpandedState[fieldId]}>
           <Alert severity="info" variant="outlined" sx={{ border: 'none' }}>
             <Typography
               variant="body2"
@@ -113,6 +117,9 @@ export function FormEngineField(
       )}
       {children}
       {hasDescription && <FormHelperText>{field.description}</FormHelperText>}
+      {!isValid &&
+        validityData?.messages?.length &&
+        validityData.messages.map((message, key) => <FormHelperText key={key}>{message}</FormHelperText>)}
     </FormControl>
   );
 }

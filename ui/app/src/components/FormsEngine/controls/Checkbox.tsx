@@ -14,12 +14,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ContentTypeField } from '../../models';
-import ContentType from '../../models/ContentType';
+import React, { ChangeEvent, useId } from 'react';
+import { FormEngineField } from '../common/FormEngineField';
+import { ControlProps } from '../types';
+import Switch from '@mui/material/Switch';
 
-export interface ControlProps {
-  value: unknown;
-  setValue(newValue: unknown): void;
-  field: ContentTypeField;
-  contentType: ContentType;
+export interface CheckboxProps extends ControlProps {
+  value: boolean;
 }
+
+export function Checkbox(props: CheckboxProps) {
+  const { field, value, setValue } = props;
+  const htmlId = useId();
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => setValue(e.target.checked);
+  return (
+    <FormEngineField htmlFor={htmlId} field={field}>
+      <Switch checked={value} onChange={handleChange} />
+    </FormEngineField>
+  );
+}
+
+export default Checkbox;

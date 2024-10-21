@@ -17,7 +17,6 @@
 import EnhancedDialog, { EnhancedDialogProps } from '../EnhancedDialog';
 import React from 'react';
 import { FormsEngine, FormsEngineProps } from '../FormsEngine/FormEngine';
-import { paperClasses } from '@mui/material/Paper';
 import { dialogClasses } from '@mui/material/Dialog';
 
 interface FormEngineDialogProps extends EnhancedDialogProps {
@@ -29,8 +28,10 @@ export function FormsEngineDialog(props: FormEngineDialogProps) {
   return (
     <EnhancedDialog
       sx={{
+        // prettier-ignore
         [`& > .${dialogClasses.container} > .${dialogClasses.paper}`]: {
-          height: '100vh'
+          height: '100vh',
+          // overflow: 'hidden'
         }
       }}
       {...rest}

@@ -587,7 +587,17 @@ const epic = combineEpics<GuestStandardAction, GuestStandardAction, GuestState>(
                     site: state.activeSite,
                     username: state.username,
                     localItem: cachedSandboxItem
-                  }).pipe(switchMap(() => initTinyMCE(pathToLock, record, validations, type === 'html' ? setup : {})));
+                  }).pipe(
+                    switchMap(() =>
+                      initTinyMCE(
+                        pathToLock,
+                        record,
+                        validations,
+                        // FE2 TODO: Changed the mapping of rte to html, this probably breaks now
+                        type === 'html' ? setup : {}
+                      )
+                    )
+                  );
                 }
                 break;
               }
