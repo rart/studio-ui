@@ -18,7 +18,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import PathNavigatorTreeUI, { PathNavigatorTreeUIProps } from './PathNavigatorTreeUI';
 import { useDispatch } from 'react-redux';
 import {
-  pathNavigatorTreeBackgroundRefresh,
   pathNavigatorTreeCollapsePath,
   pathNavigatorTreeExpandPath,
   pathNavigatorTreeFetchPathChildren,
@@ -45,8 +44,8 @@ import ContextMenu, { ContextMenuOption } from '../ContextMenu/ContextMenu';
 import { getNumOfMenuOptionsForItem, lookupItemByPath } from '../../utils/content';
 import { previewItem } from '../../state/actions/preview';
 import { getOffsetLeft, getOffsetTop } from '@mui/material/Popover';
-import { showEditDialog, showItemMegaMenu, showPreviewDialog } from '../../state/actions/dialogs';
-import { getStoredPathNavigatorTree } from '../../utils/state';
+import { showItemMegaMenu, showPreviewDialog } from '../../state/actions/dialogs';
+import { getStoredPathNavigatorTree, pickShowContentFormAction } from '../../utils/state';
 import GlobalState from '../../models/GlobalState';
 import PathNavigatorSkeleton from '../PathNavigator/PathNavigatorSkeleton';
 import { DetailedItem } from '../../models/Item';
@@ -59,7 +58,6 @@ import { useSubject } from '../../hooks/useSubject';
 import { debounceTime } from 'rxjs/operators';
 import { useActiveSite } from '../../hooks/useActiveSite';
 import { ApiResponse, GetChildrenOptions } from '../../models';
-import { batchActions } from '../../state/actions/misc';
 import SystemType from '../../models/SystemType';
 import { PathNavigatorTreeItemProps } from './PathNavigatorTreeItem';
 import { UNDEFINED } from '../../utils/constants';
@@ -309,7 +307,13 @@ export function PathNavigatorTree(props: PathNavigatorTreeProps) {
 
   const onPreview = (item: DetailedItem) => {
     if (isEditableViaFormEditor(item)) {
-      dispatch(showEditDialog({ path: item.path, authoringBase, site: siteId, readonly: true }));
+      dispatch(
+        pickShowContentFormAction(
+          false,
+          { update: { path: item.path }, readonly: true },
+          { path: item.path, authoringBase, site: siteId, readonly: true }
+        )
+      );
     } else if (isMediaContent(item.mimeType) || isPdfDocument(item.mimeType)) {
       dispatch(
         showPreviewDialog({

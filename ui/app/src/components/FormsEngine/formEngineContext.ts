@@ -24,6 +24,7 @@ import LookupTable from '../../models/LookupTable';
 
 export interface FormsEngineContextProps {
   activeTab: number;
+  readonly: boolean;
   values: LookupTable<unknown>;
   contentDom: XMLDocument | Element;
   contentXml: string;

@@ -390,7 +390,7 @@ function getTinyMceInitOptions(
 }
 
 export function RichTextEditor(props: RichTextEditorProps) {
-  const { field, value, setValue } = props;
+  const { field, value, setValue, readonly } = props;
   const rteConfig = useRTEConfig();
   const editorRef = useRef<Editor>();
 
@@ -465,6 +465,7 @@ export function RichTextEditor(props: RichTextEditorProps) {
         onInit={(event, editor) => {
           setCurrentLength(editor.getContent({ format: 'text' }).length);
         }}
+        disabled={readonly}
       />
     </FormEngineField>
   );

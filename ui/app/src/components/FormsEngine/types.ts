@@ -22,4 +22,5 @@ export interface ControlProps {
   setValue(newValue: unknown): void;
   field: ContentTypeField;
   contentType: ContentType;
+  readonly: boolean;
 }

@@ -24,6 +24,9 @@ import { EnhancedDialogState } from '../hooks/useEnhancedDialogState';
 import { HighlightMode } from '../models/GlobalState';
 import { PathNavInitPayload } from '../state/actions/pathNavigator';
 import { MediaCardViewModes } from '../components';
+import { FormsEngineProps } from '../components/FormsEngine/FormsEngine';
+import { showEditDialog } from '../state/actions/dialogs';
+import { pushDialog } from '../state/reducers/dialogStack';
 
 export function setStoredGlobalMenuSiteViewPreference(value: 'grid' | 'list', user: string) {
   window.localStorage.setItem(`craftercms.${user}.globalMenuSiteViewPreference`, value);
@@ -439,4 +442,14 @@ export function setStoredWidgetsAccordion(
 
 export function removeStoredWidgetsAccordion(siteIdentifier: string, user: string, id: string): void {
   window.localStorage.removeItem(`craftercms.${user}.widgetsAccordion.${siteIdentifier}.${id}`);
+}
+
+export function pickShowContentFormAction(
+  useLegacy: boolean,
+  newProps: FormsEngineProps,
+  oldProps: ReturnType<typeof showEditDialog>['payload']
+) {
+  return useLegacy
+    ? showEditDialog(oldProps)
+    : pushDialog({ component: 'FormsEngine', props: { formProps: newProps } });
 }

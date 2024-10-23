@@ -25,7 +25,7 @@ export interface TextareaProps extends ControlProps {
 }
 
 export function Textarea(props: TextareaProps) {
-  const { field, value, setValue } = props;
+  const { field, value, setValue, readonly } = props;
   const htmlId = useId();
   const maxLength = field.validations.maxLength?.value;
   return (
@@ -37,6 +37,7 @@ export function Textarea(props: TextareaProps) {
         id={htmlId}
         value={value}
         onChange={(e) => setValue(e.currentTarget.value)}
+        disabled={readonly}
       />
     </FormEngineField>
   );

@@ -14,23 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useEffect, useState } from 'react';
-import { useFormEngineContext } from '../formEngineContext';
+import React from 'react';
 import { FormEngineField } from '../common/FormEngineField';
 import { ControlProps } from '../types';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import { retrieveFieldValue } from '../validateFieldValue';
 import useContentTypes from '../../../hooks/useContentTypes';
-import { fetchContentDOM } from '../../../services/content';
 import useActiveSiteId from '../../../hooks/useActiveSiteId';
-import { forkJoin } from 'rxjs';
-import { deserialize, getInnerHtml } from '../../../utils/xml';
-import { asArray } from '../../../utils/array';
 import useUpdateRefs from '../../../hooks/useUpdateRefs';
 import ListSubheader from '@mui/material/ListSubheader';
 import Skeleton from '@mui/material/Skeleton';
-import { DataSource, LegacyDataSource } from '../../../models';
 import { useKVPLoader } from '../data-sources/hooks';
 
 export interface DropdownProps extends ControlProps {
@@ -38,7 +31,7 @@ export interface DropdownProps extends ControlProps {
 }
 
 export function Dropdown(props: DropdownProps) {
-  const { field, contentType, value, setValue } = props;
+  const { field, contentType, value, setValue, readonly } = props;
   const contentTypes = useContentTypes();
   const effectRefs = useUpdateRefs({ contentTypes });
   const maxLength = field.validations.maxLength?.value;
@@ -63,7 +56,7 @@ export function Dropdown(props: DropdownProps) {
   }
   return (
     <FormEngineField field={field} max={maxLength} length={value.length}>
-      <Select value={value} label="" onChange={handleChange}>
+      <Select value={value} label="" onChange={handleChange} disabled={readonly}>
         {optionGroups.length > 1
           ? optionGroups.map((group) => [
               <ListSubheader key={group.id}>{group.label}</ListSubheader>,

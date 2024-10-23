@@ -27,7 +27,7 @@ export interface SlugProps extends ControlProps {
 }
 
 export function Slug(props: SlugProps) {
-  const { field } = props;
+  const { field, readonly } = props;
   const htmlId = useId();
   const fieldId = field.id === 'fileName' || field.id === 'file-name' ? 'folder-name' : field.id;
   const [context, api] = useFormEngineContext();
@@ -48,6 +48,7 @@ export function Slug(props: SlugProps) {
         id={htmlId}
         value={value}
         onChange={handleChange}
+        disabled={readonly}
         startAdornment={
           <InputAdornment position="start" title={pathInProject} sx={{ mr: 0 }}>
             {pathInProject}

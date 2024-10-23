@@ -29,17 +29,35 @@ import { FormattedMessage } from 'react-intl';
 import LinkOffRoundedIcon from '@mui/icons-material/LinkOffRounded';
 import Tooltip from '@mui/material/Tooltip';
 import useContentTypes from '../../../hooks/useContentTypes';
-import { ElementType, MouseEvent as ReactMouseEvent, ReactNode, useMemo, useRef, useState } from 'react';
+import { MouseEvent as ReactMouseEvent, SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react';
 import BrowseFilesDialog, { BrowseFilesDialogProps } from '../../BrowseFilesDialog';
 import Menu from '@mui/material/Menu';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
-import ListSubheader, { listSubheaderClasses } from '@mui/material/ListSubheader';
 import LookupTable from '../../../models/LookupTable';
 import AllowedContentTypesData from '../../../models/AllowedContentTypesData';
 import { asArray } from '../../../utils/array';
 import ListItemIcon, { listItemIconClasses } from '@mui/material/ListItemIcon';
 import TravelExploreOutlined from '@mui/icons-material/TravelExploreOutlined';
 import { svgIconClasses } from '@mui/material/SvgIcon';
+import FormControl from '@mui/material/FormControl';
+import FormLabel from '@mui/material/FormLabel';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Radio from '@mui/material/Radio';
+import Grid from '@mui/material/Grid';
+import ContentType from '../../../models/ContentType';
+import { fetchLegacyContentTypes } from '../../../services/contentTypes';
+import useActiveSiteId from '../../../hooks/useActiveSiteId';
+import { forkJoin } from 'rxjs';
+import Dialog from '@mui/material/Dialog';
+import { DialogHeader } from '../../DialogHeader';
+import { DialogFooter } from '../../DialogFooter';
+import PrimaryButton from '../../PrimaryButton';
+import SecondaryButton from '../../SecondaryButton';
+import { DialogBody } from '../../DialogBody';
+import Typography from '@mui/material/Typography';
+
+// TODO: process path macros
 
 export interface NodeSelectorProps extends ControlProps {
   value: NodeSelectorItem[];
@@ -53,30 +71,176 @@ export interface NodeSelectorItem {
   component?: Record<string, Primitive>;
 }
 
-interface DataSourceOptions {
-  sections: {
-    id: string;
-    title: ReactNode;
-    options: {
-      key: 'newEmbedded' | 'newShared' | 'browse' | 'search';
-      label: ReactNode;
-      args?: Partial<{ baseBrowsePath: string; allowedTypes: string[]; contentTypeId: string; baseSearchPath: string }>;
-    }[];
-  }[];
+const oppositeStrategy = {
+  embedded: 'shared',
+  shared: 'embedded'
+};
+
+function ItemSelectorCreatePicker(props: {
+  siteId: string;
+  contentTypesLookup: LookupTable<ContentType>;
+  allowedCreateTypes: LookupTable<AllowedContentTypesData>;
+  allowedCreatePaths: string[];
+  onChange(e, choice: { contentTypeId: string; strategy: string }): void;
+}) {
+  const { siteId, allowedCreatePaths, contentTypesLookup, onChange } = props;
+  const [allowedTypes, setAllowedTypes] = useState<string[]>();
+  const [selectedContentType, setSelectedContentType] = useState<string>('');
+  const [allowedCreateTypes, setAllowedCreateTypes] = useState<LookupTable<AllowedContentTypesData>>(
+    props.allowedCreateTypes
+  );
+  const [selectedStrategy, setSelectedStrategy] = useState<string>('');
+  const [allowedStrategies, setAllowedStrategies] = useState({ embedded: false, shared: false });
+  const handleTypeChange = (event: SyntheticEvent) => {
+    const value = (event.target as HTMLInputElement).value;
+    setSelectedContentType(value);
+    onChange?.(event, { contentTypeId: value, strategy: selectedStrategy });
+  };
+  const handleStrategyChange = (event: SyntheticEvent) => {
+    const value = (event.target as HTMLInputElement).value;
+    setSelectedStrategy(value);
+    onChange?.(event, { contentTypeId: selectedContentType, strategy: value });
+  };
+  useEffect(() => {
+    if (allowedCreatePaths.length) {
+      const sub = forkJoin(allowedCreatePaths.map((path) => fetchLegacyContentTypes(siteId, path))).subscribe(
+        (responses) => {
+          const result = [
+            ...new Set(
+              responses.flatMap((types) => types.map((type) => type.name)).concat(Object.keys(props.allowedCreateTypes))
+            )
+          ];
+          const allowedLookup = { ...props.allowedCreateTypes };
+          result.forEach((contentTypeId) => {
+            allowedLookup[contentTypeId] = allowedLookup[contentTypeId] ?? {};
+            allowedLookup[contentTypeId].shared = true;
+          });
+          setAllowedTypes(result);
+          setSelectedContentType(result[0]);
+          setAllowedCreateTypes(allowedLookup);
+          setSelectedStrategy(allowedLookup[result[0]].embedded ? 'embedded' : 'shared');
+        }
+      );
+      return () => sub.unsubscribe();
+    } else {
+      const result = Object.keys(props.allowedCreateTypes);
+      setAllowedTypes(result);
+      setSelectedContentType(result[0]);
+      setSelectedStrategy(props.allowedCreateTypes[result[0]].embedded ? 'embedded' : 'shared');
+    }
+  }, [siteId, allowedCreatePaths, props.allowedCreateTypes]);
+  useEffect(() => {
+    // Note: effect will run twice when selectedContentType changes and the strategy is changed by the effect.
+    if (selectedContentType) {
+      if (!allowedCreateTypes[selectedContentType][selectedStrategy]) {
+        setSelectedStrategy(oppositeStrategy[selectedStrategy]);
+      }
+      setAllowedStrategies({
+        shared: allowedCreateTypes[selectedContentType].shared,
+        embedded: allowedCreateTypes[selectedContentType].embedded
+      });
+    }
+  }, [allowedCreateTypes, selectedContentType, selectedStrategy]);
+  return (
+    <Grid container spacing={2}>
+      <Grid item xs={7}>
+        <FormControl>
+          <FormLabel id="contentTypeLabel">
+            <FormattedMessage defaultMessage="Content Type" />
+          </FormLabel>
+          <RadioGroup aria-labelledby="contentTypeLabel" name="contentType" value={selectedContentType}>
+            {allowedTypes?.map((contentTypeId) => (
+              <FormControlLabel
+                key={contentTypeId}
+                value={contentTypeId}
+                control={<Radio />}
+                label={contentTypesLookup[contentTypeId].name}
+                onChange={handleTypeChange}
+              />
+            ))}
+          </RadioGroup>
+        </FormControl>
+      </Grid>
+      <Grid item xs={5}>
+        <FormControl sx={{ position: 'sticky' }}>
+          <FormLabel id="creationStrategyLabel">
+            <FormattedMessage defaultMessage="Creation Strategy" />
+          </FormLabel>
+          <RadioGroup aria-labelledby="creationStrategyLabel" name="creationStrategy" value={selectedStrategy}>
+            <FormControlLabel
+              disabled={!allowedStrategies.embedded}
+              value="embedded"
+              control={<Radio onChange={handleStrategyChange} />}
+              label="Embedded"
+            />
+            <FormControlLabel
+              disabled={!allowedStrategies.shared}
+              value="shared"
+              control={<Radio onChange={handleStrategyChange} />}
+              label="Shared"
+            />
+          </RadioGroup>
+        </FormControl>
+      </Grid>
+    </Grid>
+  );
 }
 
-const iconByKey: Record<DataSourceOptions['sections'][0]['options'][0]['key'], ElementType> = {
-  browse: TravelExploreOutlined,
-  newEmbedded: AddRounded,
-  newShared: AddRounded,
-  search: SearchRounded
-};
+// Note: browse and search now consolidate all allowed types and strategies.
+// Would that be an issue for content modellers?
+
+interface AllowedPathsData {
+  title: string;
+  path: string;
+  allowedContentTypes: string[];
+}
+
+function ItemSelectorBrowsePicker(props: {
+  allowedBrowsePaths: AllowedPathsData[];
+  onChange(e, choice: AllowedPathsData): void;
+}) {
+  const { allowedBrowsePaths, onChange } = props;
+  const handleChange = (event: SyntheticEvent) =>
+    onChange?.(event, allowedBrowsePaths[(event.target as HTMLInputElement).value]);
+  return (
+    <FormControl>
+      <FormLabel id="contentTypeLabel">
+        <FormattedMessage defaultMessage="Browse Settings" />
+      </FormLabel>
+      <RadioGroup aria-labelledby="contentTypeLabel" name="contentType">
+        {allowedBrowsePaths?.map((data, index) => (
+          <FormControlLabel
+            disableTypography
+            key={index}
+            value={index}
+            control={<Radio />}
+            label={
+              <Box display="flex" flexDirection="column">
+                <Typography component="span">{data.title}</Typography>
+                <Typography variant="body2" color="textSecondary" component="span">
+                  {data.path}
+                </Typography>
+              </Box>
+            }
+            onChange={handleChange}
+          />
+        ))}
+      </RadioGroup>
+    </FormControl>
+  );
+}
+
+function ItemSelectorSearchPicker(props: {}) {}
+
+type PickerType = 'search' | 'browse' | 'create';
 
 export function NodeSelector(props: NodeSelectorProps) {
   const { field, contentType, value, setValue } = props;
   const [{ item: contextItem }, apiRef] = useFormEngineContext();
   const hasContent = value.length;
   const [addMenuOpen, setAddMenuOpen] = useState(false);
+  const [openPickerDialog, setOpenPickerDialog] = useState(false);
+  const [pickerType, setPickerType] = useState<PickerType>(null);
   const [browseDialogState, setBrowseDialogState] = useState<BrowseFilesDialogProps>({
     path: '',
     open: false,
@@ -102,60 +266,51 @@ export function NodeSelector(props: NodeSelectorProps) {
   };
   const addMenuButtonRef = useRef<HTMLButtonElement>();
   const contentTypes = useContentTypes();
-  const dataSourceOptions = useMemo<DataSourceOptions>(() => {
-    const dataSourceOptions = { sections: [] };
+  const siteId = useActiveSiteId();
+  const { menuOptions, allowedCreateTypes, allowedCreatePaths, allowedBrowsePaths } = useMemo(() => {
+    let createAllowed = false;
+    const allowedCreateTypes: LookupTable<AllowedContentTypesData> = {};
+    const allowedCreatePaths = new Set<string>();
+    const allowedBrowsePaths: AllowedPathsData[] = [];
+    const allowedSearchPaths: AllowedPathsData[] = [];
+
     // In dropdown, the `itemManager` "property" is called datasource
     const dataSourceIds = field.properties.itemManager.value.split(',');
     contentTypes[contentType.id].dataSources.forEach((ds) => {
       if (dataSourceIds.includes(ds.id)) {
-        const section: DataSourceOptions['sections'][0] = { id: ds.id, title: ds.title, options: [] };
         switch (ds.type) {
           case 'components': {
             const allowedContentTypesData: LookupTable<AllowedContentTypesData> =
               field.validations.allowedContentTypes?.value ?? [];
             const allowedContentTypes: string[] = Object.keys(allowedContentTypesData);
-            const allowedSharedTypes: string[] = [];
+            const allowedSharedExisingTypes: string[] = [];
             allowedContentTypes.forEach((contentTypeId) => {
               if (allowedContentTypesData[contentTypeId].embedded) {
-                section.options.push({
-                  key: 'newEmbedded',
-                  label: (
-                    <FormattedMessage
-                      defaultMessage="Create embedded {contentType}"
-                      values={{ contentType: contentTypes[contentTypeId].name }}
-                    />
-                  ),
-                  args: { contentTypeId }
-                });
+                createAllowed = true;
+                allowedCreateTypes[contentTypeId] = allowedCreateTypes[contentTypeId] ?? {};
+                allowedCreateTypes[contentTypeId].embedded = true;
               }
               if (allowedContentTypesData[contentTypeId].shared) {
-                section.options.push({
-                  key: 'newShared',
-                  label: (
-                    <FormattedMessage
-                      defaultMessage="Create shared {contentType}"
-                      values={{ contentType: contentTypes[contentTypeId].name }}
-                    />
-                  ),
-                  args: { contentTypeId }
-                });
+                allowedCreateTypes[contentTypeId] = allowedCreateTypes[contentTypeId] ?? {};
+                allowedCreateTypes[contentTypeId].shared = true;
               }
               if (allowedContentTypesData[contentTypeId].sharedExisting) {
-                allowedSharedTypes.push(contentTypeId);
+                createAllowed = true;
+                allowedSharedExisingTypes.push(contentTypeId);
               }
             });
             if (ds.properties.enableBrowse) {
-              section.options.push({
-                key: 'browse',
-                label: <FormattedMessage defaultMessage="Browse" />,
-                args: { ...ds.properties, allowedTypes: allowedSharedTypes }
+              allowedBrowsePaths.push({
+                title: ds.title,
+                path: ds.properties.baseBrowsePath,
+                allowedContentTypes: allowedSharedExisingTypes
               });
             }
             if (ds.properties.enableSearch) {
-              section.options.push({
-                key: 'search',
-                label: <FormattedMessage defaultMessage="Search" />,
-                args: { ...ds.properties, allowedTypes: allowedSharedTypes }
+              allowedSearchPaths.push({
+                title: ds.title,
+                path: ds.properties.baseBrowsePath,
+                allowedContentTypes: allowedSharedExisingTypes
               });
             }
             break;
@@ -167,104 +322,131 @@ export function NodeSelector(props: NodeSelectorProps) {
             // - enableSearchExisting
             // - browsePath
             // - repoPath
-            // - type ("Default Type" property)
+            // - type ("Default Type" property, refers to a content type)
+            const contentTypeId = ds.properties.type?.trim();
             if (ds.properties.enableBrowseExisting) {
-              section.options.push({
-                key: 'browse',
-                label: <FormattedMessage defaultMessage="Browse" />,
-                args: {
-                  baseBrowsePath: ds.properties.browsePath,
-                  allowedTypes: [ds.properties.type].filter(Boolean)
-                }
+              allowedBrowsePaths.push({
+                title: ds.title,
+                path: ds.properties.browsePath || ds.properties.repoPath,
+                allowedContentTypes: contentTypeId ? [contentTypeId] : []
               });
             }
             if (ds.properties.enableSearchExisting) {
-              section.options.push({
-                key: 'search',
-                label: <FormattedMessage defaultMessage="Search" />,
-                args: {
-                  baseSearchPath: ds.properties.repoPath
-                }
+              allowedSearchPaths.push({
+                title: ds.title,
+                path: ds.properties.browsePath,
+                allowedContentTypes: contentTypeId ? [contentTypeId] : []
               });
             }
             if (ds.properties.enableCreateNew) {
-              section.options.push({
-                key: 'newShared',
-                label: <FormattedMessage defaultMessage="Create shared content" />,
-                args: {}
-              });
+              createAllowed = true;
+              // If the datasource has a specific type, add as an allowed, if not, add the repoPath so later on
+              // the system can calculate the types allowed on that path.
+              if (contentTypeId) {
+                allowedCreateTypes[contentTypeId] = allowedCreateTypes[contentTypeId] ?? {};
+                allowedCreateTypes[contentTypeId].shared = true;
+              } else {
+                allowedCreatePaths.add(ds.properties.repoPath);
+              }
             }
             break;
           }
           case 'embedded-content': {
+            createAllowed = true;
             // Embedded content DS properties: contentType
-            section.options.push({
-              key: 'newShared',
-              label: <FormattedMessage defaultMessage="Create embedded content" />,
-              args: { allowedTypes: [ds.properties.contentType] }
-            });
+            const contentTypeId = ds.properties.contentType.trim();
+            allowedCreateTypes[contentTypeId] = allowedCreateTypes[contentTypeId] ?? {};
+            allowedCreateTypes[contentTypeId].embedded = true;
             break;
           }
           default:
             console.warn(`Unknown data source type "${ds.type}" for Item Selector control`, ds);
             return;
         }
-        dataSourceOptions.sections.push(section);
       }
     });
-    return dataSourceOptions;
-  }, [contentType.id, contentTypes, field]);
-  const handleDataSourceOptionClick = (
-    event: ReactMouseEvent<HTMLLIElement, MouseEvent>,
-    option: DataSourceOptions['sections'][0]['options'][0]
-  ) => {
-    setAddMenuOpen(false);
-    switch (option.key) {
-      case 'browse': {
-        const { allowedTypes, baseBrowsePath } = option.args;
-        setBrowseDialogState({ ...browseDialogState, open: true, contentTypes: allowedTypes, path: baseBrowsePath });
-        break;
+
+    const menuOptions = [];
+    const handleDataSourceOptionClick = (event: ReactMouseEvent<HTMLLIElement, MouseEvent>, option: PickerType) => {
+      setAddMenuOpen(false);
+      switch (option) {
+        case 'browse': {
+          if (allowedBrowsePaths.length === 1) {
+            setBrowseDialogState({
+              open: true,
+              contentTypes: allowedBrowsePaths[0].allowedContentTypes,
+              path: allowedBrowsePaths[0].path || '/'
+            });
+          } else {
+            // Open browse picker
+            setPickerType('browse');
+            setOpenPickerDialog(true);
+          }
+          break;
+        }
+        case 'search': {
+          if (allowedSearchPaths.length === 1) {
+            // Open search dialog
+          } else {
+            // Open search picker
+            setPickerType('search');
+            setOpenPickerDialog(true);
+          }
+          break;
+        }
+        case 'create': {
+          setPickerType('create');
+          setOpenPickerDialog(true);
+          break;
+        }
       }
-      case 'search': {
-        break;
-      }
-      case 'newEmbedded': {
-        break;
-      }
-      case 'newShared': {
-        break;
-      }
+    };
+
+    if (allowedSearchPaths.length > 0) {
+      menuOptions.push(
+        <MenuItem key="search" onClick={(event) => handleDataSourceOptionClick(event, 'search')}>
+          <ListItemIcon sx={{ mr: 0 }}>
+            <SearchRounded fontSize="small" />
+          </ListItemIcon>
+          <ListItemText children={<FormattedMessage defaultMessage="Search" />} />
+        </MenuItem>
+      );
     }
-  };
+    if (allowedBrowsePaths.length > 0) {
+      menuOptions.push(
+        <MenuItem key="browse" onClick={(event) => handleDataSourceOptionClick(event, 'browse')}>
+          <ListItemIcon sx={{ mr: 0 }}>
+            <TravelExploreOutlined fontSize="small" />
+          </ListItemIcon>
+          <ListItemText children={<FormattedMessage defaultMessage="Browse" />} />
+        </MenuItem>
+      );
+    }
+    if (createAllowed) {
+      menuOptions.push(
+        <MenuItem key="create" onClick={(event) => handleDataSourceOptionClick(event, 'create')}>
+          <ListItemIcon sx={{ mr: 0 }}>
+            <AddRounded fontSize="small" />
+          </ListItemIcon>
+          <ListItemText children={<FormattedMessage defaultMessage="Create" />} />
+        </MenuItem>
+      );
+    }
+
+    return {
+      menuOptions,
+      allowedCreateTypes,
+      allowedCreatePaths: Array.from(allowedCreatePaths),
+      allowedBrowsePaths,
+      allowedSearchPaths
+    };
+  }, [contentType.id, contentTypes, field]);
   const handleRemoveItem = (event: ReactMouseEvent, index: number) => {
     event.stopPropagation();
     const nextValue = value.concat();
     nextValue.splice(index, 1);
     setValue(nextValue);
   };
-  const menuOptions = dataSourceOptions.sections.flatMap((section, index) => {
-    return [
-      <ListSubheader disableSticky key={`${section.title}_header_${index}`} sx={{ backgroundColor: 'inherit' }}>
-        {section.title}
-      </ListSubheader>,
-      <div key={`${section.title}_items_${index}`} className="datasource-menu-options">
-        {section.options.map((option) => {
-          const Icon = iconByKey[option.key];
-          return (
-            <MenuItem
-              key={`${section.id}-${option.key}`}
-              onClick={(event) => handleDataSourceOptionClick(event, option)}
-            >
-              <ListItemIcon sx={{ mr: 0 }}>
-                <Icon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText children={option.label} />
-            </MenuItem>
-          );
-        })}
-      </div>
-    ];
-  });
   const handleEditItem = (event: ReactMouseEvent, item: NodeSelectorItem) => {
     // console.log('Edit item', item);
     if (item.component) {
@@ -279,6 +461,7 @@ export function NodeSelector(props: NodeSelectorProps) {
       console.log('Is file', item);
     }
   };
+  const handleClosePickerDialog = () => setOpenPickerDialog(false);
   return (
     <>
       <BrowseFilesDialog
@@ -292,12 +475,43 @@ export function NodeSelector(props: NodeSelectorProps) {
         onClose={() => {
           setAddMenuOpen(false);
         }}
-        sx={{
-          [`.${menuItemClasses.root}`]: { pl: 3 }
-        }}
-      >
-        {menuOptions}
-      </Menu>
+        children={menuOptions}
+      />
+      <Dialog open={openPickerDialog} onClose={handleClosePickerDialog} fullWidth maxWidth="sm">
+        <DialogHeader
+          title={<FormattedMessage defaultMessage="Choose how to proceed" />}
+          onCloseButtonClick={handleClosePickerDialog}
+        />
+        <DialogBody>
+          {(() => {
+            switch (pickerType) {
+              case 'browse':
+                return <ItemSelectorBrowsePicker allowedBrowsePaths={allowedBrowsePaths} />;
+              case 'search':
+                return <div>Picker not ready</div>;
+              case 'create':
+                return (
+                  <ItemSelectorCreatePicker
+                    siteId={siteId}
+                    allowedCreateTypes={allowedCreateTypes}
+                    allowedCreatePaths={allowedCreatePaths}
+                    contentTypesLookup={contentTypes}
+                  />
+                );
+            }
+          })()}
+        </DialogBody>
+        {pickerType === 'create' && (
+          <DialogFooter>
+            <SecondaryButton onClick={handleClosePickerDialog}>
+              <FormattedMessage defaultMessage="Cancel" />
+            </SecondaryButton>
+            <PrimaryButton>
+              <FormattedMessage defaultMessage="Accept" />
+            </PrimaryButton>
+          </DialogFooter>
+        )}
+      </Dialog>
       <FormEngineField
         field={field}
         min={field.validations.minCount?.value}
@@ -373,36 +587,29 @@ export function NodeSelector(props: NodeSelectorProps) {
             </List>
           ) : (
             <Box
+              children={menuOptions}
               sx={{
-                [`.${listSubheaderClasses.root}`]: {
-                  textAlign: 'center',
-                  bgcolor: 'background.default',
-                  lineHeight: 2.5
+                p: 1,
+                gap: 1,
+                py: 0.5,
+                display: 'flex',
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                color: 'primary.main',
+                justifyContent: 'center',
+                [`.${svgIconClasses.root}`]: {
+                  color: 'primary.main'
                 },
-                '.datasource-menu-options': {
-                  gap: 1,
-                  py: 0.5,
-                  display: 'flex',
-                  flexDirection: 'row',
-                  flexWrap: 'wrap',
-                  color: 'primary.main',
+                [`.${menuItemClasses.root}`]: {
+                  flexDirection: 'column',
                   justifyContent: 'center',
-                  [`.${svgIconClasses.root}`]: {
-                    color: 'primary.main'
-                  },
-                  [`.${menuItemClasses.root}`]: {
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    borderRadius: 1
-                  },
-                  [`.${listItemIconClasses.root}`]: {
-                    justifyContent: 'center'
-                  }
+                  borderRadius: 1
+                },
+                [`.${listItemIconClasses.root}`]: {
+                  justifyContent: 'center'
                 }
               }}
-            >
-              {menuOptions}
-            </Box>
+            />
           )}
         </Box>
       </FormEngineField>

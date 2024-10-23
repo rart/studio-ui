@@ -19,11 +19,11 @@ import React from 'react';
 import { FormsEngine, FormsEngineProps } from './FormsEngine';
 import { dialogClasses } from '@mui/material/Dialog';
 
-interface FormEngineDialogProps extends EnhancedDialogProps {
+export interface FormsEngineDialogProps extends EnhancedDialogProps {
   formProps: FormsEngineProps;
 }
 
-export function FormsEngineDialog(props: FormEngineDialogProps) {
+export function FormsEngineDialog(props: FormsEngineDialogProps) {
   const { formProps, ...rest } = props;
   return (
     <EnhancedDialog

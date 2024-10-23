@@ -24,13 +24,20 @@ export interface TextProps extends ControlProps {
 }
 
 export function Text(props: TextProps) {
-  const { field, value, setValue } = props;
+  const { field, value, setValue, readonly } = props;
   const htmlId = useId();
   const maxLength = field.validations.maxLength?.value;
   const handleChange: OutlinedInputProps['onChange'] = (e) => setValue(e.currentTarget.value);
   return (
     <FormEngineField htmlFor={htmlId} field={field} max={maxLength} length={value.length}>
-      <OutlinedInput id={htmlId} fullWidth inputProps={{ maxLength }} value={value} onChange={handleChange} />
+      <OutlinedInput
+        id={htmlId}
+        fullWidth
+        inputProps={{ maxLength }}
+        value={value}
+        onChange={handleChange}
+        disabled={readonly}
+      />
     </FormEngineField>
   );
 }

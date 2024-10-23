@@ -114,9 +114,9 @@ import {
 } from './content';
 import {
   getEditorMode,
-  isPdfDocument,
   isImage,
   isNavigable,
+  isPdfDocument,
   isPreviewable,
   isVideo
 } from '../components/PathNavigator/utils';
@@ -130,7 +130,7 @@ import SystemType from '../models/SystemType';
 import { fetchItemVersions } from '../state/actions/versions';
 import StandardAction from '../models/StandardAction';
 import { fetchDependant } from '../services/dependencies';
-import { parseLegacyItemToSandBoxItem } from '../utils/content';
+import { pickShowContentFormAction } from './state';
 
 export type ContextMenuOptionDescriptor<ID extends string = string> = {
   id: ID;
@@ -527,7 +527,7 @@ export const itemActionDispatcher = ({
   option: AllItemActions;
   authoringBase: string;
   dispatch: Dispatch;
-  formatMessage;
+  formatMessage: IntlFormatters['formatMessage'];
   clipboard?: Clipboard;
   onActionSuccess?: any;
   event?: React.MouseEvent<Element, MouseEvent>;
@@ -546,7 +546,16 @@ export const itemActionDispatcher = ({
     switch (option) {
       case 'view': {
         const path = item.path;
-        dispatch(showEditDialog({ site, path, authoringBase, readonly: true }));
+        dispatch(
+          pickShowContentFormAction(
+            false,
+            {
+              readonly: true,
+              update: { path }
+            },
+            { site, path, authoringBase, readonly: true }
+          )
+        );
         break;
       }
       case 'edit': {
@@ -555,16 +564,20 @@ export const itemActionDispatcher = ({
         // const src = `${defaultSrc}site=${site}&path=${embeddedParentPath}&isHidden=true&modelId=${modelId}&type=form`
         const path = item.path;
         fetchWorkflowAffectedItems(site, path).subscribe((items) => {
-          let actionToDispatch = showEditDialog({
-            site,
-            path,
-            authoringBase,
-            onSaveSuccess: batchActions([
-              showEditItemSuccessNotification(),
-              ...(onActionSuccess ? [onActionSuccess] : [])
-            ]),
-            ...extraPayload
-          });
+          const actionToDispatch = pickShowContentFormAction(
+            false,
+            { update: { path } },
+            {
+              site,
+              path,
+              authoringBase,
+              onSaveSuccess: batchActions([
+                showEditItemSuccessNotification(),
+                ...(onActionSuccess ? [onActionSuccess] : [])
+              ]),
+              ...extraPayload
+            }
+          );
           if (items?.length > 0) {
             dispatch(showWorkflowCancellationDialog({ items, onContinue: actionToDispatch }));
           } else {

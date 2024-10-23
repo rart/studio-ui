@@ -24,12 +24,12 @@ export interface CheckboxProps extends ControlProps {
 }
 
 export function Checkbox(props: CheckboxProps) {
-  const { field, value, setValue } = props;
+  const { field, value, setValue, readonly } = props;
   const htmlId = useId();
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => setValue(e.target.checked);
   return (
     <FormEngineField htmlFor={htmlId} field={field}>
-      <Switch checked={value} onChange={handleChange} />
+      <Switch checked={value} onChange={handleChange} disabled={readonly} />
     </FormEngineField>
   );
 }

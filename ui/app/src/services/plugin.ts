@@ -94,8 +94,8 @@ export function importFile(
 ): Promise<any> {
   // @ts-ignore — methods share same signature
   let url = buildFileUrl(...arguments);
-  if (window.location.port === '3000') {
-    url = `http://localhost:3000${url}`;
+  if (import.meta.env.DEV && !hasProtocol(url)) {
+    url = `${origin}${url}`;
   }
   return import(/* @vite-ignore */ url);
 }

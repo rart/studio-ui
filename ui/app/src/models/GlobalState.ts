@@ -68,6 +68,7 @@ import Person from './Person';
 import { BrokenReferencesDialogStateProps } from '../components/BrokenReferencesDialog/types';
 import AllowedContentTypesData from './AllowedContentTypesData';
 import { Editor } from '@tinymce/tinymce-react';
+import { ElementType } from 'react';
 
 export type HighlightMode = 'all' | 'move';
 
@@ -117,6 +118,12 @@ export interface Clipboard {
   type: 'CUT' | 'COPY';
   paths?: string[];
   sourcePath: string;
+}
+
+export interface DialogStackItem<P = unknown> {
+  id: string;
+  component: string | ElementType<P>;
+  props: P;
 }
 
 export interface GlobalState {
@@ -216,6 +223,10 @@ export interface GlobalState {
     historyNavigationType: 'back' | 'forward';
   };
   versions: VersionsStateProps;
+  dialogStack: {
+    ids: string[];
+    byId: LookupTable<DialogStackItem<unknown>>;
+  };
   dialogs: {
     confirm: ConfirmDialogStateProps;
     error: ErrorDialogStateProps;

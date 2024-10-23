@@ -41,10 +41,9 @@ import {
   FormsEngineContextApi,
   FormsEngineContextProps
 } from './formEngineContext';
-import { fetchContentXML, fetchSandboxItem, lock } from '../../services/content';
-import { catchError, map, tap } from 'rxjs/operators';
+import { fetchContentXML, fetchSandboxItem, lock, unlock } from '../../services/content';
 import { fetchSandboxItemComplete } from '../../state/actions/content';
-import { forkJoin, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { createElements, deserialize, fromString, getInnerHtml, newXMLDocument, serialize } from '../../utils/xml';
 import LoadingState from '../LoadingState';
 import Paper, { paperClasses } from '@mui/material/Paper';
@@ -79,7 +78,7 @@ import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
+import Button, { ButtonProps } from '@mui/material/Button';
 import IFrame from '../IFrame';
 import { StickyBox } from './common/StickyBox';
 import ContentCopyRounded from '@mui/icons-material/ContentCopyRounded';
@@ -91,7 +90,7 @@ import useEnhancedDialogContext from '../EnhancedDialog/useEnhancedDialogContext
 import useLocale from '../../hooks/useLocale';
 import { v4 as uuid } from 'uuid';
 import { prettyPrintPerson } from '../../utils/object';
-import { EditOutlined } from '@mui/icons-material';
+import { EditOffOutlined, EditOutlined } from '@mui/icons-material';
 import ContentType from '../../models/ContentType';
 import { SearchBar } from '../SearchBar';
 import validateFieldValue, {
@@ -107,6 +106,10 @@ import { ControlProps } from './types';
 import { toColor } from '../../utils/string';
 import { NodeSelectorItem } from './controls/NodeSelector';
 import { RepeatItem } from './controls/Repeat';
+import Chip, { chipClasses } from '@mui/material/Chip';
+import useItemsByPath from '../../hooks/useItemsByPath';
+import { parseDetailedItemToSandboxItem } from '../../utils/content';
+import SecondaryButton from '../SecondaryButton';
 
 /**
  * Formats a FormsEngine values object with "hints" for attributes or other specifics for the XML serialiser to serialise
@@ -186,6 +189,7 @@ function buildContentXml(values: LookupTable<unknown>, contentTypesLookup: Looku
 }
 
 interface BaseProps extends Partial<UpdateModeProps & RepeatModeProps & CreateModeProps> {
+  readonly?: boolean;
   /** Whether the form is rendered in a dialog. Causes various layout adjustments. **/
   isDialog?: boolean;
   onClose?: EnhancedDialogProps['onClose'];
@@ -226,6 +230,7 @@ const createInitialState: (mixin?: Partial<FormsEngineContextProps>) => FormsEng
   mixin?: Partial<FormsEngineContextProps>
 ) => ({
   pathInProject: null,
+  readonly: true,
   activeTab: 0,
   values: null,
   contentDom: null,
@@ -277,10 +282,110 @@ const buildInitialFieldValidityState = (
   );
 };
 
+const internalLockContentService = (siteId: string, path: string) =>
+  lock(siteId, path).pipe(
+    map(() => ({ locked: true, error: null })),
+    catchError((error) => of({ locked: false, error: error.response?.response }))
+  );
+
+const internalUnlockContentService = (siteId: string, path: string) =>
+  unlock(siteId, path).pipe(
+    map(() => ({ locked: false, error: null })),
+    catchError((error) => of({ locked: true, error: error.response?.response }))
+  );
+
+const fetchRequirements: (args: {
+  siteId: string;
+  path: string;
+  modelId: string;
+  readonly: boolean;
+  contentTypesById: LookupTable<ContentType>;
+}) => Observable<Partial<FormsEngineContextProps>> = ({ siteId, path, modelId, readonly, contentTypesById }) => {
+  return fetchSandboxItem(siteId, path).pipe(
+    switchMap((item) =>
+      forkJoin([
+        of(item),
+        readonly ? of({ locked: false, error: null }) : internalLockContentService(siteId, path),
+        fetchContentXML(siteId, path)
+        // fetchConfigurationXML(siteId, `/content-types${item.contentTypeId}/form-definition.xml`, 'studio'),
+        // fetchContentType(siteId, item.contentTypeId),
+        // of(null)
+        // importPlugin({
+        //   site: siteId,
+        //   type: 'examples',
+        //   name: 'forms-engine',
+        //   file: 'index.js',
+        //   id: 'org.craftercms'
+        // }).catch(() => null)
+      ])
+    ),
+    map(([item, lockResult, contentXml]) => {
+      let contentType = contentTypesById[item.contentTypeId];
+      let contentDom: XMLDocument | Element = fromString(contentXml);
+      let rootTagName = contentDom.documentElement.tagName;
+      if (modelId) {
+        contentDom = contentDom.querySelector(`[id="${modelId}"]`);
+        rootTagName = contentDom.tagName;
+        contentType = contentTypesById[getInnerHtml(contentDom.querySelector(':scope > content-type'))];
+      }
+      const contentObject = deserialize(contentDom, {
+        ignoreAttributes: true,
+        isArray(tagName: string, jPath: string) {
+          // Ideally, we would extract all collection types (item selector, repeat) that have
+          // this sort of syntax to avoid false positives.
+          // e.g.collectionFieldIds.map((fieldId) => `${rootTagName}.${fieldId}.item`).includes(jPath);
+          return jPath.endsWith('.item');
+        }
+      })[rootTagName];
+      const values = createCleanValuesObject(contentType.fields, contentObject, contentTypesById);
+      return {
+        item,
+        values,
+        contentDom,
+        locked: lockResult.locked,
+        lockError: lockResult.error,
+        readonly: readonly || Boolean(lockResult.error),
+        contentXml,
+        contentTypeXml: null,
+        contentType,
+        pathInProject: createPathInProject(path),
+        fieldValidityState: buildInitialFieldValidityState(contentType.fields, values),
+        requirementsFetched: true,
+        sectionExpandedState: buildSectionExpandedState(contentType.sections),
+        formsEngineExtensions: null
+        // formsStack: [
+        //   !modelId && {
+        //     path: '/site/website/index.xml',
+        //     modelId: '310b0c87-c3ca-4da0-4aa2-7002a318d7ce'
+        //   }
+        // ].filter(Boolean)
+      };
+    })
+  );
+};
+
+const createPathInProject = (fullPath: string) => {
+  /* Example:
+   *   item.path = '/site/website/headless-cms-solutions/enterprise/index.xml'
+   *   pieces = item.path.split('/').slice(3)
+   *     ==> ['headless-cms-solutions', 'enterprise', 'index.xml']
+   *   pieces.slice(0, result.length - 2)
+   *     ==> ['headless-cms-solutions'] */
+  const pieces = fullPath
+    .split('/')
+    // .slice(3) removes the first empty string created by the leading slash (''),
+    // 'site', and whatever comes after (e.g. 'components' in /site/components,
+    // or 'website' in /site/website).
+    .slice(3);
+  // .slice(0, length - 2) removes the folder name and file name.
+  // In the case of no folder name, it will return an empty string.
+  return `/${pieces.slice(0, pieces.length - 2).join('/')}/`.replace(/\/+/g, '/');
+};
+
 const DenseTab = styled(Tab)(({ theme }) => ({ minHeight: 0, padding: theme.spacing(1) }));
 
 export function FormsEngine(props: FormsEngineProps) {
-  const { create, update, repeat, isDialog = false } = props;
+  const { create, update, repeat, isDialog = false, readonly: readonlyProp = false } = props;
   const theme = useTheme();
   const { formatMessage } = useIntl();
   const { guestBase } = useEnv();
@@ -303,6 +408,7 @@ export function FormsEngine(props: FormsEngineProps) {
   const [openDrawerSidebar, setOpenDrawerSidebar] = useState(false);
   const isFullScreen = useEnhancedDialogContext()?.isFullScreen;
   const [disableAutoFocus, setDisableAutoFocus] = useState(true);
+  const [enableEditInProgress, setEnableEditInProgress] = useState(false);
   // const effectRefs = useUpdateRefs({ contentTypesById });
 
   // region Context
@@ -314,7 +420,7 @@ export function FormsEngine(props: FormsEngineProps) {
       // it is popped.
       return parentState.formsStackState[parentState.formsStackState.length - 1];
     } else {
-      return createInitialState();
+      return createInitialState({ readonly: readonlyProp });
     }
   });
   const contextApiRef = useRef<FormsEngineContextApi>(null);
@@ -336,7 +442,7 @@ export function FormsEngine(props: FormsEngineProps) {
           state.previousScrollTopPosition = getScrollContainer(containerRef.current).scrollTop;
           parentContextApiRef.current.pushForm(formProps, state);
         } else {
-          let newState: FormsEngineContextProps = createInitialState();
+          const newState: FormsEngineContextProps = createInitialState();
           if (formProps.repeat) {
             newState.values = formProps.repeat.values;
             newState.item = state.item;
@@ -412,36 +518,19 @@ export function FormsEngine(props: FormsEngineProps) {
 
   const requirementsFetched = state.requirementsFetched;
   const hasStackedForms = state.formsStack.length > 0;
+  const liveUpdatedItem = useItemsByPath()[update?.path ?? parentState?.item.path];
 
   // TODO: Consider backend that provides all form requirements: form def xml, context xml, sandbox/detailed item. Lock too?
+  // Fetch requirements
   useEffect(() => {
     // TODO:
     //  - Content type not found
     //  - Item/Content not found
     //  - Invalid params (e.g. create mode without a content type id)
+    // TODO: don't want to refetch unnecessarily (e.g. content types by id ref updated), but currently this is
+    //   excluding refetching if siteId or other props change.
     if (!requirementsFetched && contentTypesById && !repeat) {
       const isCreateMode = Boolean(create);
-      let pathInProject = isCreateMode ? create.path : '';
-      if (!isCreateMode) {
-        /* Example:
-         *   item.path = '/site/website/headless-cms-solutions/enterprise/index.xml'
-         *   pieces = item.path.split('/').slice(3)
-         *     ==> ['headless-cms-solutions', 'enterprise', 'index.xml']
-         *   pieces.slice(0, result.length - 2)
-         *     ==> ['headless-cms-solutions'] */
-        const pieces = (update.path ?? parentState.item.path)
-          .split('/')
-          // .slice(3) removes the first empty string created by the leading slash (''),
-          // 'site', and whatever comes after (e.g. 'components' in /site/components,
-          // or 'website' in /site/website).
-          .slice(3);
-        pathInProject = `/${(isCreateMode
-          ? pieces
-          : // .slice(0, length - 2) removes the folder name and file name.
-            // In the case of no folder name, it will return an empty string.
-            pieces.slice(0, pieces.length - 2)
-        ).join('/')}/`.replace(/\/+/g, '/');
-      }
       if (isCreateMode) {
         // Create mode
         const dateIsoString = new Date().toISOString();
@@ -470,83 +559,45 @@ export function FormsEngine(props: FormsEngineProps) {
           contentType,
           contentDom,
           contentXml,
-          pathInProject,
+          pathInProject: create.path,
           fieldValidityState: buildInitialFieldValidityState(contentType.fields, values),
           requirementsFetched: true,
           sectionExpandedState: buildSectionExpandedState(contentType.sections)
         });
-      } else {
-        const subscription = fetchSandboxItem(siteId, update.path)
-          // region forkJoin
-          .pipe(
-            tap((item) => dispatch(fetchSandboxItemComplete({ item }))),
-            switchMap((item) =>
-              forkJoin([
-                of(item),
-                lock(siteId, update.path).pipe(
-                  map(() => ({ locked: true, error: null })),
-                  catchError((error) => of({ locked: false, error: error.response?.response }))
-                ),
-                fetchContentXML(siteId, update.path)
-                // fetchConfigurationXML(siteId, `/content-types${item.contentTypeId}/form-definition.xml`, 'studio'),
-                // fetchContentType(siteId, item.contentTypeId),
-                // of(null)
-                // importPlugin({
-                //   site: siteId,
-                //   type: 'examples',
-                //   name: 'forms-engine',
-                //   file: 'index.js',
-                //   id: 'org.craftercms'
-                // }).catch(() => null)
-              ])
-            )
-          )
-          // endregion
-          .subscribe(([item, lockResult, contentXml]) => {
-            let contentType = contentTypesById[item.contentTypeId];
-            let contentDom: XMLDocument | Element = fromString(contentXml);
-            let rootTagName = contentDom.documentElement.tagName;
-            if (update.modelId) {
-              contentDom = contentDom.querySelector(`[id="${update.modelId}"]`);
-              rootTagName = contentDom.tagName;
-              contentType = contentTypesById[getInnerHtml(contentDom.querySelector(':scope > content-type'))];
-            }
-            const contentObject = deserialize(contentDom, {
-              ignoreAttributes: true,
-              isArray(tagName: string, jPath: string) {
-                // Ideally, we would extract all collection types (item selector, repeat) that have
-                // this sort of syntax to avoid false positives.
-                // e.g.collectionFieldIds.map((fieldId) => `${rootTagName}.${fieldId}.item`).includes(jPath);
-                return jPath.endsWith('.item');
-              }
-            })[rootTagName];
-            const values = createCleanValuesObject(contentType.fields, contentObject, contentTypesById);
-            contextApiRef.current.update({
-              item,
-              values,
-              contentDom,
-              locked: lockResult.locked,
-              lockError: lockResult.error,
-              contentXml,
-              contentTypeXml: null,
-              contentType,
-              pathInProject,
-              fieldValidityState: buildInitialFieldValidityState(contentType.fields, values),
-              requirementsFetched: true,
-              sectionExpandedState: buildSectionExpandedState(contentType.sections),
-              formsEngineExtensions: null
-              // formsStack: [
-              //   !modelId && {
-              //     path: '/site/website/index.xml',
-              //     modelId: '310b0c87-c3ca-4da0-4aa2-7002a318d7ce'
-              //   }
-              // ].filter(Boolean)
-            });
-          });
+      } /* if (isUpdateMode) */ else {
+        const subscription = fetchRequirements({
+          siteId,
+          path: update.path,
+          modelId: update.modelId,
+          readonly: readonlyProp,
+          contentTypesById
+        }).subscribe((newState) => {
+          dispatch(fetchSandboxItemComplete({ item: newState.item }));
+          contextApiRef.current.update(newState);
+        });
         return () => subscription.unsubscribe();
       }
     }
-  }, [requirementsFetched, siteId, dispatch, contentTypesById, create, update, repeat, parentState?.item.path]);
+  }, [
+    requirementsFetched,
+    siteId,
+    dispatch,
+    contentTypesById,
+    create,
+    update,
+    repeat,
+    parentState?.item.path,
+    readonlyProp
+  ]);
+
+  // Keep the state.item up to date with updates from the socket
+  useEffect(() => {
+    // It'd be good to have a sandboxItem.lastSystemUpdateDate to know if updates other than the content itself have happened
+    if (requirementsFetched && liveUpdatedItem) {
+      contextApiRef.current.update('item', parseDetailedItemToSandboxItem(liveUpdatedItem));
+      // TODO: Re-fetch content?
+    }
+  }, [liveUpdatedItem, requirementsFetched]);
 
   // Resize observer attached to the [scroll] container
   useLayoutEffect(() => {
@@ -633,8 +684,9 @@ export function FormsEngine(props: FormsEngineProps) {
     );
   }
 
+  const readonly = state.readonly;
   const isEmbedded = Boolean(update?.modelId);
-  const isCreateMode = Boolean(!create?.path);
+  const isCreateMode = Boolean(create?.path);
   const isLargeContainer = containerStats?.isLargeContainer;
   const contentType = state.contentType;
   const contentTypeFields = contentType.fields;
@@ -657,6 +709,7 @@ export function FormsEngine(props: FormsEngineProps) {
     containerRef.current.style.overflowY = '';
     contextApiRef.current.popForm();
   };
+  // region const tableOfContents = (...)
   const tableOfContents = (
     <TableOfContents
       theme={theme}
@@ -669,6 +722,7 @@ export function FormsEngine(props: FormsEngineProps) {
       setOpenDrawerSidebar={setOpenDrawerSidebar}
     />
   );
+  // endregion
 
   const currentStackedForm = hasStackedForms ? state.formsStack[state.formsStack.length - 1] : null;
   let stackedFormKey = undefined;
@@ -682,10 +736,41 @@ export function FormsEngine(props: FormsEngineProps) {
     }
   }
 
-  const handleSave = () => {
+  const handleSave: ButtonProps['onClick'] = () => {
     const xml = buildContentXml(values, contentTypesById);
     console.clear();
     console.log(xml);
+  };
+
+  const updateEditEnablement = (enableEdit: boolean, callback: (lockResult) => void) => {
+    if (enableEditInProgress) return;
+    // TODO: Refetch content when enabling edit?
+    setEnableEditInProgress(true);
+    const service = enableEdit ? internalLockContentService : internalUnlockContentService;
+    service(siteId, state.item.path).subscribe((lockResult) => {
+      setEnableEditInProgress(false);
+      contextApiRef.current.update({
+        locked: lockResult.locked,
+        lockError: lockResult.error,
+        readonly: !lockResult.locked
+      });
+      callback?.(lockResult);
+    });
+  };
+
+  const handleEnableEditing: ButtonProps['onClick'] = () => {
+    updateEditEnablement(true);
+  };
+
+  const handleDisableEditing: ButtonProps['onClick'] = () => {
+    updateEditEnablement(false);
+  };
+
+  const handleClose: EnhancedDialogProps['onClose'] = (e, reason) => {
+    // Must not unlock if it is a embedded stacked form and the parent is being edited.
+    internalUnlockContentService(siteId, state.item.path).subscribe(() => {
+      props.onClose?.(e, reason);
+    });
   };
 
   return (
@@ -727,7 +812,7 @@ export function FormsEngine(props: FormsEngineProps) {
               )}
               {props.onClose && (
                 <Tooltip title={<FormattedMessage defaultMessage="Close" />}>
-                  <IconButton size="small" onClick={(e) => props.onClose(e, '' as 'backdropClick')}>
+                  <IconButton size="small" onClick={handleClose}>
                     <Close />
                   </IconButton>
                 </Tooltip>
@@ -738,6 +823,7 @@ export function FormsEngine(props: FormsEngineProps) {
             <CreateModeHeader contentType={contentType} path={create?.path} />
           ) : (
             <EditModeHeader
+              readonly={state.readonly}
               contextApiRef={contextApiRef}
               isEmbedded={isEmbedded}
               state={state}
@@ -802,6 +888,7 @@ export function FormsEngine(props: FormsEngineProps) {
                             setValue={(newValue) => contextApiRef.current.updateValue(fieldId, newValue)}
                             field={contentTypeFields[fieldId]}
                             contentType={contentType}
+                            readonly={readonly}
                           />
                         );
                       })}
@@ -811,27 +898,55 @@ export function FormsEngine(props: FormsEngineProps) {
               </Grid>
               <Grid item xs>
                 <StickyBox className="space-y">
-                  <FormControl fullWidth>
-                    <InputLabel id="demo-simple-select-label">Add to release</InputLabel>
-                    <Select labelId="demo-simple-select-label" label="Add to release">
-                      <MenuItem>AWS Landing Page</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <Paper sx={{ p: 1 }} className="space-y">
-                    <TextField multiline fullWidth label={<FormattedMessage defaultMessage="Version Comment" />} />
-                    <Button fullWidth variant="contained" onClick={handleSave}>
-                      <FormattedMessage defaultMessage="Save" />
+                  {readonly ? (
+                    <>
+                      <Alert severity="info" variant="outlined" icon={<EditOffOutlined />}>
+                        <FormattedMessage defaultMessage="Readonly mode" />
+                      </Alert>
+                      <SecondaryButton
+                        fullWidth
+                        variant="outlined"
+                        onClick={handleEnableEditing}
+                        loading={enableEditInProgress}
+                      >
+                        <FormattedMessage defaultMessage="Edit" />
+                      </SecondaryButton>
+                    </>
+                  ) : (
+                    <>
+                      <FormControl fullWidth>
+                        <InputLabel id="demo-simple-select-label">Add to release</InputLabel>
+                        <Select labelId="demo-simple-select-label" label="Add to release">
+                          <MenuItem>AWS Landing Page</MenuItem>
+                        </Select>
+                      </FormControl>
+                      <Paper sx={{ p: 1 }} className="space-y">
+                        <TextField multiline fullWidth label={<FormattedMessage defaultMessage="Version Comment" />} />
+                        <Button fullWidth variant="contained" onClick={handleSave}>
+                          <FormattedMessage defaultMessage="Save" />
+                        </Button>
+                      </Paper>
+                      <SecondaryButton
+                        fullWidth
+                        variant="outlined"
+                        onClick={handleDisableEditing}
+                        loading={enableEditInProgress}
+                      >
+                        <FormattedMessage defaultMessage="Release lock" />
+                      </SecondaryButton>
+                      <Button fullWidth variant="outlined">
+                        <FormattedMessage defaultMessage="Publish" />
+                      </Button>
+                      <Button fullWidth variant="outlined">
+                        <FormattedMessage defaultMessage="Unpublish" />
+                      </Button>
+                    </>
+                  )}
+                  {props.onClose && (
+                    <Button fullWidth variant="outlined" disabled={enableEditInProgress} onClick={handleClose}>
+                      <FormattedMessage defaultMessage="Close" />
                     </Button>
-                  </Paper>
-                  <Button fullWidth variant="outlined">
-                    <FormattedMessage defaultMessage="Publish" />
-                  </Button>
-                  <Button fullWidth variant="outlined">
-                    <FormattedMessage defaultMessage="Unpublish" />
-                  </Button>
-                  <Button fullWidth variant="outlined">
-                    <FormattedMessage defaultMessage="Close" />
-                  </Button>
+                  )}
                 </StickyBox>
               </Grid>
             </Grid>
@@ -1019,7 +1134,8 @@ function EditModeHeader({
   state,
   theme,
   objectId,
-  activeTab
+  activeTab,
+  readonly
 }: {
   contextApiRef: MutableRefObject<FormsEngineContextApi>;
   isEmbedded: boolean;
@@ -1027,6 +1143,7 @@ function EditModeHeader({
   theme: Theme;
   objectId: string;
   activeTab: number;
+  readonly: boolean;
 }) {
   const item = state.item;
   const localeConf = useLocale();
@@ -1049,9 +1166,22 @@ function EditModeHeader({
         <Box display="flex" alignItems="end" justifyContent="space-between">
           <Box className="space-y" sx={{ flexBasis: '50%' }}>
             {/* Item display */}
-            <Box display="flex" alignItems="center">
-              <ItemTypeIcon item={typeIconItem} sx={{ color: 'info.main', mr: 1 }} />
+            <Box display="flex" alignItems="center" className="space-x">
+              <ItemTypeIcon item={typeIconItem} sx={{ color: 'info.main' }} />
               <Typography>{itemLabel}</Typography>
+              {readonly && (
+                <Chip
+                  sx={{ [`.${chipClasses.label}`]: { display: 'flex', alignItems: 'center' } }}
+                  color="warning"
+                  variant="outlined"
+                  label={
+                    <>
+                      <FormattedMessage defaultMessage="Readonly" />
+                      <EditOffOutlined fontSize="small" sx={{ ml: 1 }} />
+                    </>
+                  }
+                />
+              )}
             </Box>
             {/* Item metadata */}
             <div>
@@ -1204,3 +1334,5 @@ function CreateModeHeader({ contentType, path }: { path: string; contentType: Co
   );
 }
 // endregion
+
+export default FormsEngine;
