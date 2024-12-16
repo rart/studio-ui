@@ -50,3 +50,4 @@ export { default as RepeatGroupItem } from './RepeatGroupItem';
 export { default as SiteExplorer } from './SiteExplorer';
 export { default as Sites } from './Sites';
 export { default as Sleep } from './Sleep';
+export { default as Unlock } from './Unlock';

@@ -2446,6 +2446,10 @@ export default function register() {
     lazy(() => import('@mui/icons-material/EmergencyRecordingRounded'))
   );
   components.set(
+    '@mui/icons-material/EmergencyRounded',
+    lazy(() => import('@mui/icons-material/EmergencyRounded'))
+  );
+  components.set(
     '@mui/icons-material/EmergencyShareRounded',
     lazy(() => import('@mui/icons-material/EmergencyShareRounded'))
   );

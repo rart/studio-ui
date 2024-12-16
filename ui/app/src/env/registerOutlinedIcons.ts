@@ -2442,6 +2442,10 @@ export default function register() {
     lazy(() => import('@mui/icons-material/EmailOutlined'))
   );
   components.set(
+    '@mui/icons-material/EmergencyOutlined',
+    lazy(() => import('@mui/icons-material/EmergencyOutlined'))
+  );
+  components.set(
     '@mui/icons-material/EmergencyRecordingOutlined',
     lazy(() => import('@mui/icons-material/EmergencyRecordingOutlined'))
   );

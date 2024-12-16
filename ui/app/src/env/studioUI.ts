@@ -374,7 +374,8 @@ export const icons = {
   RepeatGroupItem: lazy(() => import('../icons/RepeatGroupItem')),
   SiteExplorer: lazy(() => import('../icons/SiteExplorer')),
   Sites: lazy(() => import('../icons/Sites')),
-  Sleep: lazy(() => import('../icons/Sleep'))
+  Sleep: lazy(() => import('../icons/Sleep')),
+  Unlock: lazy(() => import('../icons/Unlock'))
 };
 export const services = {
   audit: auditService,
