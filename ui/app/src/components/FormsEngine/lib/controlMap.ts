@@ -20,12 +20,11 @@ import { ElementType, lazy } from 'react';
 // | 'image'
 // | 'text'
 export type BuiltInControlType =
-	| 'repeat'
 	| 'auto-filename'
 	| 'aws-file-upload'
-	| 'box-file-upload'
-	| 'checkbox-group'
+	| 'box-file-upload' // TODO: Remove
 	| 'checkbox'
+	| 'checkbox-group'
 	| 'date-time'
 	| 'disabled'
 	| 'dropdown'
@@ -35,32 +34,32 @@ export type BuiltInControlType =
 	| 'input'
 	| 'internal-name'
 	| 'label'
-	| 'link-input'
-	| 'link-textarea'
-	| 'linked-dropdown'
+	| 'link-input' // TODO: Not in BPs, seems not to be in use
+	| 'link-textarea' // TODO: Not in BPs, seems not to be in use
+	| 'linked-dropdown' // TODO: Not in BPs, seems not to be in use
 	| 'locale-selector'
 	| 'node-selector'
 	| 'numeric-input'
 	| 'page-nav-order'
+	| 'repeat'
 	| 'rte'
 	| 'textarea'
 	| 'time'
 	| 'transcoded-video-picker'
-	| 'uuid'
+	| 'uuid' // TODO: Not in BPs, seems not to be in use
 	| 'video-picker';
 
 export const controlMap: Record<BuiltInControlType, ElementType> = {
-	repeat: lazy(() => import('../controls/Repeat')),
 	'auto-filename': lazy(() => import('../controls/AutoFileName')),
 	'aws-file-upload': null,
 	'box-file-upload': null,
-	'checkbox-group': lazy(() => import('../controls/CheckboxGroup')),
 	checkbox: lazy(() => import('../controls/Checkbox')),
+	'checkbox-group': lazy(() => import('../controls/CheckboxGroup')),
 	'date-time': null,
 	disabled: null,
 	dropdown: lazy(() => import('../controls/Dropdown')),
 	'file-name': lazy(() => import('../controls/Slug')),
-	forcehttps: null, // TODO: probably not needed, getname returns `disabled`
+	forcehttps: null,
 	'image-picker': lazy(() => import('../controls/ImagePicker')),
 	input: lazy(() => import('../controls/Text')),
 	'internal-name': null,
@@ -72,6 +71,7 @@ export const controlMap: Record<BuiltInControlType, ElementType> = {
 	'node-selector': lazy(() => import('../controls/NodeSelector')),
 	'numeric-input': lazy(() => import('../controls/Numeric')),
 	'page-nav-order': null,
+	repeat: lazy(() => import('../controls/Repeat')),
 	rte: lazy(() => import('../controls/RichTextEditor')),
 	textarea: lazy(() => import('../controls/Textarea')),
 	time: null,

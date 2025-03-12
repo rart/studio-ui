@@ -250,7 +250,7 @@ export function showAlert({
 
 export function useShowAlert() {
 	const dispatch = useDispatch();
-	return (props: Parameters<typeof showAlert>[0]) => showAlert({ ...props, dispatch });
+	return (props: Omit<Parameters<typeof showAlert>[0], 'dispatch'>) => showAlert({ ...props, dispatch });
 }
 
 /** Retrieves the value of an atom from the supplied jotai store */

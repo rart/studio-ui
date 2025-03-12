@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { CSSProperties, useRef, useState } from 'react';
+import React, { CSSProperties, ElementType, Ref, useRef, useState } from 'react';
 import IconButton from '@mui/material/IconButton';
 import InputBase, { inputBaseClasses, InputBaseProps } from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/SearchRounded';
@@ -33,18 +33,19 @@ const messages = defineMessages({
 
 export type SearchBarClassKey = 'root' | 'inputRoot' | 'inputInput' | 'actionIcon';
 
-interface SearchBarProps {
+export interface SearchBarProps {
 	sx?: PaperProps['sx'];
 	dense?: boolean;
 	keyword: string[] | string;
 	showActionButton?: boolean;
-	actionButtonIcon?: any;
+	actionButtonIcon?: ElementType;
 	showDecoratorIcon?: boolean;
-	decoratorIcon?: any;
+	decoratorIcon?: ElementType;
 	autoFocus?: boolean;
 	backgroundColor?: string;
 	placeholder?: string;
 	disabled?: boolean;
+	inputRef?: Ref<HTMLInputElement>;
 	classes?: Partial<Record<SearchBarClassKey, string>>;
 	sxs?: PartialSxRecord<SearchBarClassKey>;
 	styles?: Partial<Record<SearchBarClassKey, CSSProperties>>;
@@ -102,6 +103,7 @@ export function SearchBar(props: SearchBarProps) {
 					'&.noPadded': {
 						padding: '0 0 0 12px'
 					},
+					minHeight: '39px',
 					...sxs?.root
 				},
 				props.sx
@@ -158,7 +160,14 @@ export function SearchBar(props: SearchBarProps) {
 				)}
 				inputProps={{
 					'aria-label': finalPlaceholder,
-					ref: inputRef
+					ref: (node) => {
+						inputRef.current = node;
+						if (typeof props.inputRef === 'function') {
+							props.inputRef(node);
+						} else if (props.inputRef) {
+							props.inputRef.current = node;
+						}
+					}
 				}}
 			/>
 			{showActionButton && (

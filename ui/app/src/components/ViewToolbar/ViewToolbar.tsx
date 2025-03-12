@@ -16,23 +16,24 @@
 
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import React, { PropsWithChildren } from 'react';
+import React, { forwardRef, PropsWithChildren, Ref } from 'react';
 import { PartialSxRecord } from '../../models';
 import { Theme } from '@mui/material';
 import { SystemStyleObject } from '@mui/system/styleFunctionSx/styleFunctionSx';
 
 export type ViewToolbarClassKey = 'appBar' | 'toolbar';
 
-type ViewToolbarProps = PropsWithChildren<{
+export type ViewToolbarProps = PropsWithChildren<{
 	elevation?: number;
 	classes?: Partial<Record<ViewToolbarClassKey, string>>;
 	sxs?: PartialSxRecord<ViewToolbarClassKey>;
 }>;
 
-export const ViewToolbar = React.memo<ViewToolbarProps>(function (props) {
+const ViewToolbar = forwardRef<HTMLDivElement, ViewToolbarProps>(function (props, ref) {
 	const { children, elevation = 0, sxs } = props;
 	return (
 		<AppBar
+			ref={ref}
 			color="inherit"
 			position="relative"
 			elevation={elevation}
@@ -63,4 +64,8 @@ export const ViewToolbar = React.memo<ViewToolbarProps>(function (props) {
 	);
 });
 
-export default ViewToolbar;
+const Memo = React.memo<ViewToolbarProps & { ref: Ref<HTMLDivElement> }>(ViewToolbar);
+
+export { Memo as ViewToolbar };
+
+export default Memo;

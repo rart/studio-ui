@@ -266,9 +266,9 @@ export function deepCopy<T extends object = any>(target: T): T {
 	return JSON.parse(JSON.stringify(target));
 }
 
-export const foo = {};
+export const foo = Object.freeze({});
 
-export const fooFn = () => undefined;
+export const fooFn = Object.freeze(() => undefined);
 
 export function isApiResponse(source: object): boolean {
 	source = source ?? {};

@@ -15,44 +15,69 @@
  */
 
 import { toColor } from '../../../utils/string';
-import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionSummary, { AccordionSummaryProps } from '@mui/material/AccordionSummary';
 import Typography from '@mui/material/Typography';
-import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionDetails, { AccordionDetailsProps } from '@mui/material/AccordionDetails';
 import Accordion from '@mui/material/Accordion';
 import React, { ReactNode, useContext } from 'react';
 import { ContentTypeSection } from '../../../models';
 import { useTheme } from '@mui/material/styles';
 import { StableFormContext } from '../lib/formsEngineContext';
 import { useAtom } from 'jotai';
+import type { AccordionProps } from '@mui/material/Accordion';
+import { consolidateSx } from '../../../utils/system';
 
-export interface SectionAccordionProps {
+export interface SectionAccordionProps extends Omit<AccordionProps, 'slotProps' | 'children'> {
+	children?: ReactNode;
+	colorize?: boolean;
 	section: ContentTypeSection;
 	renderControl(fieldId: string, fieldIndex: number): ReactNode;
+	slotProps?: Partial<{
+		accordionSummary: Partial<AccordionSummaryProps>;
+		accordionDetails: Partial<AccordionDetailsProps>;
+	}>;
 }
 
-export function SectionAccordion({ section, renderControl }: SectionAccordionProps) {
+export function SectionAccordion({
+	section,
+	renderControl,
+	children,
+	slotProps,
+	colorize = true,
+	...accordionProps
+}: SectionAccordionProps) {
 	const theme = useTheme();
 	const [isExpanded, setExpanded] = useAtom(
 		useContext(StableFormContext).atoms.expandedStateBySectionId[section.title]
 	);
 	return (
 		<Accordion
+			{...accordionProps}
 			expanded={isExpanded}
 			onChange={(e, expanded) => setExpanded(expanded)}
-			sx={{
-				borderLeftColor: toColor(section.title, 0.7),
-				borderLeftWidth: 5,
-				borderLeftStyle: 'solid',
-				borderTopLeftRadius: theme.shape.borderRadius,
-				borderBottomLeftRadius: theme.shape.borderRadius,
-				borderTopRightRadius: theme.shape.borderRadius,
-				borderBottomRightRadius: theme.shape.borderRadius
-			}}
+			sx={consolidateSx(
+				colorize && {
+					position: 'relative',
+					borderLeftColor: toColor(section.title, 0.7),
+					borderLeftWidth: 5,
+					borderLeftStyle: 'solid',
+					borderTopLeftRadius: theme.shape.borderRadius,
+					borderBottomLeftRadius: theme.shape.borderRadius,
+					borderTopRightRadius: theme.shape.borderRadius,
+					borderBottomRightRadius: theme.shape.borderRadius
+				},
+				accordionProps.sx
+			)}
 		>
-			<AccordionSummary data-section-id={section.title}>
+			<AccordionSummary {...slotProps?.accordionSummary} data-section-id={section.title}>
 				<Typography>{section.title}</Typography>
+				{slotProps?.accordionSummary?.children}
 			</AccordionSummary>
-			<AccordionDetails className="space-y-2">{section.fields.map(renderControl)}</AccordionDetails>
+			<AccordionDetails className="space-y-2" {...slotProps?.accordionDetails}>
+				{section.fields.map(renderControl)}
+				{slotProps?.accordionDetails?.children}
+			</AccordionDetails>
+			{children}
 		</Accordion>
 	);
 }

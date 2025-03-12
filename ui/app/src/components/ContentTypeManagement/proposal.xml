@@ -1,0 +1,209 @@
+<!--
+  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!-- Jonathan confirmed attributes are OK to be used as UM can still manipulate them if needed. -->
+
+<!--
+
+Requirements:
+- Configurable system fields for components and pages
+  - Force the installation/site to have more/less mandatory fields
+- Mandatory basic properties per control
+- New types of objects
+
+-->
+
+<!--
+
+Recommendation:
+	- "Crawl":
+		- Implement only control/data-source listing via proposal A (i.e. existing functionality).
+	- "Walk":
+		- Implement overrides.
+	- "Run":
+		- 🚀 Sky is not the limit.
+	- Consider allowing only extending the descriptors and not overriding them to protect ourselves. Or pick what's overridable.
+		- Overriding certain properties like display-template, no-template-required, merge-strategy can be break things, there's associated code.
+		- Extending or overriding control properties is not currently supported via configuration; we have freedom to choose.
+	- Two main aspects: Listing, and Properties
+		- Control/DS Listing: Proposal "A" allows for the cleanest configuration (less verbose) while maintaining current site-config-tools.xml functionality.
+		- Control/DS Properties/Form: Proposal "A" allows for the cleanest configuration (less verbose) while allowing to override control descriptor stuff.
+
+Control Listing:
+
+	Proposal A:
+	- The TypeBuilder app has its defaults in the code. No configuration is needed.
+	- To exclude a control, <controlExclusions>aws-file-upload</controlExclusions> or <controls id="aws-file-upload" exclude="true" />
+
+	Proposal B:
+	- The TypeBuilder app will render only the controls listed in the configuration.
+
+Control Properties/Form:
+
+	- Code defaults.
+
+	Proposal A:
+	- If a <descriptor/> tag is present, the descriptor is deep merged/mixed with the code file descriptor.
+		- This would allow overriding ANYTHING and EVERYTHING
+		- To remove a property, set it to "null".
+
+	Proposal B:
+	- If a <descriptor/> tag is present, the descriptor overrides with the code file descriptor.
+		- This would allow overriding ANYTHING and EVERYTHING
+		- To remove a property, simply omit.
+		- Very verbose as it requires defining the complete descriptor. Easy to miss/mess something.
+
+-->
+
+<!--
+=========================================================
+(Default Config) or (Upgraded site without plugins):
+=========================================================
+	<widget id="craftercms.components.ContentTypeManagement"/>
+
+===========================
+Upgraded site with plugins:
+===========================
+	<widget id="craftercms.components.ContentTypeManagement">
+		<configuration>
+			<controls id="control-x">
+				<icon id="@mui/material-icons/CoolIconRounded"/>
+				<plugin
+					id="org.craftercms.plugin.control.x"
+					type="authoring"
+					name="controls"
+					fileName="main.js"
+				/>
+				<descriptor
+					id="control-x"
+					name="Control X"
+					extends="aws-file-upload"
+					description="A control that does X"
+				>
+					...
+				</descriptor>
+			</controls>
+		</configuration>
+	</widget>
+-->
+
+<widget id="craftercms.components.ContentTypeManagement">
+	<configuration>
+
+		<controls id="aws-file-upload"/>
+		<controls id="file-name"/>
+		<controls id="input"/>
+		<controls id="textarea"/>
+		<controls id="control-x">
+			<icon id="@mui/material-icons/CoolIconRounded"/>
+			<plugin
+				id="org.craftercms.plugin.control.x"
+				type="authoring"
+				name="controls"
+				fileName="main.js"
+			/>
+			<!-- descriptorOverrides -->
+			<descriptor
+				id="control-x"
+				name="Control X"
+				extends="aws-file-upload"
+				description="A control that does X"
+			>
+				<sections title="Properties">
+					<fields>tokenize</fields>
+					<fields>maxlength</fields>
+					<fields>true</fields>
+				</sections>
+				<sections title="Constraints">
+					<fields>required</fields>
+				</sections>
+				<fields>
+					<maxlength
+						id="maxlength"
+						type="numeric-input"
+						name="Max Length"
+						defaultValue="100"
+					/>
+					<tokenize
+						id="tokenize"
+						type="checkbox"
+						name="Tokenize"
+						defaultValue="true"
+					/>
+				</fields>
+			</descriptor>
+		</controls>
+
+		<controlExclusions>aws-file-upload</controlExclusions>
+
+		<dataSources id="components" />
+		<dataSources id="img-desktop-upload" />
+		<dataSourceExclusions>aws-file-upload</dataSourceExclusions>
+
+		<objectTypes id="root" /><!-- A system type from which all types (ootb or custom) inherit from -->
+		<objectTypes id="page" />
+		<objectTypes id="component" />
+		<objectTypes id="type-x" extends="component">
+			<!-- Defines the type's basic editable properties -->
+			<properties>
+				<sections title="Form Basics">
+					<fields>title</fields>
+					<fields>description</fields>
+					...
+				</sections>
+				<sections title="Quick Create">
+					<fields>showInQuickCreate</fields>
+					<fields>quickCreateDestinationPattern</fields>
+				</sections>
+				<fields><!-- FE2 ContentTypeField objects -->
+					<title
+						id="title"
+						type="input"
+						name="Page URL"
+					/>
+					<description/>
+					<showInQuickCreate/>
+					<quickCreateDestinationPattern/>
+				</fields>
+			</properties>
+			<template /><!-- Defines the type's initial sections and controls (same struct as "<properties/>" section) -->
+			<baseControlFields /><!-- Defines the common field properties for this type (i.e. all controls inherit these props) -->
+		</objectTypes>
+
+	</configuration>
+</widget>
+
+<!-- To serialize to the same XML as today, we need the sections to be `properties` and `constraints` -->
+<!-- Annoying: Sections don't have an id. -->
+<!-- Annoying: maxlength is a property, but it should be a constraint? Can we move it to constraints? Also spelled maxlength instead of maxLength -->
+
+<!--
+
+Deep Merge:
+
+	`{ validations: { required: true } }` & `{ validations: { minLength: 5 } }` = `{ validations: { required: true, minLength: 5 } }`
+
+	Definition: Combining objects into a single object, merging properties recursively.
+							If an object contains another object as a property, the properties of that inner object will also be merged.
+
+Shallow Merge:
+
+	`{ validations: { required: true } }` & `{ validations: { minLength: 5 } }` = `{ validations: { minLength: 5 } }`
+
+	Definition: Combining objects into a single object, merging properties at the top level only.
+							If an object contains another object as a property, the properties of that inner object will not be merged.
+
+-->

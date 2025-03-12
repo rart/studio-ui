@@ -452,6 +452,7 @@ function parseLegacyFormDefinition(definition: LegacyFormDefinition): ContentTyp
 	return {
 		id: definition['content-type'],
 		name: definition.title,
+		description: definition.description,
 		quickCreate: (definition.quickCreate ?? '').trim() === 'true',
 		quickCreatePath: definition.quickCreatePath,
 		type: definition.objectType as LegacyContentType['type'],
@@ -463,10 +464,11 @@ function parseLegacyFormDefinition(definition: LegacyFormDefinition): ContentTyp
 	};
 }
 
-function parseLegacyContentType(legacy: LegacyContentType): ContentType {
+export function parseLegacyContentType(legacy: LegacyContentType): ContentType {
 	return {
 		id: legacy.form,
 		name: legacy.label.replace('Component - ', ''),
+		description: null,
 		quickCreate: legacy.quickCreate,
 		quickCreatePath: legacy.quickCreatePath,
 		type: legacy.type,

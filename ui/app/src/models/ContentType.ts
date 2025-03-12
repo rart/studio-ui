@@ -160,6 +160,7 @@ export type LegacyComponentType = 'component' | 'page' | 'file';
 export interface ContentType {
 	id: string;
 	name: string;
+	description: string;
 	type: LegacyComponentType;
 	quickCreate: boolean;
 	quickCreatePath: string;
@@ -246,13 +247,13 @@ export interface LegacyContentType {
 	contentAsFolder: boolean;
 	copyDepedencyPattern: string[];
 	deleteDependencyPattern: string[];
-	form: string;
+	form: string; // The type id (legacyType.form === legacyType.name)
 	formPath: string;
 	imageThumbnail: string;
 	label: string;
 	lastUpdated: string;
 	modelInstancePath: string;
-	name: string;
+	name: string; // The type id (legacyType.form === legacyType.name)
 	noThumbnail: boolean;
 	nodeRef: any;
 	pathExcludes: string[];

@@ -18,16 +18,15 @@ import { DetailedItem } from '../../models/Item';
 import StandardAction from '../../models/StandardAction';
 import { EnhancedDialogState } from '../../hooks/useEnhancedDialogState';
 import { EnhancedDialogProps } from '../EnhancedDialog';
+import { NewContentDialogProps } from '../NewContentDialog/utils';
 
 export interface ChangeContentTypeDialogBaseProps {
 	item: DetailedItem;
-	rootPath: string;
-	compact: boolean;
-	selectedContentType: string;
+	initialCompact: boolean;
 }
 
 export interface ChangeContentTypeDialogProps extends ChangeContentTypeDialogBaseProps, EnhancedDialogProps {
-	onContentTypeSelected?(response?: any): any;
+	onContentTypeSelected?: NewContentDialogProps['onContentTypeSelected'];
 }
 
 export interface ChangeContentTypeDialogStateProps extends ChangeContentTypeDialogBaseProps, EnhancedDialogState {

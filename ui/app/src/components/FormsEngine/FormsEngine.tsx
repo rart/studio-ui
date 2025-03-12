@@ -117,6 +117,7 @@ import { createParsedValuesObject } from './lib/valueRetrievers';
 import { fromString } from '../../utils/xml';
 import { displayWithPendingChangesConfirm } from '../../utils/ui';
 import useActiveUser from '../../hooks/useActiveUser';
+import FormBackToTop from './components/FormBackToTop';
 
 export interface FormSavePromiseResult {
 	close: boolean;
@@ -830,13 +831,7 @@ function FormOrchestrator(props: FormsEngineProps) {
 							))
 						)}
 						{/* Spacer & back to top */}
-						<Box minHeight={100} justifyContent="center" alignItems="center" display="flex">
-							<Tooltip title={<FormattedMessage defaultMessage="Back to top" />}>
-								<Fab onClick={() => containerRef.current.scroll({ top: 0, behavior: 'smooth' })}>
-									<ArrowUpward />
-								</Fab>
-							</Tooltip>
-						</Box>
+						<FormBackToTop containerRef={containerRef} />
 					</Grid>
 					<Grid size="grow">
 						<StickyBox className="space-y">
