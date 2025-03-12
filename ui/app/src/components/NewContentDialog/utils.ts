@@ -15,13 +15,13 @@
  */
 
 import { ContentType } from '../../models/ContentType';
-import { DetailedItem } from '../../models/Item';
+import { ContentItem } from '../../models/Item';
 import StandardAction from '../../models/StandardAction';
 import { EnhancedDialogProps } from '../EnhancedDialog';
 import { EnhancedDialogState } from '../../hooks/useEnhancedDialogState';
 
 export interface NewContentDialogBaseProps {
-	item: DetailedItem;
+	item: ContentItem;
 	initialCompact: boolean;
 }
 
