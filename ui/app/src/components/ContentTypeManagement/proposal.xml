@@ -39,8 +39,10 @@ Recommendation:
 		- Overriding certain properties like display-template, no-template-required, merge-strategy can be break things, there's associated code.
 		- Extending or overriding control properties is not currently supported via configuration; we have freedom to choose.
 	- Two main aspects: Listing, and Properties
-		- Control/DS Listing: Proposal "A" allows for the cleanest configuration (less verbose) while maintaining current site-config-tools.xml functionality.
-		- Control/DS Properties/Form: Proposal "A" allows for the cleanest configuration (less verbose) while allowing to override control descriptor stuff.
+		- Control/DS Listing: Proposal "A" allows for the cleanest configuration (less verbose) while maintaining current
+													site-config-tools.xml functionality.
+		- Control/DS Properties/Form: Proposal "A" allows for the cleanest configuration (less verbose) while allowing to
+													override control descriptor stuff.
 
 Control Listing:
 
@@ -100,110 +102,158 @@ Upgraded site with plugins:
 	</widget>
 -->
 
-<widget id="craftercms.components.ContentTypeManagement">
-	<configuration>
+<ui>
+	<widget id="craftercms.components.ContentTypeManagement">
+		<configuration>
 
-		<controls id="aws-file-upload"/>
-		<controls id="file-name"/>
-		<controls id="input"/>
-		<controls id="textarea"/>
-		<controls id="control-x">
-			<icon id="@mui/material-icons/CoolIconRounded"/>
-			<plugin
-				id="org.craftercms.plugin.control.x"
-				type="authoring"
-				name="controls"
-				fileName="main.js"
-			/>
-			<!-- descriptorOverrides -->
-			<descriptor
-				id="control-x"
-				name="Control X"
-				extends="aws-file-upload"
-				description="A control that does X"
-			>
-				<sections title="Properties">
-					<fields>tokenize</fields>
-					<fields>maxlength</fields>
-					<fields>true</fields>
-				</sections>
-				<sections title="Constraints">
-					<fields>required</fields>
-				</sections>
-				<fields>
-					<maxlength
-						id="maxlength"
-						type="numeric-input"
-						name="Max Length"
-						defaultValue="100"
+			<controls id="aws-file-upload">
+				<icon id="@mui/material-icons/CoolIconRounded"/>
+				<!-- descriptorOverrides -->
+				<descriptor
+					id="control-x"
+					name="Control X"
+					extends="aws-file-upload"
+					description="A control that does X"
+				>
+					<sections title="Properties">
+						<fields>tokenize</fields>
+						<fields>maxlength</fields>
+						<fields>true</fields>
+					</sections>
+					<sections title="Constraints">
+						<fields>required</fields>
+					</sections>
+					<fields>
+						<maxlength
+							id="maxlength"
+							type="numeric-input"
+							name="Max Length"
+							defaultValue="100"
+						/>
+						<tokenize
+							id="tokenize"
+							type="checkbox"
+							name="Tokenize"
+							defaultValue="true"
+						/>
+					</fields>
+				</descriptor>
+			</controls>
+			<controls id="control-x">
+				<icon id="@mui/material-icons/CoolIconRounded"/>
+				<plugin
+					id="org.craftercms.plugin.control.x"
+					type="authoring"
+					name="controls"
+					fileName="main.js"
+				/>
+				<!-- descriptorOverrides -->
+				<descriptor
+					id="control-x"
+					name="Control X"
+					extends="aws-file-upload"
+					description="A control that does X"
+				>
+					<sections title="Properties">
+						<fields>tokenize</fields>
+						<fields>maxlength</fields>
+						<fields>true</fields>
+					</sections>
+					<sections title="Constraints">
+						<fields>required</fields>
+					</sections>
+					<fields>
+						<maxlength
+							id="maxlength"
+							type="numeric-input"
+							name="Max Length"
+							defaultValue="100"
+						/>
+						<tokenize
+							id="tokenize"
+							type="checkbox"
+							name="Tokenize"
+							defaultValue="true"
+						/>
+					</fields>
+				</descriptor>
+			</controls>
+
+			<controlExclusions>aws-file-upload</controlExclusions>
+
+			<dataSources id="components"/>
+			<dataSources id="img-desktop-upload"/>
+			<dataSourceExclusions>aws-file-upload</dataSourceExclusions>
+
+			<objectTypes
+				id="root"/><!-- A system type from which all types (ootb or custom) inherit from -->
+			<objectTypes id="page"/>
+			<objectTypes id="component"/>
+			<objectTypes id="type-x" extends="component">
+				<!-- Defines the type's basic editable properties -->
+				<properties>
+					<sections title="Form Basics">
+						<fields>title</fields>
+						<fields>description</fields>
+						...
+					</sections>
+					<sections title="Quick Create">
+						<fields>showInQuickCreate</fields>
+						<fields>quickCreateDestinationPattern</fields>
+					</sections>
+					<fields><!-- FE2 ContentTypeField objects -->
+						<title
+							id="title"
+							type="input"
+							name="Page URL"
+						/>
+						<description/>
+						<showInQuickCreate/>
+						<quickCreateDestinationPattern/>
+					</fields>
+				</properties>
+				<template/><!-- Defines the type's initial sections and controls (same struct as "<properties/>" section) -->
+				<baseControlFields/><!-- Defines the common field properties for this type (i.e. all controls inherit these props) -->
+			</objectTypes>
+
+
+		</configuration>
+	</widget>
+	<widget id="craftercms.components.FormsEngine">
+		<configuration>
+			<controlMap>
+				<aws-file-upload>
+					<plugin
+						id="org.craftercms.plugin.control.x"
+						type="authoring"
+						name="controls"
+						fileName="main.js"
 					/>
-					<tokenize
-						id="tokenize"
-						type="checkbox"
-						name="Tokenize"
-						defaultValue="true"
-					/>
-				</fields>
-			</descriptor>
-		</controls>
+				</aws-file-upload>
+			</controlMap>
+			<validatorsMap/>
+		</configuration>
+	</widget>
+</ui>
 
-		<controlExclusions>aws-file-upload</controlExclusions>
+	<!-- To serialize to the same XML as today, we need the sections to be `properties` and `constraints` -->
+	<!-- Annoying: Sections don't have an id. -->
+	<!-- Annoying: maxlength is a property, but it should be a constraint? Can we move it to constraints? Also spelled maxlength instead of maxLength -->
 
-		<dataSources id="components" />
-		<dataSources id="img-desktop-upload" />
-		<dataSourceExclusions>aws-file-upload</dataSourceExclusions>
+	<!--
 
-		<objectTypes id="root" /><!-- A system type from which all types (ootb or custom) inherit from -->
-		<objectTypes id="page" />
-		<objectTypes id="component" />
-		<objectTypes id="type-x" extends="component">
-			<!-- Defines the type's basic editable properties -->
-			<properties>
-				<sections title="Form Basics">
-					<fields>title</fields>
-					<fields>description</fields>
-					...
-				</sections>
-				<sections title="Quick Create">
-					<fields>showInQuickCreate</fields>
-					<fields>quickCreateDestinationPattern</fields>
-				</sections>
-				<fields><!-- FE2 ContentTypeField objects -->
-					<title
-						id="title"
-						type="input"
-						name="Page URL"
-					/>
-					<description/>
-					<showInQuickCreate/>
-					<quickCreateDestinationPattern/>
-				</fields>
-			</properties>
-			<template /><!-- Defines the type's initial sections and controls (same struct as "<properties/>" section) -->
-			<baseControlFields /><!-- Defines the common field properties for this type (i.e. all controls inherit these props) -->
-		</objectTypes>
+	Deep Merge:
 
-	</configuration>
-</widget>
+		`{ validations: { required: true } }` & `{ validations: { minLength: 5 } }` = `{ validations: { required: true, minLength: 5 } }`
 
-<!-- To serialize to the same XML as today, we need the sections to be `properties` and `constraints` -->
-<!-- Annoying: Sections don't have an id. -->
-<!-- Annoying: maxlength is a property, but it should be a constraint? Can we move it to constraints? Also spelled maxlength instead of maxLength -->
+		Definition: Combining objects into a single object, merging properties recursively.
+								If an object contains another object as a property, the properties of that inner object will also be merged.
 
-<!--
+	Shallow Merge:
 
-Deep Merge:
+		`{ validations: { required: true } }` & `{ validations: { minLength: 5 } }` = `{ validations: { minLength: 5 } }`
 
-	`{ validations: { required: true } }` & `{ validations: { minLength: 5 } }` = `{ validations: { required: true, minLength: 5 } }`
+		Definition: Combining objects into a single object, merging properties at the top level only.
+								If an object contains another object as a property, the properties of that inner object will not be merged.
 
-	Definition: Combining objects into a single object, merging properties recursively.
-							If an object contains another object as a property, the properties of that inner object will also be merged.
-
-Shallow Merge:
-
-	`{ validations: { required: true } }` & `{ validations: { minLength: 5 } }` = `{ validations: { minLength: 5 } }`
-
-	Definition: Combining objects into a single object, merging properties at the top level only.
-							If an object contains another object as a property, the properties of that inner object will not be merged.
-
--->
+	-->

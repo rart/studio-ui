@@ -36,7 +36,7 @@ import SelectContentType from '../SelectContentType/SelectContentType';
 import ContentType, { ContentTypeField } from '../../models/ContentType';
 import { ContentTypeListingProps } from './ContentTypeListing';
 import ViewToolbar from '../ViewToolbar/ViewToolbar';
-import { ArrowBackRounded, SwapCallsOutlined } from '@mui/icons-material';
+import { ArrowBackRounded, DeleteOutline, MoveToInboxRounded, SwapCallsOutlined } from '@mui/icons-material';
 import Drawer from '@mui/material/Drawer';
 import { styled, useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
@@ -94,9 +94,15 @@ import {
 	createVirtualType
 } from './utils';
 import Divider from '@mui/material/Divider';
-import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
 import Tooltip from '@mui/material/Tooltip';
-import XmlDeserializer from '../XmlDeserializer';
+import XmlDeserializer from '../XmlTools/XmlDeserializer';
+import ContentTypeCardMedia from './ContentTypeCardMedia';
+import MoreVertRounded from '@mui/icons-material/MoreVertRounded';
+import DeleteRounded from '@mui/icons-material/DeleteRounded';
+import DeleteOutlined from '@mui/icons-material/DeleteOutlined';
+import DriveFileMoveOutlined from '@mui/icons-material/DriveFileMoveOutlined';
+import { XmlKeys } from '../FormsEngine/lib/formConsts';
+import XmlBeautifier from '../XmlTools/XmlBeautifier';
 
 export interface ContentTypeManagementProps {
 	embedded?: boolean;
@@ -147,6 +153,7 @@ export function ContentTypeManagement(props: ContentTypeManagementProps) {
 					showOpenLauncherButton={showAppsButton}
 				/>
 			)}
+			{/* @ts-ignore */}
 			{view === 'edit' && <EditTypeApp type={selectedType} onClose={handleBackToList} />}
 		</>
 	);
@@ -338,12 +345,12 @@ function EditTypeApp(props: EditTypeAppProps) {
 		if (!controlDescriptor)
 			return showAlert({ message: `No control descriptor found for field "${field.name}" of type "${field.type}"` });
 		setSelectedFieldIdPath(fieldPath);
+		const pathToField = makeIntoTypeFieldStructPath(fieldPath);
 		const virtualType = createVirtualType(controlDescriptor);
-		const fieldValues = retrieveProperty(typeValuesObject, fieldPath);
+		const fieldValues = retrieveProperty(typeValuesObject, pathToField);
 		setVirtualTypeValues(fieldValues);
 		setVirtualContentType(virtualType);
-		// TODO: Fix for nested (repeatFieldId.fieldId.repeatFieldId.fieldId)
-		setSelectedField(type.fields[field.id]);
+		setSelectedField(retrieveProperty(type.fields, pathToField));
 		setOpen(true);
 	};
 	const handleSetValues: TypeFormsEngineProps['setValues'] = (values) => {
@@ -353,6 +360,7 @@ function EditTypeApp(props: EditTypeAppProps) {
 	const fieldEditorView = virtualContentType ? (
 		<TypeFormsEngine
 			field={selectedField}
+			fieldIdPath={selectedFieldIdPath}
 			type={virtualContentType}
 			values={virtualTypeValues}
 			setValues={handleSetValues}
@@ -370,7 +378,7 @@ function EditTypeApp(props: EditTypeAppProps) {
 						<FormattedMessage defaultMessage="New Content Type" />
 					</Typography>
 				</Box>
-				<div>
+				<div hidden>
 					<Button onClick={() => setOpen(!open)}>Toggle Drawer</Button>
 				</div>
 			</ViewToolbar>
@@ -440,6 +448,7 @@ function EditTypeAppLeft(props: {
 		<ErrorBoundary>
 			<Provider store={store}>
 				<StableFormContext.Provider value={stableFormContextRef.current}>
+					<XmlBeautifier beautifierOptions={{ xmlWhitespaceSensitivity: 'ignore' }} />
 					<TypeHeader type={type} />
 					<Box className="space-y-2">
 						<SectionAccordion
@@ -673,7 +682,6 @@ function FieldChip(props: FieldChipProps) {
 
 function TypeHeader({ type }: { type: ContentType }) {
 	const dispatch = useDispatch();
-	const isDark = useIsDarkModeTheme();
 	const handleDeleteType: ButtonProps['onClick'] = () => {
 		dispatch(
 			pushDialog({
@@ -689,7 +697,7 @@ function TypeHeader({ type }: { type: ContentType }) {
 	};
 	return (
 		<Box display="flex" gap={1} mb={2}>
-			<Box sx={{ bgcolor: `grey.${isDark ? '900' : '100'}`, width: 200, height: 200 }} />
+			<ContentTypeCardMedia typeId={type.id} sx={{ width: 200, height: 200 }} />
 			<Box>
 				<Typography variant="body2" color="textSecondary">
 					{type.id}
@@ -698,10 +706,10 @@ function TypeHeader({ type }: { type: ContentType }) {
 					<ItemTypeIcon item={{ mimeType: '', systemType: type.type }} sx={{ color: 'info.main', mr: 0.5 }} />{' '}
 					{type.name}
 				</Typography>
-				<Typography variant="body2" mb={0.5}>
-					{type.description ?? <FormattedMessage defaultMessage="(no description)" />}
+				<Typography variant="body2" color="textSecondary" mb={0.5}>
+					{type.description || <FormattedMessage defaultMessage="(no description)" />}
 				</Typography>
-				<Typography variant="body2" mb={0.5}>
+				<Typography variant="body2" color="textSecondary" mb={0.5}>
 					<FormattedMessage
 						defaultMessage="Last updated on <b>{date}</b> by <b>{user}</b>"
 						values={{
@@ -718,7 +726,10 @@ function TypeHeader({ type }: { type: ContentType }) {
 					<FormattedMessage defaultMessage="Template" />
 				</Button>
 				<Button onClick={undefined}>
-					<FormattedMessage defaultMessage="Controller" />
+					<FormattedMessage defaultMessage="Form Controller" />
+				</Button>
+				<Button onClick={undefined}>
+					<FormattedMessage defaultMessage="Groovy Controller" />
 				</Button>
 				<Button onClick={handleDeleteType} color="error">
 					<FormattedMessage defaultMessage="Delete" />
@@ -731,34 +742,65 @@ function TypeHeader({ type }: { type: ContentType }) {
 interface TypeFormsEngineProps {
 	type: ContentType;
 	field: ContentTypeField;
+	fieldIdPath: string;
 	values: LookupTable<unknown>;
 	setValues(values: LookupTable<unknown>): void;
 }
 
 function TypeFormsEngineUI(props: TypeFormsEngineProps) {
-	const { type, field, values, setValues } = props;
+	const { type, field, fieldIdPath, values, setValues } = props;
 	const containerRef = useRef<HTMLDivElement>(undefined);
 	const stableFormContext = useStableFormContext();
 	const controlDescriptor = controlDescriptors[field.type as BuiltInControlType];
+	const fieldPathIds = fieldIdPath?.split('.') ?? [];
+	useEffect(() => {
+		containerRef.current.scroll({ top: 0, behavior: 'smooth' });
+	}, [type]);
 	return (
-		<Box sx={{ py: 2, height: 'var(--container-height)', overflow: 'auto' }}>
-			<Container ref={containerRef} maxWidth="md">
-				<Typography variant="h6">
-					<FormattedMessage defaultMessage="Edit Field" />
-				</Typography>
-				<Breadcrumbs separator={<NavigateNextIcon fontSize="small" />}>
-					<Typography variant="body2">Select Type</Typography>
-					<Typography variant="body2">Configure Properties</Typography>
-				</Breadcrumbs>
-
+		<Box ref={containerRef} sx={{ py: 2, height: 'var(--container-height)', overflow: 'auto' }}>
+			<Container maxWidth="md">
+				<Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+					<Box display="flex" flexDirection="column">
+						<Typography variant="h6">
+							<FormattedMessage defaultMessage="Edit Field" />
+						</Typography>
+						{fieldPathIds.length > 1 && (
+							<Breadcrumbs separator={<NavigateNextIcon fontSize="small" />}>
+								{fieldPathIds.map((id) => (
+									<Typography variant="body2">{id}</Typography>
+								))}
+							</Breadcrumbs>
+						)}
+					</Box>
+					<Box display="flex" alignItems="center">
+						<Tooltip title={<FormattedMessage defaultMessage="Move to another section" />}>
+							<IconButton>
+								<DriveFileMoveOutlined />
+							</IconButton>
+						</Tooltip>
+						{field.id !== XmlKeys.internalName && field.id !== XmlKeys.fileName && (
+							<Tooltip title={<FormattedMessage defaultMessage="Delete field" />}>
+								<IconButton>
+									<DeleteRounded />
+								</IconButton>
+							</Tooltip>
+						)}
+						<Divider sx={{ ml: 1, mr: 2 }} orientation="vertical" flexItem />
+						<Button variant="outlined" onClick={undefined}>
+							<FormattedMessage defaultMessage="Done" />
+						</Button>
+					</Box>
+				</Box>
 				<ListItem
 					component="div"
 					secondaryAction={
-						<Tooltip title={<FormattedMessage defaultMessage="Swap Field" />}>
-							<IconButton>
-								<SwapCallsOutlined />
-							</IconButton>
-						</Tooltip>
+						field.type === 'file-name' && (
+							<Tooltip title={<FormattedMessage defaultMessage="Swap Field" />}>
+								<IconButton>
+									<SwapCallsOutlined />
+								</IconButton>
+							</Tooltip>
+						)
 					}
 				>
 					<ListItemIcon>

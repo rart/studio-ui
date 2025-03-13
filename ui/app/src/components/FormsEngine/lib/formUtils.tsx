@@ -435,9 +435,12 @@ export function createObjectWithSystemProps(
 		[XmlKeys.dateModified]: mixin?.[XmlKeys.dateModified] ?? dateIsoString,
 		[XmlKeys.dateModifiedDt]: mixin?.[XmlKeys.dateModifiedDt] ?? dateIsoString,
 		[XmlKeys.savedAsDraft]: mixin?.[XmlKeys.savedAsDraft] ?? 'false',
-		// TODO: folderName? fileName?
 		[XmlKeys.folderName]: mixin?.[XmlKeys.folderName] ?? '',
-		[XmlKeys.fileName]: mixin?.[XmlKeys.fileName] ?? 'index.xml'
+		// TODO: folderName? fileName?
+		[XmlKeys.fileName]: mixin?.[XmlKeys.fileName] ?? 'index.xml',
+		// TODO: These are part of the type
+		[XmlKeys.disabled]: mixin?.[XmlKeys.disabled] ?? false,
+		[XmlKeys.placeInNav]: mixin?.[XmlKeys.placeInNav] ?? false
 	};
 	return contentObject;
 }

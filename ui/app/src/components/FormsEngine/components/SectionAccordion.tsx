@@ -18,14 +18,15 @@ import { toColor } from '../../../utils/string';
 import AccordionSummary, { AccordionSummaryProps } from '@mui/material/AccordionSummary';
 import Typography from '@mui/material/Typography';
 import AccordionDetails, { AccordionDetailsProps } from '@mui/material/AccordionDetails';
+import type { AccordionProps } from '@mui/material/Accordion';
 import Accordion from '@mui/material/Accordion';
 import React, { ReactNode, useContext } from 'react';
 import { ContentTypeSection } from '../../../models';
 import { useTheme } from '@mui/material/styles';
 import { StableFormContext } from '../lib/formsEngineContext';
 import { useAtom } from 'jotai';
-import type { AccordionProps } from '@mui/material/Accordion';
 import { consolidateSx } from '../../../utils/system';
+import { isDarkModeTheme } from '../../../hooks/useIsDarkModeTheme';
 
 export interface SectionAccordionProps extends Omit<AccordionProps, 'slotProps' | 'children'> {
 	children?: ReactNode;
@@ -47,11 +48,13 @@ export function SectionAccordion({
 	...accordionProps
 }: SectionAccordionProps) {
 	const theme = useTheme();
+	const isDarkMode = isDarkModeTheme(theme);
 	const [isExpanded, setExpanded] = useAtom(
 		useContext(StableFormContext).atoms.expandedStateBySectionId[section.title]
 	);
 	return (
 		<Accordion
+			elevation={isDarkMode ? 2 : undefined}
 			{...accordionProps}
 			expanded={isExpanded}
 			onChange={(e, expanded) => setExpanded(expanded)}

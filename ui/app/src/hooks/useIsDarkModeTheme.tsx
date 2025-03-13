@@ -15,9 +15,14 @@
  */
 
 import { useTheme } from '@mui/material/styles';
+import type { Theme } from '@mui/material/styles';
 
 export function useIsDarkModeTheme() {
 	return useTheme().palette.mode === 'dark';
+}
+
+export function isDarkModeTheme(theme: Theme) {
+	return theme.palette.mode === 'dark';
 }
 
 export default useIsDarkModeTheme;

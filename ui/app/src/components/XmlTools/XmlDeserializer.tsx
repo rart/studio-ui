@@ -18,9 +18,9 @@ import React, { useState } from 'react';
 import Grid from '@mui/material/Grid2';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import { deserialize } from '../utils/xml';
+import { deserialize } from '../../utils/xml';
 import { X2jOptions } from 'fast-xml-parser';
-import LookupTable from '../models/LookupTable';
+import LookupTable from '../../models/LookupTable';
 
 export interface XmlDeserializerProps {
 	maxRows?: number;

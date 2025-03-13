@@ -64,7 +64,7 @@ const ViewToolbar = forwardRef<HTMLDivElement, ViewToolbarProps>(function (props
 	);
 });
 
-const Memo = React.memo<ViewToolbarProps & { ref: Ref<HTMLDivElement> }>(ViewToolbar);
+const Memo = React.memo<ViewToolbarProps & { ref?: Ref<HTMLDivElement> }>(ViewToolbar);
 
 export { Memo as ViewToolbar };
 

@@ -14,23 +14,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useEffect, useRef } from 'react';
-import useActiveSiteId from '../../hooks/useActiveSiteId';
-import { fetchPreviewImage } from '../../services/contentTypes';
-import CardMedia, { CardMediaProps } from '@mui/material/CardMedia';
+import React from 'react';
 import Card, { CardProps } from '@mui/material/Card';
 import ContentType from '../../models/ContentType';
 import CardHeader from '@mui/material/CardHeader';
-import { useTheme } from '@mui/material/styles';
 import { consolidateSx } from '../../utils/system';
 import CardActionArea from '@mui/material/CardActionArea';
 import type { BoxProps } from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
-
-export interface ContentTypeCardMediaProps extends CardMediaProps {
-	typeId: string;
-	skeleton?: boolean;
-}
+import { ContentTypeCardMedia } from './ContentTypeCardMedia';
 
 export interface ContentTypeCardProps extends Omit<CardProps, 'onClick'> {
 	type: ContentType;
@@ -39,45 +31,6 @@ export interface ContentTypeCardProps extends Omit<CardProps, 'onClick'> {
 	compact?: boolean;
 	skeleton?: boolean;
 	onClick?(event: React.MouseEvent<HTMLButtonElement, MouseEvent>, contentType: ContentType): void;
-}
-
-export function ContentTypeCardMedia(props: ContentTypeCardMediaProps) {
-	const { typeId, sx, skeleton, ...cardMediaProps } = props;
-	const elementRef = useRef<HTMLImageElement>(undefined);
-	const siteId = useActiveSiteId();
-	const theme = useTheme();
-	useEffect(() => {
-		if (!typeId) return;
-		const sub = fetchPreviewImage(siteId, typeId).subscribe((response) => {
-			const img = elementRef.current;
-			const imgUrl = URL.createObjectURL(new Blob([response.response]));
-			img.src = imgUrl;
-			img.onload = () => {
-				// Image has loaded, revoke the object URL to free memory.
-				URL.revokeObjectURL(imgUrl);
-			};
-		});
-		return () => {
-			sub.unsubscribe();
-		};
-	}, [siteId, typeId]);
-	return (
-		<CardMedia
-			sx={consolidateSx(
-				{
-					height: '200px',
-					display: 'block',
-					bgcolor: theme.palette.mode === 'light' ? 'grey.100' : 'grey.900',
-					objectFit: 'contain'
-				},
-				skeleton ? { transform: 'none' } : { '&:not([src])': { opacity: 0 } },
-				sx
-			)}
-			{...cardMediaProps}
-			ref={elementRef}
-			component={skeleton ? Skeleton : 'img'}
-		/>
-	);
 }
 
 const compactSxOverrides: Record<'actionArea' | 'cardMedia', BoxProps['sx']> = {
