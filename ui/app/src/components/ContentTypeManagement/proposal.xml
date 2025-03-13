@@ -216,29 +216,33 @@ Upgraded site with plugins:
 				<baseControlFields/><!-- Defines the common field properties for this type (i.e. all controls inherit these props) -->
 			</objectTypes>
 
-
 		</configuration>
 	</widget>
 	<widget id="craftercms.components.FormsEngine">
 		<configuration>
 			<controlMap>
-				<aws-file-upload>
+				<control-x>
 					<plugin
 						id="org.craftercms.plugin.control.x"
 						type="authoring"
 						name="controls"
 						fileName="main.js"
 					/>
-				</aws-file-upload>
+				</control-x>
 			</controlMap>
 			<validatorsMap/>
 		</configuration>
 	</widget>
 </ui>
 
-	<!-- To serialize to the same XML as today, we need the sections to be `properties` and `constraints` -->
-	<!-- Annoying: Sections don't have an id. -->
-	<!-- Annoying: maxlength is a property, but it should be a constraint? Can we move it to constraints? Also spelled maxlength instead of maxLength -->
+<!-- Decision:
+We will not allow OOTB controls to be overwritten. Clients can replace the control at a
+type level by using same id with their custom control.
+-->
+
+<!-- To serialize to the same XML as today, we need the sections to be `properties` and `constraints` -->
+<!-- Annoying: Sections don't have an id. -->
+<!-- Annoying: maxlength is a property, but it should be a constraint? Can we move it to constraints? Also spelled maxlength instead of maxLength -->
 
 	<!--
 

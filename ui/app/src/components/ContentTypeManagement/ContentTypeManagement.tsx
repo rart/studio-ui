@@ -16,17 +16,8 @@
 
 import GlobalAppToolbar from '../GlobalAppToolbar';
 import { FormattedMessage } from 'react-intl';
-import React, {
-	createElement,
-	ElementType,
-	PropsWithChildren,
-	RefObject,
-	useEffect,
-	useMemo,
-	useRef,
-	useState
-} from 'react';
-import Box, { BoxProps } from '@mui/material/Box';
+import React, { createElement, PropsWithChildren, RefObject, useEffect, useMemo, useRef, useState } from 'react';
+import Box from '@mui/material/Box';
 import { onSubmittingAndOrPendingChangeProps } from '../../hooks/useEnhancedDialogState';
 import { useDispatch } from 'react-redux';
 import useContentTypeList from '../../hooks/useContentTypeList';
@@ -36,7 +27,8 @@ import SelectContentType from '../SelectContentType/SelectContentType';
 import ContentType, { ContentTypeField } from '../../models/ContentType';
 import { ContentTypeListingProps } from './ContentTypeListing';
 import ViewToolbar from '../ViewToolbar/ViewToolbar';
-import { ArrowBackRounded, DeleteOutline, MoveToInboxRounded, SwapCallsOutlined } from '@mui/icons-material';
+import SwapCallsOutlined from '@mui/icons-material/SwapCallsOutlined';
+import ArrowBackRounded from '@mui/icons-material/ArrowBackRounded';
 import Drawer from '@mui/material/Drawer';
 import { styled, useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
@@ -67,25 +59,19 @@ import {
 import ErrorBoundary from '../ErrorBoundary';
 import { buildSectionExpandedStateAtoms, setFieldAtoms, useShowAlert } from '../FormsEngine/lib/formUtils';
 import { fooFn, retrieveProperty } from '../../utils/object';
-import ButtonBase, { ButtonBaseProps } from '@mui/material/ButtonBase';
-import { alpha } from '@mui/system/colorManipulator';
-import { capitalize } from '../../utils/string';
 import { getMarginSxProps } from '../../utils/ui';
 import Container from '@mui/material/Container';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import NavigateNextIcon from '@mui/icons-material/NavigateNextRounded';
 import ContentTypeFieldIcon from '../../icons/ContentTypeField';
 import { useResizeObserver } from '../../hooks/useResizeObserver';
-import controlDescriptors, { dataSourcesSection, systemFieldsDescriptors, systemFieldsSection } from './descriptors';
-import { BuiltInControlType } from '../FormsEngine/lib/controlMap';
+import controlDescriptors, { dataSourcesSection } from './descriptors';
+import type { BuiltInControlType } from '../FormsEngine/lib/controlMap';
 import { renderFieldControl } from '../FormsEngine/lib/controlHelpers';
 import { createParsedValueForField } from '../FormsEngine/lib/valueRetrievers';
 import useContentTypes from '../../hooks/useContentTypes';
 import LookupTable from '../../models/LookupTable';
 import FormBackToTop from '../FormsEngine/components/FormBackToTop';
-import { SxProps } from '@mui/system';
-import { Theme } from '@mui/material';
-import { useIsDarkModeTheme } from '../../hooks/useIsDarkModeTheme';
 import { Subject } from 'rxjs';
 import {
 	createTypeValuesObject,
@@ -97,12 +83,12 @@ import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import XmlDeserializer from '../XmlTools/XmlDeserializer';
 import ContentTypeCardMedia from './ContentTypeCardMedia';
-import MoreVertRounded from '@mui/icons-material/MoreVertRounded';
 import DeleteRounded from '@mui/icons-material/DeleteRounded';
-import DeleteOutlined from '@mui/icons-material/DeleteOutlined';
 import DriveFileMoveOutlined from '@mui/icons-material/DriveFileMoveOutlined';
 import { XmlKeys } from '../FormsEngine/lib/formConsts';
 import XmlBeautifier from '../XmlTools/XmlBeautifier';
+import TypeBuilderAddButton from './TypeBuilderAddButton';
+import FieldChip, { FieldChipProps } from './FieldChip';
 
 export interface ContentTypeManagementProps {
 	embedded?: boolean;
@@ -214,17 +200,6 @@ interface MainProps {
 	drawerWidth?: number;
 }
 
-const AddButton = Button;
-// const AddButton = styled(Button)(({ theme }) => ({
-// 	borderStyle: 'dashed',
-// 	borderWidth: 1,
-// 	borderColor: theme.palette.primary.main
-// 	// minWidth: 200,
-// 	// margin: 'auto',
-// 	// display: 'block'
-// 	// width: '100%'
-// }));
-
 const Main = styled('section', {
 	shouldForwardProp: (prop) => !['open', 'drawerWidth'].includes(prop as string)
 })<MainProps>((args) => {
@@ -287,10 +262,7 @@ const createStableFormContextProps = ({ type }: { type: ContentType }, createRoo
 		state: null
 	};
 	if (createRootTypeSections) {
-		Object.assign(
-			context.atoms.expandedStateBySectionId,
-			buildSectionExpandedStateAtoms([systemFieldsSection, dataSourcesSection])
-		);
+		Object.assign(context.atoms.expandedStateBySectionId, buildSectionExpandedStateAtoms([dataSourcesSection]));
 	}
 	return context;
 };
@@ -448,24 +420,8 @@ function EditTypeAppLeft(props: {
 		<ErrorBoundary>
 			<Provider store={store}>
 				<StableFormContext.Provider value={stableFormContextRef.current}>
-					<XmlBeautifier beautifierOptions={{ xmlWhitespaceSensitivity: 'ignore' }} />
 					<TypeHeader type={type} />
 					<Box className="space-y-2">
-						<SectionAccordion
-							variant="outlined"
-							colorize={false}
-							section={systemFieldsSection}
-							slotProps={{ accordionDetails: { className: '' } }}
-							renderControl={(fieldId) => (
-								<FieldChip
-									key={fieldId}
-									field={systemFieldsDescriptors[fieldId]}
-									onFieldSelected={onFieldSelected}
-									selectedFieldIdPath={selectedFieldIdPath}
-								/>
-							)}
-						/>
-
 						{type.sections.map((section) => (
 							<SectionAccordion
 								key={section.title}
@@ -475,9 +431,9 @@ function EditTypeAppLeft(props: {
 									accordionDetails: {
 										className: '',
 										children: (
-											<AddButton>
+											<TypeBuilderAddButton>
 												<FormattedMessage defaultMessage="Add Field" />
-											</AddButton>
+											</TypeBuilderAddButton>
 										)
 									}
 								}}
@@ -495,9 +451,9 @@ function EditTypeAppLeft(props: {
 								</Button>
 							</SectionAccordion>
 						))}
-						<AddButton>
+						<TypeBuilderAddButton>
 							<FormattedMessage defaultMessage="Add Section" />
-						</AddButton>
+						</TypeBuilderAddButton>
 
 						<Divider sx={{ mx: -2 }} />
 
@@ -509,9 +465,9 @@ function EditTypeAppLeft(props: {
 								accordionDetails: {
 									className: '',
 									children: (
-										<AddButton>
+										<TypeBuilderAddButton>
 											<FormattedMessage defaultMessage="Add Data Source" />
-										</AddButton>
+										</TypeBuilderAddButton>
 									)
 								}
 							}}
@@ -569,115 +525,8 @@ function Xml() {
 	);
 }
 
-// function composeFieldPath(...pieces: string[]): string {return pieces.filter(Boolean).join('.');}
-function composeFieldPath(fieldPath: string, fieldId: string): string {
-	return fieldPath ? `${fieldPath}.${fieldId}` : fieldId;
-}
-
-export interface FieldChipProps {
-	field: ContentTypeField;
-	fieldPath?: string;
-	selectedFieldIdPath?: string;
-	onFieldSelected(
-		fieldPath: string,
-		field: ContentTypeField,
-		event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-	): void;
-}
-
-function FieldChip(props: FieldChipProps) {
-	const { field, fieldPath, selectedFieldIdPath, onFieldSelected } = props;
-	const theme = useTheme();
-	const isDark = useIsDarkModeTheme();
-	const isRepeat = field.type === 'repeat';
-	const currentFieldPath = composeFieldPath(fieldPath, field.id);
-	const isSelected = currentFieldPath === selectedFieldIdPath;
-	const Root: ElementType<BoxProps> = (isRepeat ? Box : ButtonBase) as ElementType<BoxProps>;
-	const Title: ElementType<BoxProps> = (isRepeat ? ButtonBase : 'div') as ElementType<BoxProps>;
-	const onClick: ButtonBaseProps['onClick'] = (e) => onFieldSelected?.(currentFieldPath, field, e);
-	const selectorButtonStyles: SxProps<Theme> = {
-		'&:active': { boxShadow: theme.shadows[1] },
-		'&:hover': {
-			bgcolor: alpha(
-				theme.palette.action.selected,
-				theme.palette.action.selectedOpacity + theme.palette.action.hoverOpacity
-			)
-		}
-	};
-	const selectorButtonSelectedStyles: SxProps<Theme> = {
-		// borderWidth: 1,
-		// borderStyle: 'solid',
-		// borderColor: isDark ? lighten(theme.palette.action.selected, 0.5) : darken(theme.palette.action.selected, 0.5),
-		bgcolor: 'action.selected',
-		'&:hover': { bgcolor: 'action.selected' }
-	};
-	return (
-		<Root
-			disabled={isSelected}
-			sx={[
-				{
-					mb: 1,
-					// borderWidth: 1,
-					// borderStyle: 'solid',
-					// borderColor: isDark ? 'grey.800' : 'grey.200',
-					width: '100%',
-					alignItems: 'start',
-					flexDirection: 'column',
-					bgcolor: isDark ? 'grey.800' : 'grey.200',
-					borderRadius: 10,
-					overflow: 'hidden'
-				},
-				isRepeat ? { borderRadius: 2 } : selectorButtonStyles,
-				isSelected && selectorButtonSelectedStyles
-			]}
-			// @ts-expect-error: Handled. Only when it is a button will it receive the onClick.
-			onClick={isRepeat ? undefined : onClick}
-		>
-			<Box
-				component={Title}
-				// @ts-expect-error: Handled. Only when it is a button will it receive the onClick.
-				onClick={isRepeat ? onClick : undefined}
-				disabled={isSelected}
-				sx={[
-					{
-						px: 1.5,
-						py: 0.5,
-						width: '100%',
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'space-between'
-					},
-					isRepeat && selectorButtonStyles
-				]}
-			>
-				<span>
-					<Typography component="strong" sx={{ mr: 0.5, fontWeight: 600 }}>
-						{field.name}
-					</Typography>
-					<Typography component="span" variant="body2">
-						({field.id})
-					</Typography>
-				</span>
-				<Typography variant="body2">{capitalize(field.type).replaceAll('-', ' ')}</Typography>
-			</Box>
-			{isRepeat && (
-				<Box p={1} pt={0}>
-					{Object.entries(field.fields).map(([fieldId, subField]) => (
-						<FieldChip
-							key={fieldId}
-							field={subField}
-							selectedFieldIdPath={selectedFieldIdPath}
-							fieldPath={currentFieldPath}
-							onFieldSelected={onFieldSelected}
-						/>
-					))}
-					<AddButton>
-						<FormattedMessage defaultMessage="Add Field" />
-					</AddButton>
-				</Box>
-			)}
-		</Root>
-	);
+function Beautifier() {
+	return <XmlBeautifier beautifierOptions={{ xmlWhitespaceSensitivity: 'ignore' }} />;
 }
 
 function TypeHeader({ type }: { type: ContentType }) {

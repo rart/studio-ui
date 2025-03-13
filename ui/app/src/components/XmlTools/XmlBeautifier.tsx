@@ -18,10 +18,7 @@ import React, { useState } from 'react';
 import Grid from '@mui/material/Grid2';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import { beautify, BeautifyOptions, deserialize } from '../../utils/xml';
-import { X2jOptions } from 'fast-xml-parser';
-import LookupTable from '../../models/LookupTable';
-import IconButton from '@mui/material/IconButton';
+import { beautify, BeautifyOptions } from '../../utils/xml';
 import useActiveSiteId from '../../hooks/useActiveSiteId';
 import { fetchContentXML } from '../../services/content';
 

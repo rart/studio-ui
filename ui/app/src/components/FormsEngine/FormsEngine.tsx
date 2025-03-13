@@ -111,7 +111,7 @@ import RepeatModeHeader from './components/RepeatModeHeader';
 import EditModeHeader from './components/EditModeHeader';
 import SaveCard from './components/SaveCard';
 import SectionAccordion from './components/SectionAccordion';
-import { useSaveForm } from './lib/useSaveForm';
+import useSaveForm from './lib/useSaveForm';
 import { FormPrepError } from './components/FormPrepError';
 import { createParsedValuesObject } from './lib/valueRetrievers';
 import { fromString } from '../../utils/xml';
