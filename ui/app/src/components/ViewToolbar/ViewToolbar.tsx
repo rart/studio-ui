@@ -15,11 +15,12 @@
  */
 
 import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
+import Toolbar, { ToolbarProps } from '@mui/material/Toolbar';
 import React, { forwardRef, PropsWithChildren, Ref } from 'react';
 import { PartialSxRecord } from '../../models';
 import { Theme } from '@mui/material';
 import { SystemStyleObject } from '@mui/system/styleFunctionSx/styleFunctionSx';
+import { consolidateSx } from '../../utils/system';
 
 export type ViewToolbarClassKey = 'appBar' | 'toolbar';
 
@@ -27,10 +28,11 @@ export type ViewToolbarProps = PropsWithChildren<{
 	elevation?: number;
 	classes?: Partial<Record<ViewToolbarClassKey, string>>;
 	sxs?: PartialSxRecord<ViewToolbarClassKey>;
+	slotProps?: Partial<{ toolbar: Partial<ToolbarProps> }>;
 }>;
 
 const ViewToolbar = forwardRef<HTMLDivElement, ViewToolbarProps>(function (props, ref) {
-	const { children, elevation = 0, sxs } = props;
+	const { children, elevation = 0, sxs, slotProps } = props;
 	return (
 		<AppBar
 			ref={ref}
@@ -46,17 +48,21 @@ const ViewToolbar = forwardRef<HTMLDivElement, ViewToolbarProps>(function (props
 			})}
 		>
 			<Toolbar
+				{...slotProps?.toolbar}
 				className={props.classes?.toolbar}
-				sx={(theme) => ({
-					paddingLeft: `${theme.spacing(1.5)} !important`,
-					paddingRight: `${theme.spacing(1.5)} !important`,
-					placeContent: 'center space-between',
-					'& > section': {
-						display: 'flex',
-						alignItems: 'center'
-					},
-					...(sxs?.toolbar as SystemStyleObject<Theme>)
-				})}
+				sx={consolidateSx(
+					(theme) => ({
+						paddingLeft: `${theme.spacing(1.5)} !important`,
+						paddingRight: `${theme.spacing(1.5)} !important`,
+						placeContent: 'center space-between',
+						'& > section': {
+							display: 'flex',
+							alignItems: 'center'
+						},
+						...(sxs?.toolbar as SystemStyleObject<Theme>)
+					}),
+					slotProps?.toolbar?.sx
+				)}
 			>
 				{children}
 			</Toolbar>

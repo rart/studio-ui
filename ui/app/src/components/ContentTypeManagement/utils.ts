@@ -17,8 +17,10 @@
 import { ContentTypeField, ContentTypeSection, ValidationKeys } from '../../models';
 import LookupTable from '../../models/LookupTable';
 import ContentType from '../../models/ContentType';
-import { foo } from '../../utils/object';
-import { commonControlFieldsDescriptors } from './descriptors';
+import { foo, fooFn } from '../../utils/object';
+import { commonControlFieldsDescriptors, dataSourcesSection } from './descriptors';
+import { StableFormContextProps, StableGlobalContextProps } from '../FormsEngine/lib/formsEngineContext';
+import { buildSectionExpandedStateAtoms } from '../FormsEngine/lib/formUtils';
 
 const contentTypeFieldToXmlNameMap = {
 	name: 'title'
@@ -136,3 +138,60 @@ export function createVirtualDataSourceFields(type: ContentType): LookupTable<Co
 	}
 	return dataSourceFields;
 }
+
+export const fooStableGlobalContextRef: StableGlobalContextProps = Object.freeze<StableGlobalContextProps>({
+	formsStackData: [],
+	api: {
+		pushForm: fooFn,
+		popForm: fooFn,
+		updateProps: fooFn,
+		setStateCache: fooFn
+	}
+});
+
+export const createStableFormContextProps = (
+	{
+		type
+	}: {
+		type: ContentType;
+	},
+	createRootTypeSections: boolean = false
+) => {
+	const context: StableFormContextProps = {
+		atoms: {
+			expandedStateBySectionId: buildSectionExpandedStateAtoms(type.sections),
+			isSubmitting: undefined,
+			hasPendingChanges: undefined,
+			readonly: undefined,
+			lockResult: undefined,
+			valueByFieldId: undefined,
+			validationByFieldId: undefined,
+			versionComment: undefined,
+			collapseToC: undefined,
+			useCollapsedToC: undefined,
+			isLargeContainer: undefined,
+			tableOfContentsDrawerOpen: undefined,
+			closeAfterSave: undefined
+		},
+		changedFieldIds: null,
+		fieldUpdates$: null,
+		itemMeta: null,
+		originalValues: null,
+		props: null,
+		state: null
+	};
+	if (createRootTypeSections) {
+		Object.assign(context.atoms.expandedStateBySectionId, buildSectionExpandedStateAtoms([dataSourcesSection]));
+	}
+	return context;
+};
+
+export function makeIntoTypeFieldStructPath(fieldPath: string): string {
+	return fieldPath
+		.split('.')
+		.map((piece) => `${piece}.fields`)
+		.join('.')
+		.replace(/.fields$/, '');
+}
+
+export const DeserializerNullSymbol = Symbol(null);
