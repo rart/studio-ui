@@ -70,7 +70,8 @@ export function TypeDetailsView(props: {
 			<Provider store={store}>
 				<StableFormContext.Provider value={stableFormContextRef.current}>
 					<TypeDetailsHeader type={type} />
-					<Box display="flex" justifyContent="space-between">
+
+					<Box display="flex" justifyContent="space-between" mt={(theme) => `${theme.spacing(1)} !important`}>
 						<TypeBuilderAddButton>
 							<FormattedMessage defaultMessage="Add Section" />
 						</TypeBuilderAddButton>
@@ -119,7 +120,7 @@ export function TypeDetailsView(props: {
 						</SectionAccordion>
 					))}
 
-					<Divider sx={{ mx: -2 }} />
+					<Divider sx={{ mx: -3 }} />
 
 					<SectionAccordion
 						variant="outlined"

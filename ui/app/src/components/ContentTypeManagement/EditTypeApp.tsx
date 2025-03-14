@@ -169,7 +169,7 @@ export function EditTypeApp(props: EditTypeAppProps) {
 					drawerWidth={drawerWidth}
 					sx={{ height: 'var(--container-height)', overflow: 'auto', py: 2 }}
 				>
-					<Container maxWidth="lg" className="space-y">
+					<Container maxWidth="lg" className="space-y-2">
 						<TypeDetailsView
 							type={type}
 							onFieldSelected={handleFieldSelected}
@@ -178,7 +178,7 @@ export function EditTypeApp(props: EditTypeAppProps) {
 					</Container>
 				</Main>
 				{
-					// 	region fieldEditorView
+					// region fieldEditorView
 					useDrawer ? (
 						<Drawer
 							open={open}
