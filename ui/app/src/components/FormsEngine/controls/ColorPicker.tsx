@@ -71,7 +71,7 @@ const hexColorInputSx: SxProps<Theme> = {
 	input: { border: 0, padding: '8.5px 14px', font: 'inherit', '&:focus': { outline: 'none' } }
 };
 
-export function ColourPicker(props: ColourPickerProps) {
+export function ColorPicker(props: ColourPickerProps) {
 	const { field, readonly, value, autoFocus, setValue } = props;
 	// const presetColors = ['#cd9323', '#1a53d8', '#9a2151', '#0d6416', '#8d2808'];
 	// return (
@@ -153,4 +153,4 @@ function throttle(func: (...args: unknown[]) => void, delay: number = 500) {
 	};
 }
 
-export default ColourPicker;
+export default ColorPicker;
