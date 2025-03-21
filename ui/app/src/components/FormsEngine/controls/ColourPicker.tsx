@@ -15,7 +15,6 @@
  */
 
 import Box from '@mui/material/Box';
-
 import { ControlProps } from '../types';
 import {
 	HexAlphaColorPicker,
@@ -26,9 +25,17 @@ import {
 	RgbaStringColorPicker,
 	RgbStringColorPicker
 } from 'react-colorful';
-import { ComponentProps, ElementType, forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { Theme } from '@mui/material';
-import type { ColorFormat } from '@mui/system/colorManipulator/colorManipulator';
+import {
+	ComponentProps,
+	ElementType,
+	forwardRef,
+	useEffect,
+	useImperativeHandle,
+	useMemo,
+	useRef,
+	useState
+} from 'react';
+import type { Theme } from '@mui/material';
 import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
 import Popover from '@mui/material/Popover';
@@ -36,15 +43,11 @@ import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import { SxProps } from '@mui/system';
-
-export type ColourFormat = Exclude<ColorFormat, 'color' | 'rgba' | 'hsla'> | 'hex';
+import FormsEngineField from '../components/FormsEngineField';
+import { ColourFormat, toTargetFormat } from '../../../utils/color';
 
 export interface ColourPickerProps extends ControlProps {
-	value: {
-		alpha: boolean;
-		format: ColourFormat;
-		value: string;
-	};
+	value: string;
 }
 
 const pickers: Record<ColourFormat, { true: ElementType; false: ElementType }> = {
@@ -69,35 +72,33 @@ const hexColorInputSx: SxProps<Theme> = {
 };
 
 export function ColourPicker(props: ColourPickerProps) {
-	// const { field, readonly, value, autoFocus, setValue } = props;
+	const { field, readonly, value, autoFocus, setValue } = props;
 	// const presetColors = ['#cd9323', '#1a53d8', '#9a2151', '#0d6416', '#8d2808'];
 	// return (
 	// 	<FormsEngineField field={field}>
 	// 		<RgbaColorPicker color={value} onChange={setValue} />
 	// 	</FormsEngineField>
 	// );
-	const value: ColourPickerProps['value'] = {
-		alpha: true,
-		format: 'hex',
-		value: null
-	};
+	const alpha = (field.properties.alpha.value as boolean) ?? true;
+	const format = (field.properties.format.value as ColourFormat) ?? 'hex';
 	const buttonRef = useRef<HTMLButtonElement>(undefined);
-	const [colour, setColour] = useState(value.value ?? '');
+	const [colour, setColour] = useState(() => toTargetFormat(format, alpha, value));
 	const [open, setOpen] = useState(false);
-	const isHex = value.format === 'hex';
-	const ColourPicker: ElementType = pickers[value.format][String(value.alpha)] ?? HexColorPicker;
-	const hexColorInputProps: ComponentProps<typeof HexColorInput> = {
-		color: colour,
-		alpha: Boolean(value.alpha),
-		prefixed: true
-	};
+	const isHex = format === 'hex';
+	const ColourPicker: ElementType = pickers[format][String(alpha)] ?? HexColorPicker;
+	const hexColorInputProps: ComponentProps<typeof HexColorInput> = { color: colour, alpha: alpha, prefixed: true };
 	const handleOpen = () => setOpen(true);
 	const handleClose = () => setOpen(false);
+	const throttledSetValue = useMemo(() => throttle(setValue), [setValue]);
 	const handleChange = (value: string) => {
 		setColour(value);
+		throttledSetValue(value);
 	};
+	useEffect(() => {
+		setColour(toTargetFormat(format, alpha, value));
+	}, [alpha, format, value]);
 	return (
-		<Box className="space-y-2">
+		<FormsEngineField field={field}>
 			<Box>
 				<ButtonBase ref={buttonRef} sx={{ px: 1 }} onClick={() => handleOpen()}>
 					<Box
@@ -137,8 +138,19 @@ export function ColourPicker(props: ColourPickerProps) {
 					</Button>
 				</Paper>
 			</Popover>
-		</Box>
+		</FormsEngineField>
 	);
+}
+
+function throttle(func: (...args: unknown[]) => void, delay: number = 500) {
+	let lastCall = 0;
+	return function (...args: unknown[]) {
+		const now = Date.now();
+		if (now - lastCall >= delay) {
+			lastCall = now;
+			return func.apply(func, args);
+		}
+	};
 }
 
 export default ColourPicker;

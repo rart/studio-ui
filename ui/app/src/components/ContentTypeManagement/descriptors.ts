@@ -46,7 +46,7 @@ import transcodedVideoPickerDescriptor from './control-descriptors/transcodedVid
 import uuidDescriptor from './control-descriptors/uuidDescriptor';
 import videoPickerDescriptor from './control-descriptors/videoPickerDescriptor';
 import { foo } from '../../utils/object';
-import ContentType, { ContentTypeField } from '../../models/ContentType';
+import { ContentTypeField } from '../../models/ContentType';
 import LookupTable from '../../models/LookupTable';
 
 // Type
@@ -79,19 +79,9 @@ import LookupTable from '../../models/LookupTable';
 
 const dataSourceRootProperties = ['id', 'type', 'title', 'interface'];
 
-const test = {
-	properties: [],
-	constraints: []
-};
-
 export const systemFieldsSection = createVirtualSection({
 	title: 'System Fields',
 	fields: [XmlKeys.modelId, XmlKeys.fileName, XmlKeys.internalName, XmlKeys.disabled, XmlKeys.placeInNav]
-});
-
-export const dataSourcesSection = createVirtualSection({
-	title: 'Data Sources',
-	fields: []
 });
 
 export const systemFieldsDescriptors: LookupTable<ContentTypeField> = {
@@ -132,26 +122,11 @@ export const systemFieldsDescriptors: LookupTable<ContentTypeField> = {
 	}
 };
 
-export const systemFieldsContentType: ContentType = {
-	dataSources: [],
-	description: '',
-	displayTemplate: '',
-	fields: systemFieldsDescriptors,
-	id: '',
-	mergeStrategy: '',
-	name: '',
-	quickCreate: false,
-	quickCreatePath: '',
-	sections: [],
-	type: undefined
-};
-
-// export const systemFieldVirtualType = createV
-
-// OOTB Control Customizations:
-// - Can't change icon
-// Remember form controller (js)
-// expired
+export const defaultDataSourcesSection = createVirtualSection({
+	id: `typeDataSourceSection`,
+	title: 'Data Sources',
+	fields: []
+});
 
 export const commonControlFieldsDescriptors: LookupTable<ContentTypeField> = {
 	id: {
@@ -191,7 +166,7 @@ export const commonControlFieldsDescriptors: LookupTable<ContentTypeField> = {
 	defaultValue: {
 		id: 'defaultValue',
 		type: 'textarea',
-		name: 'Description',
+		name: 'Default Value',
 		defaultValue: undefined,
 		validations: foo
 	}
@@ -226,6 +201,224 @@ export const controlDescriptors: Record<BuiltInControlType, PartialContentType> 
 	'transcoded-video-picker': transcodedVideoPickerDescriptor,
 	uuid: uuidDescriptor,
 	'video-picker': videoPickerDescriptor
+};
+
+export const typeBasicDetailsDescriptor: PartialContentType = {
+	id: 'typeBasicDetailsDescriptor',
+	name: 'Content Type Properties',
+	description: '',
+	sections: [
+		createVirtualSection({
+			id: 'properties',
+			title: 'Basic Properties',
+			fields: ['id', 'name', 'description', 'type', 'thumbnailFileName', 'mergeStrategy']
+		}),
+		createVirtualSection({
+			id: 'quickCreate',
+			title: 'Quick Create',
+			fields: ['quickCreate', 'quickCreatePath']
+		}),
+		createVirtualSection({
+			id: 'rendering',
+			title: 'Rendering',
+			fields: ['groovyController', 'hasJsController', 'displayTemplate', 'isHeadless']
+		}),
+		createVirtualSection({
+			id: 'allowedDestinations',
+			title: 'Allowed Destinations',
+			fields: ['paths']
+		})
+	],
+	fields: {
+		id: {
+			id: 'id',
+			type: 'readonlyValue', // TODO: create control readonlyValue
+			name: 'ID',
+			description: '',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		},
+		name: {
+			id: 'name',
+			type: 'input',
+			name: 'Name',
+			description: '',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		},
+		description: {
+			id: 'description',
+			type: 'textarea',
+			name: 'Description',
+			description: '',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		},
+		type: {
+			id: 'type',
+			type: 'readonlyValue', // TODO: create control
+			name: 'Archetype',
+			description: '',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		},
+		quickCreate: {
+			id: 'quickCreate',
+			type: 'checkbox',
+			name: 'Enable Quick Create',
+			description: '',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		},
+		quickCreatePath: {
+			id: 'quickCreatePath',
+			type: 'input', // TODO: create control pathWithMacroCreator
+			name: 'Destination Path Pattern',
+			description: '',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		},
+		displayTemplate: {
+			id: 'displayTemplate',
+			type: 'input', // TODO: create control templateSelector
+			name: 'Display Template',
+			description: '',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		},
+		mergeStrategy: {
+			id: 'mergeStrategy',
+			type: 'input', // TODO: create control mergeStrategySelector
+			name: 'Merge Strategy',
+			description: 'Inheritance description...',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		},
+		hasJsController: {
+			id: 'hasJsController',
+			type: 'checkbox', // TODO: create control typeJsControllerSelector
+			name: 'Client-side Controller',
+			description: '',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		},
+		thumbnailFileName: {
+			id: 'thumbnailFileName',
+			type: 'input', // TODO: create control typeImageSelector
+			name: 'Thumbnail Image File Name',
+			description: '',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		},
+		isHeadless: {
+			id: 'isHeadless',
+			type: 'checkbox',
+			name: 'Is Headless Type',
+			description:
+				'Check this to authorize this content type to leave the display template field empty as it is a headless type',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		},
+		paths: {
+			id: 'paths',
+			type: 'typeDestinationPathsSelector', // TODO: create control
+			name: '',
+			description: '',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		}
+	}
+};
+
+export const sectionDescriptor: PartialContentType = {
+	id: 'sectionDescriptor',
+	name: 'Section Properties',
+	description: null,
+	sections: [
+		createVirtualSection({
+			id: 'properties',
+			title: 'Basic Properties',
+			fields: ['title', 'color', 'description', 'expandByDefault']
+		})
+		// createVirtualSection({
+		// 	id: 'fields',
+		// 	title: 'Fields',
+		// 	fields: ['fields']
+		// })
+	],
+	fields: {
+		title: {
+			id: 'title',
+			type: 'input',
+			name: 'Title',
+			description: '',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		},
+		description: {
+			id: 'description',
+			type: 'textarea',
+			name: 'Description',
+			description: '',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		},
+		color: {
+			id: 'color',
+			type: 'colorPicker',
+			name: 'Color',
+			description:
+				'Pick the color that this section should feature in the form. A small amount of transparency can help with dark mode.',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo,
+			properties: {
+				alpha: {
+					name: 'Alpha',
+					value: true,
+					type: 'boolean'
+				},
+				format: {
+					name: 'Format',
+					value: 'rgb',
+					type: 'string'
+				}
+			}
+		},
+		expandByDefault: {
+			id: 'expandByDefault',
+			type: 'checkbox',
+			name: 'Expand by default',
+			description: 'Check this to show the section expanded when the content type is displayed in the content form',
+			helpText: '',
+			defaultValue: undefined,
+			validations: foo
+		}
+		// TODO: create control for managing fields(?)
+		// fields: {
+		// 	id: 'fields',
+		// 	type: 'sectionFieldManager',
+		// 	name: 'Expand by default',
+		// 	description: 'Check this to show the section expanded when the content type is displayed in the content form',
+		// 	helpText: '',
+		// 	defaultValue: undefined,
+		// 	validations: foo
+		// }
+	}
 };
 
 export default controlDescriptors;

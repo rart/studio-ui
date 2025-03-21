@@ -40,10 +40,10 @@ export const fileNameDescriptor: PartialContentType = {
 			defaultValue: undefined,
 			validations: foo
 		},
-		tokenize: {
-			id: 'tokenize',
+		allowEditWithoutWarning: {
+			id: 'allowEditWithoutWarning',
 			type: 'checkbox',
-			name: 'Tokenize for Indexing',
+			name: 'Allow Edit Without Warning',
 			defaultValue: undefined,
 			validations: foo
 		},

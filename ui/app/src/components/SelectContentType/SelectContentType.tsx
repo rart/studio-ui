@@ -23,8 +23,10 @@ import useDebouncedInput from '../../hooks/useDebouncedInput';
 import { filterTypesByKeywordsAndObjectType } from '../../utils/contentType';
 import useUpdateRefs from '../../hooks/useUpdateRefs';
 import ContentType from '../../models/ContentType';
+import { consolidateSx } from '../../utils/system';
 
 export interface SelectContentTypeProps {
+	sx?: BoxProps['sx'];
 	initialCompact?: boolean;
 	initialObjectTypeFilter?: ObjectTypeOption;
 	contentTypesList: ContentType[];
@@ -36,7 +38,7 @@ export interface SelectContentTypeProps {
 }
 
 export function SelectContentType(props: SelectContentTypeProps) {
-	const { slotProps, contentTypesList, initialCompact = false, initialObjectTypeFilter = 'all' } = props;
+	const { slotProps, contentTypesList, initialCompact = false, initialObjectTypeFilter = 'all', sx } = props;
 	const [compact, setCompact] = useState(initialCompact);
 	const [keywords, setKeywords] = useState('');
 	const [filteredTypes, setFilteredTypes] = useState<ContentType[]>();
@@ -58,7 +60,7 @@ export function SelectContentType(props: SelectContentTypeProps) {
 	};
 
 	return (
-		<Box {...slotProps.box}>
+		<Box {...slotProps.box} sx={consolidateSx(sx, slotProps?.box?.sx)}>
 			<ContentTypeBar
 				{...slotProps.bar}
 				compact={compact}

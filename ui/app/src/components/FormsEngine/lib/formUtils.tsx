@@ -85,7 +85,7 @@ export function getScrollContainer(container: HTMLElement): HTMLElement {
 export const buildSectionExpandedStateAtoms = (contentTypeSections: ContentTypeSection[]) => {
 	return contentTypeSections.reduce(
 		(sectionExpandedState, section) => {
-			sectionExpandedState[section.title] = atom(section.expandByDefault);
+			sectionExpandedState[section.id] = atom(section.expandByDefault);
 			return sectionExpandedState;
 		},
 		{} as Record<string, PrimitiveAtom<boolean>>

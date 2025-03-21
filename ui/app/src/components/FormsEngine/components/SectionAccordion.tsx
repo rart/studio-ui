@@ -49,9 +49,7 @@ export function SectionAccordion({
 }: SectionAccordionProps) {
 	const theme = useTheme();
 	const isDarkMode = isDarkModeTheme(theme);
-	const [isExpanded, setExpanded] = useAtom(
-		useContext(StableFormContext).atoms.expandedStateBySectionId[section.title]
-	);
+	const [isExpanded, setExpanded] = useAtom(useContext(StableFormContext).atoms.expandedStateBySectionId[section.id]);
 	return (
 		<Accordion
 			elevation={isDarkMode ? 2 : undefined}
@@ -59,16 +57,17 @@ export function SectionAccordion({
 			expanded={isExpanded}
 			onChange={(e, expanded) => setExpanded(expanded)}
 			sx={consolidateSx(
-				colorize && {
-					position: 'relative',
-					borderLeftColor: toColor(section.title, 0.7),
-					borderLeftWidth: 5,
-					borderLeftStyle: 'solid',
-					borderTopLeftRadius: theme.shape.borderRadius,
-					borderBottomLeftRadius: theme.shape.borderRadius,
-					borderTopRightRadius: theme.shape.borderRadius,
-					borderBottomRightRadius: theme.shape.borderRadius
-				},
+				colorize &&
+					section.color && {
+						position: 'relative',
+						borderLeftColor: section.color,
+						borderLeftWidth: 5,
+						borderLeftStyle: 'solid',
+						borderTopLeftRadius: theme.shape.borderRadius,
+						borderBottomLeftRadius: theme.shape.borderRadius,
+						borderTopRightRadius: theme.shape.borderRadius,
+						borderBottomRightRadius: theme.shape.borderRadius
+					},
 				accordionProps.sx
 			)}
 		>

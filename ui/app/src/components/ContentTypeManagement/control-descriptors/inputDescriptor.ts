@@ -23,10 +23,11 @@ export const inputDescriptor: PartialContentType = {
 	description: 'Short amount of text',
 	sections: [
 		createVirtualSection({
+			id: 'properties',
 			title: 'Options',
 			fields: ['maxlength', 'readonly', 'tokenize', 'escapeContent']
 		}),
-		createVirtualSection({ title: 'Constraints', fields: ['required', 'pattern'] })
+		createVirtualSection({ id: 'constraints', title: 'Constraints', fields: ['required', 'pattern'] })
 	],
 	fields: {
 		maxlength: {

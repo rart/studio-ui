@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import ContentType from '../../models/ContentType';
+import ContentType, { ContentTypeSection, DataSource } from '../../models/ContentType';
 import FieldChip, { FieldChipProps } from './FieldChip';
 import React, { useMemo, useRef } from 'react';
 import { createStore, Provider } from 'jotai/index';
@@ -32,26 +32,46 @@ import UnfoldLess from '@mui/icons-material/UnfoldLessRounded';
 import SectionAccordion from '../FormsEngine/components/SectionAccordion';
 import { accordionClasses } from '@mui/material/Accordion';
 import Button from '@mui/material/Button';
-import TypeDetailsHeader from './TypeDetailsHeader';
+import TypeDetailsHeader, { TypeDetailsHeaderProps } from './TypeDetailsHeader';
+import LookupTable from '../../models/LookupTable';
+import { defaultDataSourcesSection } from './descriptors';
 
-export function TypeDetailsView(props: {
+export interface TypeDetailsViewProps {
 	type: ContentType;
+	fieldPathsWithErrors: LookupTable<boolean>;
 	selectedFieldIdPath: string;
 	onFieldSelected: FieldChipProps['onFieldSelected'];
-}) {
-	const { type, selectedFieldIdPath, onFieldSelected } = props;
+	onDataSourceSelected(dataSource: DataSource): void;
+	onSectionSelected(section: ContentTypeSection): void;
+	onEditTypeAction: TypeDetailsHeaderProps['onActionClick'];
+}
+
+export function TypeDetailsView(props: TypeDetailsViewProps) {
+	const {
+		type,
+		selectedFieldIdPath,
+		onFieldSelected,
+		fieldPathsWithErrors,
+		onSectionSelected,
+		onDataSourceSelected,
+		onEditTypeAction
+	} = props;
 
 	const store = useMemo(() => createStore(), []); // TODO: Use stable memo?
 	const stableFormContextRef = useRef<StableFormContextProps>(null);
 	if (stableFormContextRef.current === null)
 		stableFormContextRef.current = createStableFormContextProps({ type }, true);
 
-	const dataSourcesSection = createVirtualSection({
-		title: 'Data Sources',
-		fields: type.dataSources?.map((dataSource) => dataSource.id) ?? []
-	});
+	const dataSourcesSection = useMemo(
+		() =>
+			createVirtualSection({
+				...defaultDataSourcesSection,
+				fields: type.dataSources?.map((dataSource) => dataSource.id) ?? []
+			}),
+		[type]
+	);
 
-	const dataSourceFields = createVirtualDataSourceFields(type);
+	const dataSourceFields = useMemo(() => createVirtualDataSourceFields(type), [type]);
 
 	const setSectionsExpandedState = (expanded: boolean) => {
 		Object.values(stableFormContextRef.current.atoms.expandedStateBySectionId).forEach((atom) => {
@@ -65,11 +85,15 @@ export function TypeDetailsView(props: {
 		setSectionsExpandedState(false);
 	};
 
+	const handleDataSourceSelected = (_, field) => {
+		onDataSourceSelected?.(type.dataSources.find((dataSource) => dataSource.id === field.id));
+	};
+
 	return (
 		<ErrorBoundary>
 			<Provider store={store}>
 				<StableFormContext.Provider value={stableFormContextRef.current}>
-					<TypeDetailsHeader type={type} />
+					<TypeDetailsHeader type={type} onActionClick={onEditTypeAction} />
 
 					<Box display="flex" justifyContent="space-between" mt={(theme) => `${theme.spacing(1)} !important`}>
 						<TypeBuilderAddButton>
@@ -92,7 +116,7 @@ export function TypeDetailsView(props: {
 
 					{type.sections.map((section) => (
 						<SectionAccordion
-							key={section.title}
+							key={section.id}
 							section={section}
 							sx={{ [`&.${accordionClasses.expanded}`]: { margin: 0 } }}
 							slotProps={{
@@ -107,14 +131,15 @@ export function TypeDetailsView(props: {
 							}}
 							renderControl={(fieldId) => (
 								<FieldChip
-									selectedFieldIdPath={selectedFieldIdPath}
 									key={fieldId}
 									field={type.fields[fieldId]}
+									fieldPathsWithErrors={fieldPathsWithErrors}
 									onFieldSelected={onFieldSelected}
+									selectedFieldIdPath={selectedFieldIdPath}
 								/>
 							)}
 						>
-							<Button sx={{ position: 'absolute', top: 15, right: 10 }}>
+							<Button sx={{ position: 'absolute', top: 15, right: 10 }} onClick={() => onSectionSelected?.(section)}>
 								<FormattedMessage defaultMessage="Edit" />
 							</Button>
 						</SectionAccordion>
@@ -123,8 +148,8 @@ export function TypeDetailsView(props: {
 					<Divider sx={{ mx: -3 }} />
 
 					<SectionAccordion
-						variant="outlined"
 						colorize={false}
+						variant="outlined"
 						section={dataSourcesSection}
 						slotProps={{
 							accordionDetails: {
@@ -140,7 +165,8 @@ export function TypeDetailsView(props: {
 							<FieldChip
 								key={fieldId}
 								field={dataSourceFields[fieldId]}
-								onFieldSelected={onFieldSelected}
+								fieldPathsWithErrors={fieldPathsWithErrors}
+								onFieldSelected={handleDataSourceSelected}
 								selectedFieldIdPath={selectedFieldIdPath}
 							/>
 						)}

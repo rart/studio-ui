@@ -14,200 +14,451 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import ContentType, { ContentTypeField } from '../../models/ContentType';
+import ContentType, { ContentTypeField, ContentTypeSection, DataSource } from '../../models/ContentType';
 import LookupTable from '../../models/LookupTable';
-import { useTheme } from '@mui/material/styles';
-import React, { useMemo, useRef, useState } from 'react';
-import { useResizeObserver } from '../../hooks/useResizeObserver';
-import { createTypeValuesObject, createVirtualType, makeIntoTypeFieldStructPath } from './utils';
-import { useShowAlert } from '../FormsEngine/lib/formUtils';
+import React, { createElement, useEffect, useMemo, useRef, useState } from 'react';
+import {
+	buildContentTypeXml,
+	createEmptyTypeStructure,
+	createFieldFormContextApi,
+	createTypeFieldValuesObject,
+	createTypeFormValuesObject,
+	createVirtualTypeForField,
+	createVirtualTypeFormContext,
+	createVirtualTypeForSection,
+	prepareSerializeToXmlTypeObject,
+	reverseTypeFieldValuesObject,
+	TypePropsToEdit,
+	typePropsToEdit
+} from './utils';
+import { extractAtomValues, useShowAlert } from '../FormsEngine/lib/formUtils';
 import FieldFormView, { FieldFormViewProps } from './FieldFormView';
 import { FieldChipProps } from './FieldChip';
-import controlDescriptors from './descriptors';
+import controlDescriptors, { sectionDescriptor, typeBasicDetailsDescriptor } from './descriptors';
 import type { BuiltInControlType } from '../FormsEngine/lib/controlMap';
-import { retrieveProperty } from '../../utils/object';
-import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import ArrowBackRounded from '@mui/icons-material/ArrowBackRounded';
-import Typography from '@mui/material/Typography';
-import { FormattedMessage } from 'react-intl';
-import { getMarginSxProps } from '../../utils/ui';
-import Main from './MainSection';
-import Drawer from '@mui/material/Drawer';
-import { paperClasses } from '@mui/material/Paper';
+import TypeDetailsView, { TypeDetailsViewProps } from './TypeDetailsView';
+import {
+	FormsEngineAtoms,
+	FormsEngineFormApiContextProps,
+	StableFormContextProps
+} from '../FormsEngine/lib/formsEngineContext';
+import useContentTypes from '../../hooks/useContentTypes';
+import { createStore as createJotai, Provider } from 'jotai';
+import { Observable, of, Subject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+import EditAppLayout, { EditAppLayoutProps } from './EditAppLayout';
+import useUpdateRefs from '../../hooks/useUpdateRefs';
+import useActiveSiteId from '../../hooks/useActiveSiteId';
+import { JotaiStore } from '../FormsEngine/types';
+import { useIntl } from 'react-intl';
 import Dialog from '@mui/material/Dialog';
-import ViewToolbar from '../ViewToolbar/ViewToolbar';
-import TypeDetailsView from './TypeDetailsView';
-import { StableFormContextProps } from '../FormsEngine/lib/formsEngineContext';
-import Container, { ContainerProps } from '@mui/material/Container';
-import Tooltip from '@mui/material/Tooltip';
-import { ToolbarProps } from '@mui/material/Toolbar';
+import hljs from '../../env/hljs';
+import Typography from '@mui/material/Typography';
+import { pluckProps } from '../../utils/object';
 
 export interface EditTypeAppProps {
+	/**
+	 * The content type object structure that represents what's actually stored in the system.
+	 * In the case of new/create, it would not have been stored yet (no XML file).
+	 **/
 	type: ContentType;
-	values: LookupTable<unknown>;
 	onClose?: () => void;
 }
 
-// Context gets initialised
-// When a field/section is clicked, the fieldFormContext gets created if it doesn't exist
-// FieldForm looks up its context within the TypeEditAppContext
-interface TypeEditAppContextProps {
-	// Sections, fields & data sources form context
-	formContextLookup: Record<string, StableFormContextProps>;
+// How this works:
+//
+// => Note: "Artefact" refers to a field, section, data source, or the type metadata (its "basic" details.)
+//
+// - A type object is received and cloned as the working copy on which edits will be made
+//
+// - When a field/section/etc is clicked, the fieldFormContext for the selected field gets created if it doesn't exist
+// - The FieldFormView component gets the needed contexts as props
+//   - Each descriptor gets mapped to a "virtual" ContentType data structure to render a FormsEngine-like form using FormsEngine control components
+// - The FieldFormView updates atoms internally with user input. Atoms will live past the form on the EditTypeApp.
+// - When "save" is requested, the EditTypeApp merges the basic details, the non-edited field values, the manipulated field atoms into a single object that gets serialized to XML and stored
+//
+// - When a field is added/removed...
+
+interface EditAppContextProps {
+	fieldUpdates$: Subject<string>;
+	formContextApi: FormsEngineFormApiContextProps;
+	activeFormContext: StableFormContextProps;
+	selectedField: ContentTypeField;
+	selectedSection: ContentTypeSection;
+	selectedDataSource: DataSource;
+	/**
+	 * Keeps track of whether anything was changed when any form (type, field, section, data source) was opened.
+	 * Resets when the form closes or changes to a different artefact (type, field, etc.)
+	 * Used to avoid committing changes where not necessary.
+	 **/
+	formFieldsChanged: boolean;
 }
 
-// SectionAccordions render FieldChips, which receive a ContentTypeField data structure
-// Each field descriptor/definition gets mapped to a "virtual" ContentType data structure to render a FormsEngine-like form using FormsEngine control components
-
 export function EditTypeApp(props: EditTypeAppProps) {
-	const { type } = props;
-	const theme = useTheme();
+	const { onClose } = props;
 
-	const [open, setOpen] = useState(false);
-	const [useDrawer, setUseDrawer] = useState(true);
-	const [drawerWidth, setDrawerWidth] = useState(500);
-
-	// Resize observer attached to the [scroll] container
-	const containerRef = useRef<HTMLElement>(undefined);
-	const toolbarRef = useRef<HTMLDivElement>(undefined);
-	useResizeObserver(containerRef, () => {
-		const container = containerRef.current;
-		const toolbar = toolbarRef.current;
-		const rect: DOMRect = container.getBoundingClientRect();
-		const toolbarRect: DOMRect = toolbar.getBoundingClientRect();
-		const width = rect.width;
-		const useDrawer = width >= 900;
-		container.style.setProperty('--container-width', `${width}px`);
-		container.style.setProperty('--container-height', `${rect.height - toolbarRect.height - 1}px`);
-		// Want at least 500px for the drawer and at least 400px for the main area (i.e. 900px).
-		setUseDrawer(useDrawer);
-		// Drawer to take up 55% of the container.
-		setDrawerWidth(width * 0.55);
-	});
-
-	const typeValuesObject = useMemo<LookupTable<unknown>>(() => createTypeValuesObject(type), [type]);
-
+	const site = useActiveSiteId();
+	const contentTypesLookup = useContentTypes();
 	const showAlert = useShowAlert();
-	const valuesRef = useRef<LookupTable<unknown>>(null);
-	const [selectedFieldIdPath, setSelectedFieldIdPath] = useState<string>(null);
-	const [virtualContentType, setVirtualContentType] = useState<ContentType>(null);
-	const [selectedField, setSelectedField] = useState<ContentTypeField>(null);
-	const [virtualTypeValues, setVirtualTypeValues] = useState<LookupTable<unknown>>(null);
+	const { formatMessage } = useIntl();
+	const jotai = useMemo(() => createJotai(), []); // TODO: Use stable memo?
 
-	const handleSetValues: FieldFormViewProps['onChange'] = (values) => {
-		valuesRef.current = values;
+	const contextRef = useRef<EditAppContextProps>(null);
+	if (!contextRef.current) contextRef.current = createContextObject();
+
+	const [type, setType] = useState(() => ({ ...props.type })); // Working copy of the ContentType being edited.
+	const [open, setOpen] = useState(false);
+	const [openXmlViewer, setOpenXmlViewer] = useState<string>(); // TODO: Temp, for testing, remove.
+	const [selectedFieldIdPath, setSelectedFieldIdPath] = useState<string>(null);
+	const [hasPendingChanges, setHasPendingChanges] = useState(false);
+	const [virtualContentType, setVirtualContentType] = useState<ContentType>(null);
+	const [fieldFormViewProps, setFieldFormViewProps] = useState<FieldFormViewProps>(null);
+	const [fieldPathsWithErrors, setFieldPathsWithErrors] = useState<LookupTable<boolean>>({});
+
+	/** Saves and commits the state changes. Returns undefined if no changes occurred. */
+	const commitOpenFormChanges = () => {
+		// No form open, nothing to commit. Or, a form was opened but no changes were made.
+		if (!open || !contextRef.current.formFieldsChanged) return;
+		let updatedType: ContentType;
+		const values = extractAtomValues(jotai, contextRef.current.activeFormContext.atoms.valueByFieldId);
+		if (contextRef.current.selectedField) {
+			updatedType = updateTypeFromFieldUpdate(type, contextRef.current.selectedField, values);
+		} else if (contextRef.current.selectedSection) {
+			updatedType = updateTypeFromSectionUpdate(type, contextRef.current.selectedSection, values);
+		} else if (contextRef.current.selectedDataSource) {
+			updatedType = updateTypeFromDataSourceUpdate(type, contextRef.current.selectedDataSource, values);
+		} else {
+			// There's no selected field, section or data source, so assume the type itself is being edited.
+			updatedType = updateTypeProps(type, values as TypePropsToEdit);
+		}
+		setType(updatedType);
+		return updatedType;
 	};
-	const handleFieldSelected: FieldChipProps['onFieldSelected'] = (fieldPath, field) => {
-		const controlDescriptor = controlDescriptors[field.type as BuiltInControlType];
-		if (!controlDescriptor)
-			return showAlert({ message: `No control descriptor found for field "${field.name}" of type "${field.type}"` });
-		const pathToField = makeIntoTypeFieldStructPath(fieldPath);
-		const virtualType = createVirtualType(controlDescriptor);
-		const fieldValues = retrieveProperty(typeValuesObject, pathToField);
-		setSelectedField(retrieveProperty(type.fields, pathToField));
-		setVirtualTypeValues(fieldValues);
-		setVirtualContentType(virtualType);
-		setSelectedFieldIdPath(fieldPath);
-		setOpen(true);
+	/** Returns true if no form is opened or if the active form it's all valid and can be committed and closed. Returns false otherwise. */
+	const performCurrentFormErrorCheckAndWarning = () => {
+		if (open && validityAtomsHaveErrors(jotai, contextRef.current.activeFormContext.atoms.validationByFieldId)) {
+			showAlert({ message: formatMessage({ defaultMessage: `Please fix errors before moving on` }) });
+			return false;
+		}
+		return true;
 	};
-	const handleCloseForm: FieldFormViewProps['onClose'] = () => {
-		setSelectedField(null);
-		setVirtualTypeValues(null);
+	/** Closes the active form and cleans up state. */
+	const closeAndCleanup = () => {
+		if (!performCurrentFormErrorCheckAndWarning()) return false;
+		commitOpenFormChanges();
+		contextRef.current.selectedField = null;
+		contextRef.current.selectedSection = null;
+		contextRef.current.selectedDataSource = null;
+		contextRef.current.formFieldsChanged = false;
+		// `activeFormContext` is not nulled since without it, FieldFormView would crash
+		// contextRef.current.activeFormContext = null;
 		setVirtualContentType(null);
 		setSelectedFieldIdPath(null);
 		setOpen(false);
+		return true;
+	};
+	/** Performs the common steps that must occur when an artefact is selected for editing. */
+	const handleArtefactSelected = (
+		virtualType: ContentType,
+		stableFormContext: StableFormContextProps,
+		extraFormProps?: Partial<FieldFormViewProps>
+	) => {
+		setFieldFormViewProps({
+			type,
+			virtualType,
+			stableFormContext,
+			formApiContext: contextRef.current.formContextApi,
+			onClose: () => effectRefs.current.closeAndCleanup(),
+			...extraFormProps
+		});
+		// Note: things set here should be cleaned up in closeAndCleanup
+		contextRef.current.activeFormContext = stableFormContext;
+		setVirtualContentType(virtualType);
+		setOpen(true);
+	};
+
+	const effectRefs = useUpdateRefs({ jotai, selectedFieldIdPath, fieldPathsWithErrors, closeAndCleanup });
+
+	const handleFieldSelected: FieldChipProps['onFieldSelected'] = (fieldIdPath, field) => {
+		if (!closeAndCleanup()) return;
+
+		const controlDescriptor = controlDescriptors[field.type as BuiltInControlType];
+		if (!controlDescriptor)
+			return showAlert({ message: `No control descriptor found for field "${field.name}" of type "${field.type}"` });
+
+		const virtualType = createVirtualTypeForField(controlDescriptor);
+		handleArtefactSelected(
+			virtualType,
+			createVirtualTypeFormContext(virtualType, createTypeFieldValuesObject(field), contentTypesLookup, {
+				fieldUpdates$: contextRef.current.fieldUpdates$
+			}),
+			{ field, fieldIdPath, controlDescriptor }
+		);
+
+		setSelectedFieldIdPath(fieldIdPath);
+		contextRef.current.selectedField = field;
+	};
+	const handleSectionSelected: TypeDetailsViewProps['onSectionSelected'] = (section) => {
+		if (!closeAndCleanup()) return;
+		const virtualType = createVirtualTypeForSection(sectionDescriptor);
+		handleArtefactSelected(
+			virtualType,
+			createVirtualTypeFormContext(virtualType, section as unknown as LookupTable<unknown>, contentTypesLookup, {
+				fieldUpdates$: contextRef.current.fieldUpdates$
+			}),
+			{ section }
+		);
+		contextRef.current.selectedSection = section;
+	};
+	const handleDataSourceSelected: TypeDetailsViewProps['onDataSourceSelected'] = (dataSource) => {
+		return showAlert({ message: 'Not implemented' });
+		// TODO: Similar to fields...
+		// if (!closeAndCleanup()) return;
+		// const virtualType =
+		// contextRef.current.selectedDataSource = dataSource;
+		// handleArtefactSelected(
+		// 	virtualType,
+		// 	createVirtualTypeFormContext(virtualType, createTypeFormValuesObject(type), contentTypesLookup, {
+		// 		fieldUpdates$: contextRef.current.fieldUpdates$
+		// 	}),
+		// 	{ dataSource }
+		// );
+	};
+
+	const handleCloseDrawer: EditAppLayoutProps['onClose'] = () => effectRefs.current.closeAndCleanup();
+	const handleEditTypeAction: TypeDetailsViewProps['onEditTypeAction'] = (e, target) => {
+		switch (target) {
+			case 'properties': {
+				if (!closeAndCleanup()) return;
+				const virtualType = createEmptyTypeStructure(typeBasicDetailsDescriptor);
+				handleArtefactSelected(
+					virtualType,
+					createVirtualTypeFormContext(virtualType, createTypeFormValuesObject(type), contentTypesLookup, {
+						fieldUpdates$: contextRef.current.fieldUpdates$
+					})
+				);
+				break;
+			}
+			case 'template':
+				showAlert({ message: `Not implemented (template)` });
+				break;
+			case 'jsController':
+				showAlert({ message: `Not implemented (jsController)` });
+				break;
+			case 'groovyController':
+				showAlert({ message: `Not implemented (groovyController)` });
+				break;
+			case 'deleted':
+				showAlert({ message: `Not implemented (deleted)` });
+				break;
+		}
+	};
+	const handleToolbarActionClick: EditAppLayoutProps['onActionClick'] = (e, action) => {
+		switch (action) {
+			case 'exit':
+				if (!performCurrentFormErrorCheckAndWarning()) break;
+				onClose?.();
+				break;
+			case 'save': {
+				if (!performCurrentFormErrorCheckAndWarning()) break;
+				const latestUpdate = commitOpenFormChanges();
+				save(site, latestUpdate ?? type).subscribe({
+					next(xml) {
+						const highlighted = hljs.highlight(xml, { language: 'xml' }).value;
+						setOpenXmlViewer(highlighted);
+					},
+					error() {
+						showAlert({ message: formatMessage({ defaultMessage: `Error saving content type` }) });
+					}
+				});
+				break;
+			}
+		}
 	};
 
 	// region const fieldEditorView = ...
 	// TODO: Add field, add section also to render on the reactive side panel
-	const fieldEditorView = virtualContentType ? (
-		<FieldFormView
-			field={selectedField}
-			fieldIdPath={selectedFieldIdPath}
-			type={virtualContentType}
-			values={virtualTypeValues}
-			onChange={handleSetValues}
-			onClose={handleCloseForm}
-		/>
-	) : null;
+	const fieldEditorView = virtualContentType ? createElement(FieldFormView, fieldFormViewProps) : null;
 	// endregion
 
+	// `fieldUpdates$` subscription
+	useEffect(() => {
+		const sub = contextRef.current.fieldUpdates$.pipe(debounceTime(500)).subscribe(() => {
+			setHasPendingChanges(true);
+			contextRef.current.formFieldsChanged = true;
+
+			const { activeFormContext } = contextRef.current;
+			const { jotai, fieldPathsWithErrors, selectedFieldIdPath } = effectRefs.current;
+			const { atoms } = activeFormContext;
+			const nextFieldPathsWithErrors = { ...fieldPathsWithErrors };
+
+			// Check validations atoms of the form to see if there are any unfulfilled validations.
+			nextFieldPathsWithErrors[selectedFieldIdPath] = validityAtomsHaveErrors(jotai, atoms.validationByFieldId);
+			if (!nextFieldPathsWithErrors[selectedFieldIdPath]) delete nextFieldPathsWithErrors[selectedFieldIdPath];
+
+			setFieldPathsWithErrors(nextFieldPathsWithErrors);
+		});
+		return () => {
+			sub.unsubscribe();
+		};
+	}, [effectRefs]);
+
+	const disableSave = !hasPendingChanges || Object.keys(fieldPathsWithErrors).length !== 0;
+
 	return (
-		<Box
-			ref={containerRef}
-			height="100%"
-			display="flex"
-			flexDirection="column"
-			overflow="hidden"
-			bgcolor="background.default"
-		>
-			<ViewToolbar
-				ref={toolbarRef}
-				slotProps={{
-					toolbar: {
-						component: Container,
-						maxWidth: open && useDrawer ? false : 'lg'
-					} as Partial<ToolbarProps & ContainerProps>
-				}}
-			>
-				<Box display="flex" alignItems="center">
-					<Tooltip title={<FormattedMessage defaultMessage="Done" />}>
-						<IconButton onClick={props.onClose} sx={{ mr: 1 }}>
-							<ArrowBackRounded />
-						</IconButton>
-					</Tooltip>
-					<Typography variant="h5" component="h1" noWrap>
-						<FormattedMessage defaultMessage="New Content Type" />
-					</Typography>
-				</Box>
-				<div />
-			</ViewToolbar>
-			<Box position="relative" flexGrow={1} sx={getMarginSxProps()}>
-				<Main
-					open={useDrawer && open}
-					drawerWidth={drawerWidth}
-					sx={{ height: 'var(--container-height)', overflow: 'auto', py: 2 }}
-				>
-					<Container maxWidth="lg" className="space-y-2">
-						<TypeDetailsView
-							type={type}
-							onFieldSelected={handleFieldSelected}
-							selectedFieldIdPath={selectedFieldIdPath}
-						/>
-					</Container>
-				</Main>
-				{
-					// region fieldEditorView
-					useDrawer ? (
-						<Drawer
-							open={open}
-							anchor="right"
-							variant="persistent"
-							sx={{
-								flexShrink: 0,
-								width: drawerWidth,
-								height: 'var(--container-height)',
-								[`& > .${paperClasses.root}`]: {
-									position: 'absolute',
-									width: drawerWidth,
-									boxSizing: 'border-box',
-									backgroundColor: theme.palette.background.default
-								}
-							}}
-						>
-							{fieldEditorView}
-						</Drawer>
-					) : (
-						<Dialog open={open} onClose={handleCloseForm}>
-							{fieldEditorView}
-						</Dialog>
-					)
-					// endregion
+		<Provider store={jotai}>
+			<EditAppLayout
+				open={open}
+				onClose={handleCloseDrawer}
+				disableSave={disableSave}
+				onActionClick={handleToolbarActionClick}
+				drawerContent={fieldEditorView}
+				mainContent={
+					<TypeDetailsView
+						type={type}
+						onEditTypeAction={handleEditTypeAction}
+						onFieldSelected={handleFieldSelected}
+						onDataSourceSelected={handleDataSourceSelected}
+						onSectionSelected={handleSectionSelected}
+						fieldPathsWithErrors={fieldPathsWithErrors}
+						selectedFieldIdPath={selectedFieldIdPath}
+					/>
 				}
-			</Box>
-		</Box>
+			/>
+			{
+				// region Temp Dialog to show XML
+				<Dialog open={Boolean(openXmlViewer)} onClose={() => setOpenXmlViewer(null)} maxWidth="lg" fullWidth>
+					<Typography
+						variant="body2"
+						component="pre"
+						dangerouslySetInnerHTML={{ __html: openXmlViewer }}
+						sx={{ py: 1, px: 2, fontFamily: 'monospace' }}
+					/>
+				</Dialog>
+				// endregion
+			}
+		</Provider>
 	);
 }
 
+function createContextObject(): EditAppContextProps {
+	return {
+		fieldUpdates$: new Subject<string>(),
+		formContextApi: createFieldFormContextApi(),
+		activeFormContext: null,
+		selectedField: null,
+		selectedSection: null,
+		selectedDataSource: null,
+		formFieldsChanged: false
+	};
+}
+
+function getIdFromIdPath(idPath: string): string {
+	const pieces = idPath.split('.');
+	return pieces.pop();
+}
+
+function addSection(type: ContentType, section: ContentTypeSection): ContentType {
+	const nextSections = type.sections.concat(section);
+	return { ...type, sections: nextSections };
+}
+
+function addField(type: ContentType, field: ContentTypeField): ContentType {
+	const nextFields = { ...type.fields, [field.id]: field };
+	const nextSections = type.sections.concat();
+	return { ...type, sections: nextSections, fields: nextFields };
+}
+
+function updateTypeProps(type: ContentType, updatedTypeDetails: TypePropsToEdit): ContentType {
+	return { ...type, ...pluckProps(updatedTypeDetails, ...typePropsToEdit) };
+}
+
+function updateTypeFromFieldUpdate(
+	type: ContentType,
+	selectedField: ContentTypeField,
+	updatedValues: LookupTable<unknown>
+): ContentType {
+	if (!selectedField) return;
+
+	const updatedType: ContentType = { ...type, fields: { ...type.fields } };
+	const updatedField = reverseTypeFieldValuesObject(selectedField, updatedValues);
+
+	updatedType.fields[updatedField.id] = updatedField;
+
+	if (updatedField.id !== selectedField.id) {
+		// Delete the old id
+		delete updatedType.fields[selectedField.id];
+		// Find the section in which the field is located
+		const sectionIndex = updatedType.sections.findIndex((section) => section.fields.includes(selectedField.id));
+		const section: ContentTypeSection = {
+			...updatedType.sections[sectionIndex],
+			fields: updatedType.sections[sectionIndex].fields.concat()
+		};
+		// Replace the field in the section
+		const fieldIndex = section.fields.findIndex((fieldId) => fieldId === selectedField.id);
+		section.fields[fieldIndex] = updatedField.id;
+		updatedType.sections = updatedType.sections.concat();
+		updatedType.sections[sectionIndex] = section;
+	}
+
+	return updatedType;
+}
+
+function updateTypeFromSectionUpdate(
+	type: ContentType,
+	selectedSection: ContentTypeSection,
+	updatedValues: LookupTable<unknown>
+): ContentType {
+	const updatedType: ContentType = { ...type, sections: type.sections.concat() };
+	const index = updatedType.sections.findIndex((item) => item.id === selectedSection.id);
+	updatedType.sections[index] = { ...selectedSection, ...updatedValues };
+	console.log(index, selectedSection, updatedValues, updatedType);
+	return updatedType;
+}
+
+function updateTypeFromDataSourceUpdate(
+	type: ContentType,
+	selectedDataSource: DataSource,
+	updatedValues: LookupTable<unknown>
+): ContentType {
+	console.log(selectedDataSource, updatedValues);
+	const updatedType: ContentType = { ...type, dataSources: type.dataSources.concat() };
+	const index = updatedType.dataSources.findIndex((item) => item.id === selectedDataSource.id);
+	updatedType.dataSources[index] = selectedDataSource;
+	return updatedType;
+}
+
+// merge the basic details, the non-edited field values, the manipulated field atoms into a single object
+// that gets serialized to XML and stored
+function save(siteId: string, type: ContentType): Observable<string> {
+	const typeStructure = prepareSerializeToXmlTypeObject(type);
+	// console.log(typeStructure);
+	const xml = buildContentTypeXml(typeStructure);
+	return of(xml);
+	// TODO: Validation? This get pre-validated?
+	// return writeConfiguration(siteId, createFormDefinitionPathFromTypeId(type.id), 'studio', xml);
+}
+
+function validityAtomsHaveErrors(jotai: JotaiStore, atoms: FormsEngineAtoms['validationByFieldId']) {
+	// Check validations atoms of the form to see if there are any unfulfilled validations.
+	return Object.values(atoms).some((atom) => !jotai.get(atom).isValid);
+}
+
 export default EditTypeApp;
+
+// TODO:
+//  - i18n
+//  - Because IDs can be modified, keep a lookup table of `{ [nanoid]: id }`?
+//  - Filter based on archetypes on type listing.
+//  - BE tickets for APIs etc
+//  - BE ticket for UM section ids
+//  - BE ticket for UM config.xml transfer props to form-def.xml and remove file.
+// 		- Changes have been made on the UI to assume controller, imageThumbnail, no-template-required and paths are in form-def.xml (e.g. parseLegacyFormDefinition)
+//  - BE ticket: `/studio/api/2/configuration/content-type/usage` API replies with paths and within the UI (fetchContentTypeUsage) it'll immediately fetch the ContentItem for each path. Could we update for API to return ContentItems?
+//  - Can we move display-template, no-template-required and merge-strategy to the root of the type def? If so, update BE, UI and UM
+//    - If not moved, drop `label` & `type`?
+//  - Should we rename the root tag on form-def.xml from `form` to something like `type`, `contentType` or so?
+//  - Can we drop iceId?
+//  - Translation of control descriptors and archetype templates
+// 	- Should we use UM to remove from maxlength property and move into constraints? Also fix spelling to `maxLength`
+// 	- Can we add created, modified, createdBy and modifiedBy to the XML?

@@ -26,9 +26,16 @@ import { ItemTypeIcon } from '../ItemTypeIcon';
 import { FormattedMessage } from 'react-intl';
 import React from 'react';
 
-export function TypeDetailsHeader({ type }: { type: ContentType }) {
+export type TypeDetailsHeaderActionTarget = 'properties' | 'template' | 'jsController' | 'groovyController' | 'deleted';
+
+export interface TypeDetailsHeaderProps {
+	type: ContentType;
+	onActionClick(event: Parameters<ButtonProps['onClick']>[0], target: TypeDetailsHeaderActionTarget): void;
+}
+
+export function TypeDetailsHeader({ type, onActionClick }: TypeDetailsHeaderProps) {
 	const dispatch = useDispatch();
-	const handleDeleteType: ButtonProps['onClick'] = () => {
+	const handleDeleteType: ButtonProps['onClick'] = (e) => {
 		dispatch(
 			pushDialog({
 				component: 'craftercms.components.DeleteContentTypeDialog',
@@ -36,10 +43,14 @@ export function TypeDetailsHeader({ type }: { type: ContentType }) {
 					contentType: type,
 					onComplete() {
 						console.log('Deleted.');
+						onActionClick?.(e, 'deleted');
 					}
 				} as Partial<DeleteContentTypeDialogProps>
 			})
 		);
+	};
+	const handleActionClick = (e) => {
+		onActionClick?.(e, e.currentTarget.getAttribute('data-action-target') as TypeDetailsHeaderActionTarget);
 	};
 	return (
 		<Box display="flex" gap={1}>
@@ -59,25 +70,26 @@ export function TypeDetailsHeader({ type }: { type: ContentType }) {
 					<FormattedMessage
 						defaultMessage="Last updated on <b>{date}</b> by <b>{user}</b>"
 						values={{
+							// TODO: Where does this come from? Add to XML?
 							date: 'today',
 							user: 'John',
 							b: (text) => <strong key={text[0] as string}>{text[0]}</strong>
 						}}
 					/>
 				</Typography>
-				<Button onClick={undefined}>
+				<Button onClick={handleActionClick} data-action-target="properties">
 					<FormattedMessage defaultMessage="Properties" />
 				</Button>
-				<Button onClick={undefined}>
+				<Button onClick={handleActionClick} data-action-target="template">
 					<FormattedMessage defaultMessage="Template" />
 				</Button>
-				<Button onClick={undefined}>
+				<Button onClick={handleActionClick} data-action-target="jsController">
 					<FormattedMessage defaultMessage="Form Controller" />
 				</Button>
-				<Button onClick={undefined}>
+				<Button onClick={handleActionClick} data-action-target="groovyController">
 					<FormattedMessage defaultMessage="Groovy Controller" />
 				</Button>
-				<Button onClick={handleDeleteType} color="error">
+				<Button color="error" onClick={handleDeleteType}>
 					<FormattedMessage defaultMessage="Delete" />
 				</Button>
 			</Box>

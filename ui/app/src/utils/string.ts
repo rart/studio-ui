@@ -284,3 +284,7 @@ export function isEmpty(str: string): boolean {
 	if (str == null) return true;
 	return str.trim() === '';
 }
+
+export function toBooleanString(bool: boolean): 'true' | 'false' {
+	return bool ? 'true' : 'false';
+}

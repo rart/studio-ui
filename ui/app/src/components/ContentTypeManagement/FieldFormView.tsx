@@ -14,11 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { createElement, PropsWithChildren, RefObject, useEffect, useMemo, useRef } from 'react';
+import React, { createElement, useEffect, useRef } from 'react';
 import {
 	FormsEngineFormApiContextProps,
 	FormsEngineFormContextApi,
-	FormsEngineItemMetaContextProps,
 	ItemContext,
 	ItemMetaContext,
 	StableFormContext,
@@ -26,8 +25,6 @@ import {
 	StableGlobalContext,
 	useStableFormContext
 } from '../FormsEngine/lib/formsEngineContext';
-import controlDescriptors from './descriptors';
-import type { BuiltInControlType } from '../FormsEngine/lib/controlMap';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -47,103 +44,84 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ContentTypeFieldIcon from '../../icons/ContentTypeField';
 import ListItemText from '@mui/material/ListItemText';
 import SectionAccordion from '../FormsEngine/components/SectionAccordion';
-import Paper from '@mui/material/Paper';
 import { renderFieldControl } from '../FormsEngine/lib/controlHelpers';
 import FormBackToTop from '../FormsEngine/components/FormBackToTop';
-import ContentType, { ContentTypeField } from '../../models/ContentType';
-import LookupTable from '../../models/LookupTable';
-import { createStore, Provider } from 'jotai/index';
-import useContentTypes from '../../hooks/useContentTypes';
-import { createStableFormContextProps, fooStableGlobalContextRef } from './utils';
-import { Subject } from 'rxjs';
-import { createParsedValueForField } from '../FormsEngine/lib/valueRetrievers';
-import { setFieldAtoms } from '../FormsEngine/lib/formUtils';
+import ContentType, { ContentTypeField, ContentTypeSection } from '../../models/ContentType';
+import { fooStableGlobalContext, PartialContentType } from './utils';
+import ErrorBoundary from '../ErrorBoundary/ErrorBoundary';
+import Alert from '@mui/material/Alert';
 
-export interface FieldFormViewProps {
+interface TypeModeProps {
 	type: ContentType;
+}
+
+interface FieldModeProps {
 	field: ContentTypeField;
-	// section
-	// dataSource
 	fieldIdPath: string;
-	values: LookupTable<unknown>;
-	onChange(values: LookupTable<unknown>): void;
+	controlDescriptor: PartialContentType;
+}
+
+interface SectionModeProps {
+	section: ContentTypeSection;
+}
+
+interface DataSourceModeProps {
+	dataSource: unknown;
+}
+
+interface BaseProps extends Partial<FieldModeProps & SectionModeProps & DataSourceModeProps & TypeModeProps> {
+	virtualType: ContentType;
+	formApiContext: FormsEngineFormApiContextProps;
+	stableFormContext: StableFormContextProps;
 	onClose(): void;
 }
 
+export type FieldFormViewProps = BaseProps & (TypeModeProps | FieldModeProps | SectionModeProps | DataSourceModeProps);
+
 function FieldFormViewBody(props: FieldFormViewProps) {
-	const { type, field, fieldIdPath, values, onChange, onClose } = props;
+	const { virtualType, onClose } = props;
 	const containerRef = useRef<HTMLDivElement>(undefined);
 	const stableFormContext = useStableFormContext();
-	const controlDescriptor = controlDescriptors[field.type as BuiltInControlType];
-	const fieldPathIds = fieldIdPath?.split('.') ?? [];
+
 	useEffect(() => {
 		containerRef.current.scroll({ top: 0, behavior: 'smooth' });
-	}, [type]);
-	return (
-		<Box ref={containerRef} sx={{ py: 2, height: 'var(--container-height)', overflow: 'auto' }}>
-			<Container maxWidth="md">
-				<Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-					<Box display="flex" flexDirection="column">
-						<Typography variant="h6">
-							<FormattedMessage defaultMessage="Edit Field" />
-						</Typography>
-						{fieldPathIds.length > 1 && (
-							<Breadcrumbs separator={<NavigateNextIcon fontSize="small" />}>
-								{fieldPathIds.map((id) => (
-									<Typography variant="body2">{id}</Typography>
-								))}
-							</Breadcrumbs>
-						)}
-					</Box>
-					<Box display="flex" alignItems="center">
-						<Tooltip title={<FormattedMessage defaultMessage="Move to another section" />}>
-							<IconButton>
-								<DriveFileMoveOutlined />
-							</IconButton>
-						</Tooltip>
-						{field.id !== XmlKeys.internalName && field.id !== XmlKeys.fileName && (
-							<Tooltip title={<FormattedMessage defaultMessage="Delete field" />}>
-								<IconButton>
-									<DeleteRounded />
-								</IconButton>
-							</Tooltip>
-						)}
-						<Divider sx={{ ml: 1, mr: 2 }} orientation="vertical" flexItem />
-						<Button variant="outlined" onClick={onClose}>
-							<FormattedMessage defaultMessage="Done" />
-						</Button>
-					</Box>
-				</Box>
-				<ListItem
-					component="div"
-					secondaryAction={
-						field.type === 'file-name' && (
-							<Tooltip title={<FormattedMessage defaultMessage="Swap Field" />}>
-								<IconButton>
-									<SwapCallsOutlined />
-								</IconButton>
-							</Tooltip>
-						)
-					}
-				>
-					<ListItemIcon>
-						<ContentTypeFieldIcon />
-					</ListItemIcon>
-					<ListItemText
-						primary={controlDescriptor.name}
-						secondary={controlDescriptor.description || controlDescriptor.id}
-					/>
-				</ListItem>
+	}, [virtualType]);
 
-				{type.sections.map((section) => (
+	return (
+		<Box height="var(--container-height)" display="flex" flexDirection="column">
+			<Box display="flex" justifyContent="space-between" alignItems="center" py={2} px={3}>
+				<Box display="flex" flexDirection="column" position="sticky" top="0">
+					<Typography variant="h6">{pickPanelTitleByMode(props)}</Typography>
+					{createElement(FieldBreadcrumbs, props)}
+				</Box>
+				<Box display="flex" alignItems="center">
+					{createElement(FieldActions, props)}
+					{createElement(SectionActions, props)}
+					{createElement(DataSourceActions, props)}
+					<Divider sx={{ ml: 1, mr: 2 }} orientation="vertical" flexItem />
+					<Button variant="outlined" onClick={onClose}>
+						<FormattedMessage defaultMessage="Done" />
+					</Button>
+				</Box>
+			</Box>
+			<Container ref={containerRef} maxWidth="md" sx={{ overflow: 'auto', flex: 1 }}>
+				{createElement(FieldSwapper, props)}
+
+				{virtualType.sections.map((section) => (
 					<SectionAccordion
 						key={section.title}
 						section={section}
 						colorize={false}
 						renderControl={(fieldId) => {
-							const field = type.fields[fieldId];
-							if (!field) return <Paper sx={{ p: 1 }}>Field {fieldId} not found</Paper>;
-							return renderFieldControl(field, stableFormContext.atoms.valueByFieldId, false, false, type);
+							const field = virtualType.fields[fieldId];
+							// TODO: tokenize not found on file-name
+							if (!field)
+								return (
+									<Alert key={fieldId} severity="error">
+										Field {fieldId} not found
+									</Alert>
+								);
+							return renderFieldControl(field, stableFormContext.atoms.valueByFieldId, false, false, virtualType);
 						}}
 					/>
 				))}
@@ -154,69 +132,13 @@ function FieldFormViewBody(props: FieldFormViewProps) {
 	);
 }
 
-export function createFieldFormContext(
-	type: ContentType,
-	values: LookupTable<unknown>,
-	contentTypesLookup: LookupTable<ContentType>
-): StableFormContextProps {
-	const context = createStableFormContextProps({ type });
-	const contextRef: RefObject<StableFormContextProps> = { current: context };
-	const contentTypeFields = type.fields;
-	const formValues: LookupTable<unknown> = {};
-	context.atoms.valueByFieldId = {};
-	context.atoms.validationByFieldId = {};
-	context.changedFieldIds = new Set();
-	context.originalValues = values;
-	context.fieldUpdates$ = new Subject();
-	Object.values(contentTypeFields).forEach((field) => {
-		formValues[field.id] = createParsedValueForField(values[field.id], field, contentTypesLookup);
-		setFieldAtoms(contextRef, type, type.fields, field.id, context.atoms, formValues[field.id]);
-	});
-	return context;
-}
-
-export function createFieldFormContextApi(): FormsEngineFormApiContextProps {
-	const api: FormsEngineFormApiContextProps = {
-		rollback() {},
-		rollbackField() {},
-		setValuesCheckpoint() {}
-	};
-	return api;
-}
-
-export function createFieldItemMetaContext(type: ContentType): FormsEngineItemMetaContextProps {
-	const context: FormsEngineItemMetaContextProps = {
-		id: '',
-		path: '',
-		sourceMap: null,
-		pathInSite: '',
-		contentType: type,
-		contentObject: {},
-		contentXml: null
-	};
-	return context;
-}
-
-export function FieldFormView(props: PropsWithChildren<FieldFormViewProps>) {
-	const { type, values } = props;
-	const store = useMemo(() => createStore(), []); // TODO: Use stable memo?
-	const contentTypesLookup = useContentTypes();
-	const contextApi = useMemo<FormsEngineFormApiContextProps>(() => createFieldFormContextApi(), []);
-	const stableFormContext = useMemo<StableFormContextProps>(
-		() => createFieldFormContext(type, values, contentTypesLookup),
-		[contentTypesLookup, values, type]
-	);
-	const itemMetaContext = useMemo<FormsEngineItemMetaContextProps>(() => createFieldItemMetaContext(type), [type]);
-	useEffect(() => {
-		const sub = stableFormContext.fieldUpdates$.subscribe(() => {});
-		return () => {
-			sub.unsubscribe();
-		};
-	}, [stableFormContext.fieldUpdates$]);
+export function FieldFormView(props: FieldFormViewProps) {
+	const { stableFormContext, formApiContext } = props;
+	const itemMetaContext = stableFormContext.itemMeta;
 	return (
-		<Provider store={store}>
-			<StableGlobalContext.Provider value={fooStableGlobalContextRef}>
-				<FormsEngineFormContextApi.Provider value={contextApi}>
+		<ErrorBoundary>
+			<StableGlobalContext.Provider value={fooStableGlobalContext}>
+				<FormsEngineFormContextApi.Provider value={formApiContext}>
 					<StableFormContext.Provider value={stableFormContext}>
 						<ItemContext.Provider value={null}>
 							<ItemMetaContext.Provider value={itemMetaContext}>
@@ -226,8 +148,124 @@ export function FieldFormView(props: PropsWithChildren<FieldFormViewProps>) {
 					</StableFormContext.Provider>
 				</FormsEngineFormContextApi.Provider>
 			</StableGlobalContext.Provider>
-		</Provider>
+		</ErrorBoundary>
 	);
+}
+
+function FieldBreadcrumbs(props: FieldFormViewProps): JSX.Element {
+	if (!props.field) return;
+	const fieldPathIds = props.fieldIdPath?.split('.') ?? [];
+	return (
+		fieldPathIds.length > 1 && (
+			<Breadcrumbs separator={<NavigateNextIcon fontSize="small" />}>
+				{fieldPathIds.map((id) => (
+					<Typography variant="body2">{id}</Typography>
+				))}
+			</Breadcrumbs>
+		)
+	);
+}
+
+function FieldActions(props: FieldFormViewProps): JSX.Element {
+	if (!props.field) return;
+	const field = props.field;
+	return (
+		<>
+			<Tooltip title={<FormattedMessage defaultMessage="Move to another section" />}>
+				<IconButton>
+					<DriveFileMoveOutlined />
+				</IconButton>
+			</Tooltip>
+			{field.id !== XmlKeys.internalName && field.id !== XmlKeys.fileName && (
+				<Tooltip title={<FormattedMessage defaultMessage="Delete field" />}>
+					<IconButton>
+						<DeleteRounded />
+					</IconButton>
+				</Tooltip>
+			)}
+		</>
+	);
+}
+
+function FieldSwapper(props: FieldFormViewProps): JSX.Element {
+	if (!props.field) return;
+	const { field, controlDescriptor } = props;
+	return (
+		<ListItem
+			component="div"
+			secondaryAction={
+				field.type === 'file-name' && (
+					<Tooltip title={<FormattedMessage defaultMessage="Swap Field" />}>
+						<IconButton>
+							<SwapCallsOutlined />
+						</IconButton>
+					</Tooltip>
+				)
+			}
+		>
+			<ListItemIcon>
+				<ContentTypeFieldIcon />
+			</ListItemIcon>
+			<ListItemText
+				primary={controlDescriptor.name}
+				secondary={controlDescriptor.description || controlDescriptor.id}
+			/>
+		</ListItem>
+	);
+}
+
+function SectionActions(props: FieldFormViewProps): JSX.Element {
+	if (!props.section) return;
+	const section = props.section;
+	return (
+		<>
+			<Tooltip title={<FormattedMessage defaultMessage="Delete Section" />}>
+				<IconButton>
+					<DeleteRounded />
+				</IconButton>
+			</Tooltip>
+		</>
+	);
+}
+
+function DataSourceActions(props: FieldFormViewProps): JSX.Element {
+	if (!props.dataSource) return;
+	const dataSource = props.dataSource;
+	return (
+		<>
+			<Tooltip title={<FormattedMessage defaultMessage="Delete Data Source" />}>
+				<IconButton>
+					<DeleteRounded />
+				</IconButton>
+			</Tooltip>
+		</>
+	);
+}
+
+type Mode = 'field' | 'section' | 'dataSource' | 'type';
+
+function identifyMode(props: FieldFormViewProps): Mode {
+	if (props.type) {
+		return 'type';
+	} else if (props.field) {
+		return 'field';
+	} else if (props.section) {
+		return 'section';
+	} else if (props.dataSource) {
+		return 'dataSource';
+	}
+}
+
+function pickPanelTitleByMode(props: FieldFormViewProps): JSX.Element {
+	if (props.type) {
+		return <FormattedMessage defaultMessage="Edit Type" />;
+	} else if (props.field) {
+		return <FormattedMessage defaultMessage="Edit Field" />;
+	} else if (props.section) {
+		return <FormattedMessage defaultMessage="Edit Section" />;
+	} else if (props.dataSource) {
+		return <FormattedMessage defaultMessage="Edit Data Source" />;
+	}
 }
 
 export default FieldFormView;

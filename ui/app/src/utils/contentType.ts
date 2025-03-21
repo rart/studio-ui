@@ -19,7 +19,7 @@ import ContentType, { ContentTypeField } from '../models/ContentType';
 import Jabber from 'jabber';
 import LookupTable from '../models/LookupTable';
 import { generatePlaceholderImageDataUrl } from './content';
-import { isEmpty, toColor } from './string';
+import { ensureSingleSlash, isEmpty, toColor } from './string';
 import { darken } from '@mui/material/styles';
 import type { Theme } from '@mui/material';
 import type { ObjectTypeOption } from '../components/ContentTypeFilter/ContentTypesFilter';
@@ -202,4 +202,8 @@ export const filterTypesByKeywordsAndObjectType = (
 export function getNormalizedFolderPathForApi1GetTypes(item: ContentItem): string {
 	// TODO: https://github.com/craftercms/craftercms/issues/4473
 	return item.systemType === 'folder' && !item.path.endsWith('/') ? `${item.path}/` : item.path;
+}
+
+export function createFormDefinitionPathFromTypeId(contentTypeId: string): string {
+	return ensureSingleSlash(`/content-types/${contentTypeId}/form-definition.xml`);
 }
