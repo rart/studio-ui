@@ -106,6 +106,8 @@ export function pickShowContentFormAction(oldProps: ReturnType<typeof showEditDi
 		? showEditDialog(oldProps)
 		: pushDialog({
 				component: 'craftercms.components.FormsEngineDialog',
+				allowFullScreen: true,
+				allowMinimize: true,
 				props: {
 					formProps: {
 						...(oldProps.isNewContent

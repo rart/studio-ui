@@ -30,6 +30,8 @@ export const arrayFieldExtractor: ValueRetriever<unknown[]> = (value) =>
 
 export const textFieldExtractor: ValueRetriever<string> = (value) => (value && String(value)) ?? '';
 
+export const textOrNullExtractor: ValueRetriever<string> = (value) => (value && String(value)) || null;
+
 export const numberFieldExtractor: ValueRetriever<number> = (value) => (value != null && Number(value)) ?? null;
 
 export const booleanFieldExtractor: ValueRetriever<boolean> = (value) => (value === true || value === 'true') ?? false;
@@ -62,7 +64,8 @@ export const valueRetrieverLookup: Record<BuiltInControlType, ValueRetriever> = 
 	time: null,
 	'transcoded-video-picker': textFieldExtractor,
 	uuid: textFieldExtractor,
-	'video-picker': textFieldExtractor
+	'video-picker': textFieldExtractor,
+	colorPicker: textOrNullExtractor
 };
 
 /**

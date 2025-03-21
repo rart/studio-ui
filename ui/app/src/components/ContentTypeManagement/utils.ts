@@ -25,7 +25,7 @@ import {
 import LookupTable from '../../models/LookupTable';
 import ContentType, { SerializeToXmlContentTypeStructure } from '../../models/ContentType';
 import { foo, fooFn, pluckProps } from '../../utils/object';
-import { commonControlFieldsDescriptors, defaultDataSourcesSection } from './descriptors';
+import { commonControlFieldsDescriptors, defaultDataSourcesSection } from './descriptors/controls';
 import {
 	FormsEngineFormApiContextProps,
 	FormsEngineItemMetaContextProps,
@@ -199,7 +199,7 @@ export function reverseTypeFieldValuesObject(field: ContentTypeField, values: Lo
 
 export type PartialContentType = Pick<ContentType, 'id' | 'name' | 'description' | 'sections' | 'fields'>;
 
-export function createEmptyTypeStructure(mixin: Partial<ContentType>): ContentType {
+export function createEmptyTypeStructure(mixin?: Partial<ContentType>): ContentType {
 	return {
 		id: null,
 		type: undefined,
@@ -285,7 +285,7 @@ export function createVirtualSection(
 
 export function createVirtualDataSourceFields(type: ContentType): LookupTable<ContentTypeField> {
 	const dataSourceFields: LookupTable<ContentTypeField> = {};
-	for (const dataSource of type.dataSources) {
+	for (const dataSource of type.dataSources ?? []) {
 		dataSourceFields[dataSource.id] = {
 			id: dataSource.id,
 			type: dataSource.type,

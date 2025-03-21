@@ -103,7 +103,7 @@ export function SearchBar(props: SearchBarProps) {
 					'&.noPadded': {
 						padding: '0 0 0 12px'
 					},
-					minHeight: '39px',
+					minHeight: '40px',
 					...sxs?.root
 				},
 				props.sx
@@ -149,7 +149,8 @@ export function SearchBar(props: SearchBarProps) {
 								background: 'none',
 								border: 'none',
 								width: '100%',
-								padding: (theme) => (dense ? theme.spacing(0.7, 0.625) : theme.spacing(1.25, 0.625)),
+								padding: 0,
+								paddingLeft: 5,
 								'&:focus': {
 									boxShadow: 'none'
 								}

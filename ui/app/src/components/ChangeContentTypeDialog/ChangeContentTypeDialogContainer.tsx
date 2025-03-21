@@ -18,9 +18,9 @@ import { ChangeContentTypeDialogContainerProps } from './utils';
 import React from 'react';
 import DialogBody from '../DialogBody/DialogBody';
 import { FormattedMessage } from 'react-intl';
-import SelectContentType from '../SelectContentType/SelectContentType';
+import SelectTypeView from '../ContentTypeManagement/components/SelectTypeView';
 import { getNormalizedFolderPathForApi1GetTypes } from '../../utils/contentType';
-import { ContentTypeListingProps } from '../ContentTypeManagement/ContentTypeListing';
+import { TypeListProps } from '../ContentTypeManagement/components/TypeList';
 import ItemDisplay from '../ItemDisplay';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -31,7 +31,7 @@ import { ObjectTypeOption } from '../ContentTypeFilter';
 export function ChangeContentTypeDialogContainer(props: ChangeContentTypeDialogContainerProps) {
 	const { item, onContentTypeSelected, initialCompact = false } = props;
 
-	const handleContentTypeSelected: ContentTypeListingProps['onCardClick'] = (_, contentType) => {
+	const handleContentTypeSelected: TypeListProps['onCardClick'] = (_, contentType) => {
 		onContentTypeSelected?.({ path: withoutIndex(item.path), contentType: contentType });
 	};
 
@@ -42,7 +42,7 @@ export function ChangeContentTypeDialogContainer(props: ChangeContentTypeDialogC
 
 	return (
 		<DialogBody sx={{ minHeight: 670 }}>
-			<SelectContentType
+			<SelectTypeView
 				initialCompact={initialCompact}
 				initialObjectTypeFilter={item.systemType as ObjectTypeOption}
 				contentTypesList={contentTypes}

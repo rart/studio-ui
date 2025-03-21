@@ -180,6 +180,10 @@ export interface ContentType {
 	dataSources: DataSource[];
 }
 
+export interface PossibleContentTypeDraft extends ContentType {
+	NEW?: true;
+}
+
 export interface ContentTypeBasicDetails {
 	controller: boolean;
 	imageThumbnail: string;

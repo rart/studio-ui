@@ -20,9 +20,9 @@ import React from 'react';
 import { ContentType } from '../../models/ContentType';
 import { withoutIndex } from '../../utils/path';
 import DialogBody from '../DialogBody/DialogBody';
-import { ContentTypeListingProps } from '../ContentTypeManagement/ContentTypeListing';
+import { TypeListProps } from '../ContentTypeManagement/components/TypeList';
 import { getNormalizedFolderPathForApi1GetTypes } from '../../utils/contentType';
-import SelectContentType from '../SelectContentType/SelectContentType';
+import SelectTypeView from '../ContentTypeManagement/components/SelectTypeView';
 import Typography from '@mui/material/Typography';
 import ItemDisplay from '../ItemDisplay';
 import Box from '@mui/material/Box';
@@ -35,13 +35,13 @@ export function NewContentDialogContainer(props: NewContentDialogContainerProps)
 		onContentTypeSelected?.({ path: withoutIndex(item.path), contentType });
 	};
 
-	const handleCardClick: ContentTypeListingProps['onCardClick'] = (_, type) => handleContentTypeSelected(type);
+	const handleCardClick: TypeListProps['onCardClick'] = (_, type) => handleContentTypeSelected(type);
 
 	const { contentTypes, isFetching } = useFetchAllowedTypesForPath(getNormalizedFolderPathForApi1GetTypes(item));
 
 	return (
 		<DialogBody sx={{ minHeight: 670 }}>
-			<SelectContentType
+			<SelectTypeView
 				initialCompact={initialCompact}
 				contentTypesList={contentTypes}
 				slotProps={{
