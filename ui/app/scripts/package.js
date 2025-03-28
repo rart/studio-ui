@@ -131,7 +131,7 @@ async function run() {
     await fse.copyFile(path.join(packagePath, 'scripts', 'LICENSE'), path.join(buildPath, 'LICENSE'));
     console.log('License file added');
 
-    await fse.copyFile(path.join(packagePath, 'scripts', 'README.md'), path.join(buildPath, 'README.md'));
+    await fse.copyFile(path.join(packagePath, 'README.md'), path.join(buildPath, 'README.md'));
     console.log('Readme file added');
 
     await bannerAndFormat();
