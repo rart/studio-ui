@@ -1459,16 +1459,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.2.0, @babel/runtime@npm:^7.23.9, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7":
-  version: 7.25.4
-  resolution: "@babel/runtime@npm:7.25.4"
-  dependencies:
-    regenerator-runtime: "npm:^0.14.0"
-  checksum: 10/70d2a420c24a3289ea6c4addaf3a1c4186bc3d001c92445faa3cd7601d7d2fbdb32c63b3a26b9771e20ff2f511fa76b726bf256f823cdb95bc37b8eadbd02f70
-  languageName: node
-  linkType: hard
-
-"@babel/runtime@npm:^7.25.7, @babel/runtime@npm:^7.26.10":
+"@babel/runtime@npm:^7.11.2, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.10, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.2.0, @babel/runtime@npm:^7.23.9, @babel/runtime@npm:^7.25.7, @babel/runtime@npm:^7.26.10, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7":
   version: 7.27.0
   resolution: "@babel/runtime@npm:7.27.0"
   dependencies:
@@ -1834,20 +1825,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emotion/cache@npm:*, @emotion/cache@npm:^11.13.0":
-  version: 11.13.1
-  resolution: "@emotion/cache@npm:11.13.1"
-  dependencies:
-    "@emotion/memoize": "npm:^0.9.0"
-    "@emotion/sheet": "npm:^1.4.0"
-    "@emotion/utils": "npm:^1.4.0"
-    "@emotion/weak-memoize": "npm:^0.4.0"
-    stylis: "npm:4.2.0"
-  checksum: 10/090c8ad2e5b23f1b3a95e94f1f0554a40ed1dcd844c9d31629a68ff824eff40f32d1362f67aefa440ee0aabd5a8cabcc76870fd6d77144d3ff251bdcdf1420b9
-  languageName: node
-  linkType: hard
-
-"@emotion/cache@npm:^11.13.5":
+"@emotion/cache@npm:*, @emotion/cache@npm:^11.13.0, @emotion/cache@npm:^11.13.5":
   version: 11.14.0
   resolution: "@emotion/cache@npm:11.14.0"
   dependencies:
@@ -1989,14 +1967,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emotion/utils@npm:*, @emotion/utils@npm:^1.4.0":
-  version: 1.4.0
-  resolution: "@emotion/utils@npm:1.4.0"
-  checksum: 10/e4cdb51819db01fec21c3e35a1391900c9e7f3ac1e7ecb419c8e408464830cd7ef6e1a116381cbfe3fb1039406fb7ed35f16a1575d502c92bc9f81bc13a3ee5a
-  languageName: node
-  linkType: hard
-
-"@emotion/utils@npm:^1.4.2":
+"@emotion/utils@npm:*, @emotion/utils@npm:^1.4.0, @emotion/utils@npm:^1.4.2":
   version: 1.4.2
   resolution: "@emotion/utils@npm:1.4.2"
   checksum: 10/e5f3b8bca066b3361a7ad9064baeb9d01ed1bf51d98416a67359b62cb3affec6bb0249802c4ed11f4f8030f93cc4b67506909420bdb110adec6983d712897208
@@ -4380,14 +4351,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/prop-types@npm:*, @types/prop-types@npm:^15.7.12":
-  version: 15.7.12
-  resolution: "@types/prop-types@npm:15.7.12"
-  checksum: 10/ac16cc3d0a84431ffa5cfdf89579ad1e2269549f32ce0c769321fdd078f84db4fbe1b461ed5a1a496caf09e637c0e367d600c541435716a55b1d9713f5035dfe
-  languageName: node
-  linkType: hard
-
-"@types/prop-types@npm:^15.7.14":
+"@types/prop-types@npm:*, @types/prop-types@npm:^15.7.12, @types/prop-types@npm:^15.7.14":
   version: 15.7.14
   resolution: "@types/prop-types@npm:15.7.14"
   checksum: 10/d0c5407b9ccc3dd5fae0ccf9b1007e7622ba5e6f1c18399b4f24dff33619d469da4b9fa918a374f19dc0d9fe6a013362aab0b844b606cfc10676efba3f5f736d
@@ -4430,16 +4394,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-transition-group@npm:^4.4.10":
-  version: 4.4.10
-  resolution: "@types/react-transition-group@npm:4.4.10"
-  dependencies:
-    "@types/react": "npm:*"
-  checksum: 10/b429f3bd54d9aea6c0395943ce2dda6b76fb458e902365bd91fd99bf72064fb5d59e2b74e78d10f2871908501d350da63e230d81bda2b616c967cab8dc51bd16
-  languageName: node
-  linkType: hard
-
-"@types/react-transition-group@npm:^4.4.11":
+"@types/react-transition-group@npm:^4.4.10, @types/react-transition-group@npm:^4.4.11":
   version: 4.4.12
   resolution: "@types/react-transition-group@npm:4.4.12"
   peerDependencies:
@@ -4448,17 +4403,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:16 || 17 || 18":
-  version: 18.3.3
-  resolution: "@types/react@npm:18.3.3"
-  dependencies:
-    "@types/prop-types": "npm:*"
-    csstype: "npm:^3.0.2"
-  checksum: 10/68e203b7f1f91d6cf21f33fc7af9d6d228035a26c83f514981e54aa3da695d0ec6af10c277c6336de1dd76c4adbe9563f3a21f80c4462000f41e5f370b46e96c
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:^18.3.20":
+"@types/react@npm:*, @types/react@npm:16 || 17 || 18, @types/react@npm:^18.3.20":
   version: 18.3.20
   resolution: "@types/react@npm:18.3.20"
   dependencies:
@@ -11164,14 +11109,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reselect@npm:^5.1.0":
-  version: 5.1.0
-  resolution: "reselect@npm:5.1.0"
-  checksum: 10/657c379d9461781b7cb5f0a32133e23b4266886660c94fcc77c102bec8abe484b32bf43a911b99b747ecf7439f157696561d744d40dc920024611beb1a0d921f
-  languageName: node
-  linkType: hard
-
-"reselect@npm:^5.1.1":
+"reselect@npm:^5.1.0, reselect@npm:^5.1.1":
   version: 5.1.1
   resolution: "reselect@npm:5.1.1"
   checksum: 10/1fdae11a39ed9c8d85a24df19517c8372ee24fefea9cce3fae9eaad8e9cefbba5a3d4940c6fe31296b6addf76e035588c55798f7e6e147e1b7c0855f119e7fa5
@@ -11423,21 +11361,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:^7.8.0":
+"rxjs@npm:^7.8.0, rxjs@npm:^7.8.1":
   version: 7.8.2
   resolution: "rxjs@npm:7.8.2"
   dependencies:
     tslib: "npm:^2.1.0"
   checksum: 10/03dff09191356b2b87d94fbc1e97c4e9eb3c09d4452399dddd451b09c2f1ba8d56925a40af114282d7bc0c6fe7514a2236ca09f903cf70e4bbf156650dddb49d
-  languageName: node
-  linkType: hard
-
-"rxjs@npm:^7.8.1":
-  version: 7.8.1
-  resolution: "rxjs@npm:7.8.1"
-  dependencies:
-    tslib: "npm:^2.1.0"
-  checksum: 10/b10cac1a5258f885e9dd1b70d23c34daeb21b61222ee735d2ec40a8685bdca40429000703a44f0e638c27a684ac139e1c37e835d2a0dc16f6fc061a138ae3abb
   languageName: node
   linkType: hard
 
@@ -12241,14 +12170,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:2":
+"tslib@npm:2, tslib@npm:^2.0.0, tslib@npm:^2.1.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.6.2":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10/3e2e043d5c2316461cb54e5c7fe02c30ef6dccb3384717ca22ae5c6b5bc95232a6241df19c622d9c73b809bea33b187f6dbc73030963e29950c2141bc32a79f7
   languageName: node
   linkType: hard
 
-"tslib@npm:2.6.2, tslib@npm:^2.0.0, tslib@npm:^2.1.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.6.2":
+"tslib@npm:2.6.2":
   version: 2.6.2
   resolution: "tslib@npm:2.6.2"
   checksum: 10/bd26c22d36736513980091a1e356378e8b662ded04204453d353a7f34a4c21ed0afc59b5f90719d4ba756e581a162ecbf93118dc9c6be5acf70aa309188166ca
